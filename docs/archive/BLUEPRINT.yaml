@@ -1,0 +1,2565 @@
+project_overview:
+  brief: "Xero Agent is an AI-powered accounting assistant that connects to Xero via MCP, providing natural language invoice management, expense tracking, financial reporting, and voice interaction. Built with Claude Agent SDK, deployed on AWS serverless infrastructure with DynamoDB for memory persistence and relationship progression."
+  core_objectives:
+    - "Launch free tier (text-only, 50 requests/month) with core invoice and expense management by Week 8"
+    - "Launch Pro tier ($29/month) with voice integration (1000 min), extended memory, and relationship progression by Week 14"
+    - "Achieve <2s voice latency, <$0.50/free user, $27-35/pro user infrastructure costs"
+  complexity: "complex"
+
+architecture:
+  pattern: "vertical-slice"
+  rationale: "Vertical-slice architecture enables parallel agent development of independent features (auth, MCP tools, agent core, voice) with minimal inter-agent coordination. Each slice contains frontend, backend, and infrastructure code, reducing token context needed for cross-layer changes."
+  components:
+    - name: "infrastructure"
+      purpose: "AWS resources via Terraform (DynamoDB, Lambda, API Gateway, Cognito, CloudFront)"
+      boundaries: "All IaC; excludes application logic"
+      dependencies: []
+      token_estimate: "<10k"
+    - name: "auth-integration"
+      purpose: "Cognito authentication and Xero OAuth 2.0 token management"
+      boundaries: "User signup/signin, OAuth flow, token refresh; excludes MCP server"
+      dependencies: ["infrastructure"]
+      token_estimate: "<15k"
+    - name: "mcp-xero-server"
+      purpose: "MCP server with Xero API tools (invoices, expenses, bank transactions, reports)"
+      boundaries: "Tool definitions, Xero API wrappers; excludes agent orchestration"
+      dependencies: ["auth-integration"]
+      token_estimate: "<20k"
+    - name: "agent-core"
+      purpose: "Claude Agent SDK orchestrator with sub-agents and memory persistence"
+      boundaries: "Agent logic, session management, context handling; excludes MCP tool implementation"
+      dependencies: ["mcp-xero-server", "memory-system"]
+      token_estimate: "<25k"
+    - name: "memory-system"
+      purpose: "Core and extended memory with relationship progression and vector search"
+      boundaries: "DynamoDB storage, vector embeddings, relationship logic; excludes agent orchestration"
+      dependencies: ["infrastructure"]
+      token_estimate: "<15k"
+    - name: "voice-integration"
+      purpose: "Real-time voice via WebSocket, AWS Transcribe, and Amazon Polly"
+      boundaries: "Voice streaming, transcription, TTS; excludes agent logic"
+      dependencies: ["agent-core", "subscription-management"]
+      token_estimate: "<18k"
+    - name: "subscription-management"
+      purpose: "Stripe billing, usage tracking, tier enforcement"
+      boundaries: "Payment processing, usage metering; excludes feature implementation"
+      dependencies: ["infrastructure"]
+      token_estimate: "<12k"
+    - name: "pwa-frontend"
+      purpose: "Mobile-first React PWA with chat, voice, and Xero data visualization"
+      boundaries: "UI components, state management, service worker; excludes backend"
+      dependencies: ["auth-integration", "agent-core", "voice-integration"]
+      token_estimate: "<30k"
+
+milestones:
+  milestone_1:
+    name: "v1.0 MVP - Free Tier Release"
+    timeline_weeks: "8"
+    description: "Launch text-only AI assistant with core invoice and expense management. Users can authenticate via Cognito, connect Xero account, and interact via natural language. Core memory persists preferences across sessions."
+    success_criteria:
+      - "User can create Cognito account and authenticate via JWT"
+      - "User can complete Xero OAuth flow and store tokens securely in Secrets Manager"
+      - "Agent can create invoices, track expenses, and generate basic reports via MCP tools"
+      - "Core memory retains user preferences (Xero org, timezone, communication style)"
+      - "PWA loads in <2.5s (LCP) and functions offline for chat history"
+      - "Infrastructure costs <$0.50 per free tier user per month"
+
+    epics:
+      epic_1:
+        name: "Infrastructure Foundation"
+        weeks: "1-2"
+        milestone: "Terraform deploys all AWS resources; DynamoDB table operational"
+
+        feature_1_1:
+          name: "Terraform AWS Core Infrastructure"
+          complexity:
+            composite: 2.8
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "Terraform modules for VPC, subnets, security groups"
+            - "IAM roles and policies for Lambda, API Gateway, DynamoDB"
+            - "S3 bucket for Terraform state with versioning and encryption"
+            - "CloudWatch log groups with retention policies"
+          acceptance_criteria:
+            - "terraform apply successfully creates all resources"
+            - "IAM policies follow least privilege (verified by checkov scan)"
+            - "State file stored in S3 with locking via DynamoDB"
+            - "All resources tagged with environment and project metadata"
+
+          task_1_1_1:
+            name: "VPC and Networking Setup"
+            complexity:
+              composite: 2.2
+            estimated_days: 2
+            deliverables:
+              - "VPC with public/private subnets across 2 AZs"
+              - "Internet gateway and NAT gateway configuration"
+              - "Route tables and security groups"
+            acceptance_criteria:
+              - "Private subnets have NAT gateway route to internet"
+              - "Security groups allow only necessary ports (443, 80)"
+              - "VPC endpoints configured for S3 and DynamoDB (cost optimization)"
+
+          task_1_1_2:
+            name: "IAM Roles and Policies"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "Lambda execution role with DynamoDB and Secrets Manager permissions"
+              - "API Gateway role for CloudWatch logging"
+              - "Cognito service role for user pool operations"
+            acceptance_criteria:
+              - "Roles use inline policies (no wildcards in actions or resources)"
+              - "checkov scan passes with 0 IAM policy violations"
+              - "Trust relationships explicitly define service principals"
+
+          task_1_1_3:
+            name: "Terraform State Management"
+            complexity:
+              composite: 1.8
+            estimated_days: 1
+            deliverables:
+              - "S3 backend configuration with versioning"
+              - "DynamoDB table for state locking"
+              - "Encryption at rest via KMS"
+            acceptance_criteria:
+              - "State file encrypted with AWS KMS CMK"
+              - "Versioning enabled (retain 30 days)"
+              - "Concurrent applies blocked by lock"
+
+          task_1_1_4:
+            name: "CloudWatch Logging Infrastructure"
+            complexity:
+              composite: 1.5
+            estimated_days: 1
+            deliverables:
+              - "Log groups for Lambda functions (7-day retention for dev, 30-day for prod)"
+              - "CloudWatch alarms for error rates"
+              - "Metric filters for critical events"
+            acceptance_criteria:
+              - "Log groups created with encryption"
+              - "Alarms trigger SNS notifications on errors >5 in 5 min"
+              - "Cost <$5/month for expected log volume"
+
+        feature_1_2:
+          name: "DynamoDB Single-Table Design"
+          complexity:
+            composite: 3.2
+            dimensions:
+              technical_complexity: 4
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 3
+              risk: 3
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "DynamoDB table with composite keys for all access patterns"
+            - "GSI for session lookup by user_id + timestamp"
+            - "LSI for subscription status filtering"
+            - "TTL attribute for extended memory expiration"
+          acceptance_criteria:
+            - "All 8 access patterns (users, sessions, tokens, memory, subscriptions, voice_sessions, conversations, relationships) queryable in O(1)"
+            - "Write capacity: 5 WCU on-demand, Read capacity: 5 RCU on-demand (free tier optimized)"
+            - "Point-in-time recovery enabled"
+            - "Encryption at rest via AWS managed keys"
+
+          task_1_2_1:
+            name: "Define Access Patterns and Key Design"
+            complexity:
+              composite: 3.0
+            estimated_days: 2
+            deliverables:
+              - "Access pattern matrix (PK, SK, GSI keys) for all entities"
+              - "Key design documentation (composite keys for multi-tenancy)"
+              - "Sample queries for each pattern"
+            acceptance_criteria:
+              - "8 access patterns mapped to PK/SK combinations"
+              - "GetItem, Query, and Scan operations defined for each entity"
+              - "Overloaded GSI strategy documented for cost efficiency"
+
+          task_1_2_2:
+            name: "Terraform DynamoDB Table Configuration"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "Table resource with PAY_PER_REQUEST billing mode"
+              - "GSI: GSI1 (user_id, timestamp) for session history"
+              - "TTL attribute: expires_at for extended memory"
+            acceptance_criteria:
+              - "Table supports 8 access patterns without additional GSIs (cost optimization)"
+              - "TTL enabled and verified with test items"
+              - "CloudWatch alarms for throttled requests"
+
+          task_1_2_3:
+            name: "Write DynamoDB Helper SDK"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "TypeScript SDK with type-safe CRUD operations"
+              - "Batch write/read helpers (25 items max per batch)"
+              - "Transaction helpers for atomic updates"
+            acceptance_criteria:
+              - "SDK enforces key schema at compile time (TypeScript types)"
+              - "Batch operations handle partial failures with retries"
+              - "Unit tests cover all CRUD operations (100% coverage)"
+
+        feature_1_3:
+          name: "Lambda Function Boilerplate"
+          complexity:
+            composite: 2.3
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "Lambda base template with error handling, logging, tracing"
+            - "Provisioned concurrency configuration for orchestrator Lambda"
+            - "Environment variable management via Terraform"
+            - "Lambda layers for shared dependencies (AWS SDK, xero-node)"
+          acceptance_criteria:
+            - "Cold start <1s for orchestrator Lambda (provisioned concurrency)"
+            - "All errors logged with correlation IDs"
+            - "X-Ray tracing enabled for request flows"
+            - "Lambda layers reduce deployment package size by 70%"
+
+          task_1_3_1:
+            name: "Lambda Template with Logging and Tracing"
+            complexity:
+              composite: 2.0
+            estimated_days: 1.5
+            deliverables:
+              - "Base handler template with try/catch and structured logging"
+              - "X-Ray SDK integration"
+              - "Correlation ID propagation in headers"
+            acceptance_criteria:
+              - "Logs JSON-formatted with timestamp, level, correlation_id"
+              - "X-Ray traces show end-to-end request flow (API Gateway → Lambda → DynamoDB)"
+              - "Error responses include correlation_id for debugging"
+
+          task_1_3_2:
+            name: "Provisioned Concurrency for Orchestrator"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "Terraform resource for provisioned concurrency (2 instances)"
+              - "Auto-scaling configuration based on concurrent executions"
+              - "Cost analysis (provisioned vs on-demand)"
+            acceptance_criteria:
+              - "Cold start eliminated for 90% of requests"
+              - "Auto-scaling maintains 70% utilization target"
+              - "Cost increase <$15/month for expected traffic"
+
+          task_1_3_3:
+            name: "Lambda Layers for Shared Dependencies"
+            complexity:
+              composite: 2.0
+            estimated_days: 1
+            deliverables:
+              - "Layer with AWS SDK v3, xero-node, zod"
+              - "Build script to create and upload layer"
+              - "Terraform attachment to all Lambda functions"
+            acceptance_criteria:
+              - "Layer size <50 MB (Lambda limit: 250 MB total)"
+              - "Deployment package size reduced by 70% (faster deploys)"
+              - "Layer versioned and immutable"
+
+        feature_1_4:
+          name: "API Gateway REST + Cognito Authorizer"
+          complexity:
+            composite: 2.6
+            dimensions:
+              technical_complexity: 3
+              scope_size: 2
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "REST API with Cognito authorizer for JWT validation"
+            - "CORS configuration for PWA origin"
+            - "Rate limiting (50 requests/month for free tier)"
+            - "CloudWatch metrics and alarms"
+          acceptance_criteria:
+            - "Unauthorized requests return 401 with error message"
+            - "CORS headers allow PWA domain (+ localhost for dev)"
+            - "Rate limiting enforced via usage plans (free: 50/month, pro: 1000/month)"
+            - "Latency p99 <200ms for authorized requests"
+
+          task_1_4_1:
+            name: "REST API Gateway Configuration"
+            complexity:
+              composite: 2.3
+            estimated_days: 1.5
+            deliverables:
+              - "Terraform API Gateway REST resource"
+              - "Stage configuration (dev, prod) with logging"
+              - "Custom domain with ACM certificate"
+            acceptance_criteria:
+              - "API accessible via custom domain (api.xeroagent.com)"
+              - "Access logs written to CloudWatch (response time, status code)"
+              - "Stage variables set for environment-specific config"
+
+          task_1_4_2:
+            name: "Cognito Authorizer Integration"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "Authorizer resource pointing to Cognito user pool"
+              - "Token validation configuration (aud, iss claims)"
+              - "Authorization caching (TTL: 300s)"
+            acceptance_criteria:
+              - "Authorizer validates JWT signature and expiry"
+              - "Invalid tokens return 401 with WWW-Authenticate header"
+              - "Authorization cached to reduce Cognito API calls (cost optimization)"
+
+          task_1_4_3:
+            name: "CORS and Rate Limiting Configuration"
+            complexity:
+              composite: 2.0
+            estimated_days: 1
+            deliverables:
+              - "CORS configuration for PWA origin (+ localhost)"
+              - "Usage plans and API keys for tier enforcement"
+              - "Throttle settings (free: 1 req/sec, pro: 10 req/sec)"
+            acceptance_criteria:
+              - "OPTIONS preflight requests return 200 with CORS headers"
+              - "Rate limit exceeded returns 429 with Retry-After header"
+              - "Usage tracking visible in CloudWatch metrics"
+
+      epic_2:
+        name: "Authentication and Authorization"
+        weeks: "2-3"
+        milestone: "Users can sign up, sign in, and complete Xero OAuth flow"
+
+        feature_2_1:
+          name: "Cognito User Pool Configuration"
+          complexity:
+            composite: 2.4
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "Cognito user pool with email/password authentication"
+            - "Email verification configuration (SES or Cognito default)"
+            - "Password policy (min 12 chars, uppercase, lowercase, numbers, symbols)"
+            - "MFA configuration (optional for free, required for enterprise)"
+          acceptance_criteria:
+            - "User can sign up with email and receive verification email"
+            - "Password policy enforced on signup"
+            - "User pool supports JWT tokens (id_token, access_token, refresh_token)"
+            - "Tokens expire after 1 hour (access) and 30 days (refresh)"
+
+          task_2_1_1:
+            name: "Terraform Cognito User Pool"
+            complexity:
+              composite: 2.3
+            estimated_days: 1.5
+            deliverables:
+              - "User pool resource with email attribute"
+              - "App client with ALLOW_USER_PASSWORD_AUTH flow"
+              - "Domain configuration for hosted UI (optional)"
+            acceptance_criteria:
+              - "User pool created with email as username"
+              - "App client configured with refresh token expiration (30 days)"
+              - "Hosted UI accessible at custom domain (optional)"
+
+          task_2_1_2:
+            name: "Email Verification and Password Policy"
+            complexity:
+              composite: 2.0
+            estimated_days: 1.5
+            deliverables:
+              - "Email verification trigger (Cognito default or SES)"
+              - "Password policy resource"
+              - "Custom email templates (verification, password reset)"
+            acceptance_criteria:
+              - "Verification email sent within 1 minute of signup"
+              - "Password policy rejects weak passwords"
+              - "Email templates branded with Xero Agent logo"
+
+          task_2_1_3:
+            name: "MFA Configuration"
+            complexity:
+              composite: 2.5
+            estimated_days: 1
+            deliverables:
+              - "MFA settings (SMS or TOTP)"
+              - "User can enable MFA in settings"
+              - "MFA required for enterprise tier"
+            acceptance_criteria:
+              - "User can enable TOTP MFA via QR code"
+              - "MFA challenge triggered on sign-in if enabled"
+              - "Enterprise users forced to enable MFA on first login"
+
+        feature_2_2:
+          name: "Xero OAuth 2.0 Integration"
+          complexity:
+            composite: 3.5
+            dimensions:
+              technical_complexity: 4
+              scope_size: 3
+              dependencies: 4
+              uncertainty: 3
+              risk: 4
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "OAuth initiation endpoint (GET /auth/xero)"
+            - "OAuth callback handler (Lambda function)"
+            - "Token storage in Secrets Manager (access + refresh tokens)"
+            - "Token refresh automation (25-minute expiry check)"
+          acceptance_criteria:
+            - "User redirected to Xero authorization page"
+            - "Callback receives auth code and exchanges for tokens"
+            - "Tokens stored in Secrets Manager with user_id key"
+            - "Refresh token used to obtain new access token before 30-minute expiry"
+            - "OAuth errors (invalid code, revoked tokens) handled gracefully"
+
+          task_2_2_1:
+            name: "OAuth Initiation Endpoint"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Lambda function to generate OAuth URL"
+              - "State parameter for CSRF protection"
+              - "Redirect to Xero authorization page"
+            acceptance_criteria:
+              - "OAuth URL includes client_id, redirect_uri, scope, state"
+              - "State parameter stored in DynamoDB (TTL: 10 minutes)"
+              - "Redirect response includes Location header"
+
+          task_2_2_2:
+            name: "OAuth Callback Handler Lambda"
+            complexity:
+              composite: 3.8
+              dimensions:
+                technical_complexity: 4
+                scope_size: 3
+                dependencies: 4
+                uncertainty: 4
+                risk: 4
+                testing: 4
+              needs_decomposition: true
+              decomposition_reason: "High technical complexity (4) and uncertainty (4) around token exchange error handling and race conditions"
+            estimated_days: 3
+            deliverables:
+              - "Lambda function to handle OAuth callback"
+              - "Token exchange (auth code → access + refresh tokens)"
+              - "Store tokens in Secrets Manager"
+              - "Update user record in DynamoDB with xero_connected: true"
+            acceptance_criteria:
+              - "Callback validates state parameter (CSRF protection)"
+              - "Token exchange handles network errors with retries (3 attempts, exponential backoff)"
+              - "Tokens stored in Secrets Manager (key: xero-tokens/{user_id})"
+              - "User record updated atomically (DynamoDB transaction)"
+              - "OAuth errors return user-friendly message and redirect to PWA error page"
+            status: "flagged_for_breakdown"
+
+          task_2_2_3:
+            name: "Token Refresh Automation"
+            complexity:
+              composite: 3.2
+            estimated_days: 2
+            deliverables:
+              - "EventBridge rule triggering Lambda every 25 minutes"
+              - "Lambda queries DynamoDB for users with tokens expiring soon"
+              - "Refresh token used to obtain new access token"
+              - "Updated tokens stored in Secrets Manager"
+            acceptance_criteria:
+              - "Lambda runs every 25 minutes (5-minute buffer before 30-minute expiry)"
+              - "Refresh token handles expired/revoked tokens gracefully"
+              - "User notified if refresh fails (requires re-authentication)"
+              - "CloudWatch metrics track refresh success rate (target: >99%)"
+
+        feature_2_3:
+          name: "JWT Authentication Middleware"
+          complexity:
+            composite: 2.1
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - "Lambda middleware to extract and validate JWT"
+            - "User context (user_id, email) attached to request"
+            - "Error responses for missing/invalid tokens"
+          acceptance_criteria:
+            - "Middleware validates JWT signature using Cognito public keys"
+            - "Expired tokens return 401 with error message"
+            - "user_id extracted from token and passed to downstream handlers"
+            - "Performance overhead <10ms per request"
+
+          task_2_3_1:
+            name: "JWT Extraction and Validation"
+            complexity:
+              composite: 2.0
+            estimated_days: 1.5
+            deliverables:
+              - "Middleware function to extract JWT from Authorization header"
+              - "Validate signature, expiry, and issuer"
+              - "Cache Cognito public keys (1-hour TTL)"
+            acceptance_criteria:
+              - "Middleware extracts Bearer token from header"
+              - "Signature validated using Cognito JWKs endpoint"
+              - "Public keys cached in Lambda memory (reduces latency)"
+
+          task_2_3_2:
+            name: "User Context Attachment"
+            complexity:
+              composite: 1.8
+            estimated_days: 1
+            deliverables:
+              - "Extract user_id and email from JWT claims"
+              - "Attach to request object for downstream handlers"
+              - "TypeScript types for user context"
+            acceptance_criteria:
+              - "user_id available in all authenticated endpoints"
+              - "TypeScript ensures type safety (no runtime errors)"
+              - "Context includes tier (free/pro) from JWT custom claim"
+
+          task_2_3_3:
+            name: "Error Handling for Invalid Tokens"
+            complexity:
+              composite: 2.0
+            estimated_days: 0.5
+            deliverables:
+              - "401 response for missing/invalid/expired tokens"
+              - "WWW-Authenticate header with error details"
+              - "Correlation ID for debugging"
+            acceptance_criteria:
+              - "Error responses include correlation_id"
+              - "Client can distinguish between missing, invalid, and expired tokens"
+              - "Logs include user_id (if available) for audit trail"
+
+      epic_3:
+        name: "MCP Xero Server"
+        weeks: "3-5"
+        milestone: "MCP server operational with invoice, expense, and basic reporting tools"
+
+        feature_3_1:
+          name: "MCP Server Boilerplate and Xero Client"
+          complexity:
+            composite: 2.7
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 2
+          estimated_days: 5
+          deliverables:
+            - "MCP server initialized with @modelcontextprotocol/sdk"
+            - "Xero API client (xero-node) configured with token refresh"
+            - "Tool registration framework"
+            - "Error handling with Xero-specific retries (rate limiting)"
+          acceptance_criteria:
+            - "MCP server starts and registers with agent orchestrator"
+            - "Xero client initializes with access token from Secrets Manager"
+            - "Rate limiting errors (429) trigger exponential backoff (max 3 retries)"
+            - "Connection errors logged with correlation IDs"
+
+          task_3_1_1:
+            name: "Initialize MCP Server"
+            complexity:
+              composite: 2.3
+            estimated_days: 2
+            deliverables:
+              - "Package.json with @modelcontextprotocol/sdk dependency"
+              - "Server initialization code"
+              - "Health check endpoint"
+            acceptance_criteria:
+              - "Server starts on port 3000"
+              - "Health check returns 200 with server status"
+              - "Graceful shutdown on SIGTERM (drain connections)"
+
+          task_3_1_2:
+            name: "Xero API Client Configuration"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "xero-node client with OAuth token provider"
+              - "Token refresh logic integrated with Secrets Manager"
+              - "Tenant ID selection (multi-org support)"
+            acceptance_criteria:
+              - "Client fetches access token from Secrets Manager on initialization"
+              - "Expired tokens refreshed automatically before API calls"
+              - "User with multiple Xero orgs can select active tenant"
+
+          task_3_1_3:
+            name: "Error Handling and Retry Logic"
+            complexity:
+              composite: 2.5
+            estimated_days: 1
+            deliverables:
+              - "Retry middleware for transient errors (429, 500, 503)"
+              - "Exponential backoff (1s, 2s, 4s) with max 3 retries"
+              - "Structured error logging"
+            acceptance_criteria:
+              - "Rate limit errors (429) retried with backoff"
+              - "Permanent errors (400, 401, 403, 404) not retried"
+              - "Logs include request_id, user_id, error_code"
+
+        feature_3_2:
+          name: "Invoice Management Tools"
+          complexity:
+            composite: 3.0
+            dimensions:
+              technical_complexity: 3
+              scope_size: 4
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 7
+          deliverables:
+            - "create_invoice tool with Zod schema validation"
+            - "get_invoice tool (retrieve by ID)"
+            - "update_invoice tool (status, line items, payments)"
+            - "list_invoices tool (filter by date, status, contact)"
+            - "send_invoice tool (email to contact)"
+          acceptance_criteria:
+            - "create_invoice validates required fields (contact, line items, due date)"
+            - "get_invoice returns invoice with all details (line items, payments, attachments)"
+            - "update_invoice supports partial updates (only changed fields sent to API)"
+            - "list_invoices paginates results (max 100 per page)"
+            - "send_invoice triggers Xero email (verified in sandbox)"
+
+          task_3_2_1:
+            name: "create_invoice Tool"
+            complexity:
+              composite: 3.0
+            estimated_days: 2
+            deliverables:
+              - "Zod schema for invoice input (contact, line items, due date, currency)"
+              - "Tool handler calling Xero API createInvoices"
+              - "Response formatting (invoice ID, status, total)"
+            acceptance_criteria:
+              - "Validates contact_id exists in Xero"
+              - "Line items include description, quantity, unit_amount, account_code"
+              - "Due date defaults to 30 days if not provided"
+              - "Returns invoice_id and view_url"
+
+          task_3_2_2:
+            name: "get_invoice and list_invoices Tools"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "get_invoice tool (retrieve by invoice_id)"
+              - "list_invoices tool with filters (date range, status, contact)"
+              - "Pagination handling (cursor-based)"
+            acceptance_criteria:
+              - "get_invoice returns 404 if invoice not found"
+              - "list_invoices supports where clause filtering (Xero API syntax)"
+              - "Pagination returns next_cursor for fetching more results"
+
+          task_3_2_3:
+            name: "update_invoice and send_invoice Tools"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "update_invoice tool for status changes (DRAFT, SUBMITTED, AUTHORISED)"
+              - "Add/update line items and payments"
+              - "send_invoice tool to email invoice to contact"
+            acceptance_criteria:
+              - "update_invoice validates status transitions (DRAFT → SUBMITTED → AUTHORISED)"
+              - "Line item updates preserve existing items not in update"
+              - "send_invoice includes message customization"
+
+          task_3_2_4:
+            name: "Unit and Integration Tests for Invoice Tools"
+            complexity:
+              composite: 2.5
+            estimated_days: 1
+            deliverables:
+              - "Unit tests for Zod schema validation"
+              - "Integration tests with Xero sandbox API"
+              - "Mock tests for error scenarios (rate limiting, invalid data)"
+            acceptance_criteria:
+              - "Unit tests cover all validation rules (80%+ coverage)"
+              - "Integration tests verify API responses match expectations"
+              - "Mock tests simulate 429, 500 errors"
+
+        feature_3_3:
+          name: "Expense Tracking Tools"
+          complexity:
+            composite: 2.8
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "create_expense tool (bank transaction with expense category)"
+            - "categorize_expense tool (update account code)"
+            - "list_expenses tool (filter by date, category)"
+            - "get_expense tool (retrieve by ID)"
+          acceptance_criteria:
+            - "create_expense validates account_code exists in chart of accounts"
+            - "categorize_expense updates existing transaction account_code"
+            - "list_expenses filters by date range and category"
+            - "get_expense returns transaction with reconciliation status"
+
+          task_3_3_1:
+            name: "create_expense Tool"
+            complexity:
+              composite: 2.8
+            estimated_days: 2.5
+            deliverables:
+              - "Zod schema for expense input (amount, date, category, description)"
+              - "Tool handler calling Xero API createBankTransactions"
+              - "Account code validation (chart of accounts lookup)"
+            acceptance_criteria:
+              - "Validates account_code is expense type (class: EXPENSE)"
+              - "Supports attachment upload (receipt image)"
+              - "Returns transaction_id and bank_account_name"
+
+          task_3_3_2:
+            name: "categorize_expense and list_expenses Tools"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "categorize_expense tool to update transaction account_code"
+              - "list_expenses tool with date and category filters"
+              - "Pagination support"
+            acceptance_criteria:
+              - "categorize_expense validates new account_code exists"
+              - "list_expenses returns transactions with total_amount sum"
+              - "Pagination handles large result sets (100+ transactions)"
+
+          task_3_3_3:
+            name: "get_expense Tool and Tests"
+            complexity:
+              composite: 2.3
+            estimated_days: 1.5
+            deliverables:
+              - "get_expense tool (retrieve by transaction_id)"
+              - "Unit tests for schema validation"
+              - "Integration tests with Xero sandbox"
+            acceptance_criteria:
+              - "get_expense returns transaction with attachments"
+              - "Tests verify account_code validation logic"
+              - "Integration tests cover create, update, list, get operations"
+
+        feature_3_4:
+          name: "Bank Transaction and Reconciliation Tools"
+          complexity:
+            composite: 3.3
+            dimensions:
+              technical_complexity: 4
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 3
+              risk: 4
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "get_bank_transactions tool (filter by bank account, date range)"
+            - "create_bank_transaction tool (manual transaction entry)"
+            - "reconcile_transaction tool (match transaction to invoice/bill)"
+            - "get_reconciliation_status tool (summary of unreconciled items)"
+          acceptance_criteria:
+            - "get_bank_transactions filters by bank_account_id and date range"
+            - "create_bank_transaction supports SPEND and RECEIVE types"
+            - "reconcile_transaction links bank transaction to invoice (sets IsReconciled=true)"
+            - "get_reconciliation_status returns count of unreconciled transactions by account"
+
+          task_3_4_1:
+            name: "get_bank_transactions and create_bank_transaction Tools"
+            complexity:
+              composite: 2.8
+            estimated_days: 2.5
+            deliverables:
+              - "get_bank_transactions tool with bank account and date filters"
+              - "create_bank_transaction tool for manual entries"
+              - "Support for SPEND and RECEIVE transaction types"
+            acceptance_criteria:
+              - "get_bank_transactions returns transactions with IsReconciled flag"
+              - "create_bank_transaction validates bank_account_id exists"
+              - "SPEND transactions require payee, RECEIVE require payer"
+
+          task_3_4_2:
+            name: "reconcile_transaction Tool"
+            complexity:
+              composite: 3.5
+              dimensions:
+                technical_complexity: 4
+                scope_size: 3
+                dependencies: 4
+                uncertainty: 3
+                risk: 4
+                testing: 3
+              needs_decomposition: true
+              decomposition_reason: "High technical complexity (4) around matching logic and risk (4) of incorrect reconciliation"
+            estimated_days: 3
+            deliverables:
+              - "reconcile_transaction tool to link bank transaction to invoice/bill"
+              - "Matching logic (amount, date, reference)"
+              - "Update IsReconciled flag in Xero"
+            acceptance_criteria:
+              - "Tool validates amount match between transaction and invoice (tolerance: $0.01)"
+              - "Date match within 7 days"
+              - "Reference match if provided"
+              - "Atomic update (transaction fails if IsReconciled already true)"
+            status: "flagged_for_breakdown"
+
+          task_3_4_3:
+            name: "get_reconciliation_status Tool and Tests"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "get_reconciliation_status tool (count unreconciled by account)"
+              - "Unit and integration tests"
+              - "Mock tests for edge cases (duplicate matches, no matches)"
+            acceptance_criteria:
+              - "Status returns count and total_amount of unreconciled transactions"
+              - "Tests verify reconciliation logic correctness"
+              - "Integration tests use Xero sandbox with known data set"
+
+        feature_3_5:
+          name: "Financial Reporting Tools"
+          complexity:
+            composite: 2.5
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "generate_profit_loss tool (date range, comparison periods)"
+            - "generate_balance_sheet tool (as of date)"
+            - "generate_bank_summary tool (by account)"
+            - "get_chart_of_accounts tool (for categorization)"
+          acceptance_criteria:
+            - "generate_profit_loss returns income, expenses, net profit by category"
+            - "generate_balance_sheet returns assets, liabilities, equity totals"
+            - "generate_bank_summary returns opening/closing balance and transaction count"
+            - "get_chart_of_accounts returns all accounts with type and code"
+
+          task_3_5_1:
+            name: "generate_profit_loss Tool"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "Tool to call Xero Reports/ProfitAndLoss API"
+              - "Support for date range and comparison periods"
+              - "Response formatting (JSON structure)"
+            acceptance_criteria:
+              - "Validates date range (from_date < to_date)"
+              - "Comparison periods optional (e.g., previous year)"
+              - "Returns net profit and breakdown by account"
+
+          task_3_5_2:
+            name: "generate_balance_sheet and generate_bank_summary Tools"
+            complexity:
+              composite: 2.3
+            estimated_days: 2
+            deliverables:
+              - "generate_balance_sheet tool (as of date)"
+              - "generate_bank_summary tool (by bank account)"
+              - "Response formatting"
+            acceptance_criteria:
+              - "generate_balance_sheet returns assets, liabilities, equity with totals"
+              - "generate_bank_summary includes opening/closing balance and transaction count"
+              - "Both tools support date parameter"
+
+          task_3_5_3:
+            name: "get_chart_of_accounts Tool and Tests"
+            complexity:
+              composite: 2.0
+            estimated_days: 1
+            deliverables:
+              - "get_chart_of_accounts tool (list all accounts)"
+              - "Filter by account type (EXPENSE, REVENUE, ASSET, etc.)"
+              - "Unit and integration tests"
+            acceptance_criteria:
+              - "Returns account code, name, type, tax_type"
+              - "Filters work correctly (e.g., only EXPENSE accounts)"
+              - "Integration tests verify chart of accounts structure"
+
+      epic_4:
+        name: "Agent Core (Claude Agent SDK)"
+        weeks: "5-7"
+        milestone: "Agent orchestrator operational with sub-agents and session management"
+
+        feature_4_1:
+          name: "Agent Orchestrator Setup"
+          complexity:
+            composite: 3.0
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 4
+              uncertainty: 3
+              risk: 3
+              testing: 2
+          estimated_days: 6
+          deliverables:
+            - "Claude Agent SDK initialized in Lambda"
+            - "MCP server connection configuration"
+            - "Session management (DynamoDB storage)"
+            - "Context window management (compaction at 80%)"
+          acceptance_criteria:
+            - "Agent initializes with Claude API key from Secrets Manager"
+            - "MCP server tools discoverable by agent"
+            - "Session state persisted to DynamoDB after each turn"
+            - "Context compaction triggered when token count >80k (model limit: 100k)"
+
+          task_4_1_1:
+            name: "Claude Agent SDK Initialization"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Lambda function with Claude Agent SDK"
+              - "API key retrieval from Secrets Manager"
+              - "Agent configuration (model: claude-3-5-sonnet-20250219, temperature: 0.7)"
+            acceptance_criteria:
+              - "Agent initializes successfully in Lambda cold start"
+              - "API key cached in Lambda memory (reduces Secrets Manager calls)"
+              - "Error handling for API key retrieval failures"
+
+          task_4_1_2:
+            name: "MCP Server Connection"
+            complexity:
+              composite: 3.0
+            estimated_days: 2
+            deliverables:
+              - "MCP client configuration in agent"
+              - "Tool discovery and registration"
+              - "Error handling for MCP server unavailability"
+            acceptance_criteria:
+              - "Agent discovers all MCP tools on initialization"
+              - "Tool schemas validated (Zod types match MCP definitions)"
+              - "MCP connection failures logged with retry logic"
+
+          task_4_1_3:
+            name: "Session Management and Context Compaction"
+            complexity:
+              composite: 3.2
+            estimated_days: 2
+            deliverables:
+              - "Session CRUD operations (DynamoDB)"
+              - "Context window tracking (token counting)"
+              - "Compaction logic (summarize old turns, keep recent)"
+            acceptance_criteria:
+              - "Session includes conversation history, user context, tool results"
+              - "Token count updated after each turn (using tiktoken)"
+              - "Compaction at 80k tokens reduces context to <60k (keep last 10 turns full)"
+
+        feature_4_2:
+          name: "Sub-Agent Architecture"
+          complexity:
+            composite: 3.5
+            dimensions:
+              technical_complexity: 4
+              scope_size: 4
+              dependencies: 4
+              uncertainty: 4
+              risk: 3
+              testing: 3
+          estimated_days: 8
+          deliverables:
+            - "InvoiceAgent: Specializes in invoice creation, updates, status tracking"
+            - "ExpenseAgent: Specializes in expense categorization and tracking"
+            - "ReconciliationAgent: Specializes in bank transaction matching"
+            - "ReportingAgent: Specializes in financial report generation and interpretation"
+            - "Sub-agent delegation logic (orchestrator routes requests)"
+          acceptance_criteria:
+            - "Orchestrator identifies user intent and delegates to appropriate sub-agent"
+            - "Sub-agents have access to relevant MCP tools (permission scoping)"
+            - "Sub-agent responses returned to orchestrator for final user response"
+            - "Context shared between orchestrator and sub-agents (user preferences, session state)"
+
+          task_4_2_1:
+            name: "InvoiceAgent Implementation"
+            complexity:
+              composite: 3.2
+            estimated_days: 2.5
+            deliverables:
+              - "InvoiceAgent class with tool permissions (invoice tools only)"
+              - "Prompt template for invoice-related tasks"
+              - "Response formatting (user-friendly invoice summaries)"
+            acceptance_criteria:
+              - "Agent handles 'create invoice', 'send invoice', 'update invoice' requests"
+              - "Validates required fields before calling MCP tools"
+              - "Returns invoice details with view_url for user"
+
+          task_4_2_2:
+            name: "ExpenseAgent and ReconciliationAgent Implementation"
+            complexity:
+              composite: 3.5
+            estimated_days: 3
+            deliverables:
+              - "ExpenseAgent for expense creation and categorization"
+              - "ReconciliationAgent for bank transaction matching"
+              - "Prompt templates and tool permissions"
+            acceptance_criteria:
+              - "ExpenseAgent suggests categories based on description"
+              - "ReconciliationAgent proposes matches with confidence scores"
+              - "Both agents handle ambiguous requests with clarifying questions"
+
+          task_4_2_3:
+            name: "ReportingAgent and Delegation Logic"
+            complexity:
+              composite: 3.8
+            estimated_days: 2.5
+            deliverables:
+              - "ReportingAgent for financial report generation and interpretation"
+              - "Orchestrator delegation logic (intent classification)"
+              - "Sub-agent response aggregation"
+            acceptance_criteria:
+              - "ReportingAgent generates reports and provides insights (e.g., 'expenses up 20% vs last month')"
+              - "Orchestrator classifies intent with 90%+ accuracy (test set: 100 examples)"
+              - "Sub-agent failures handled gracefully (fallback to orchestrator)"
+
+        feature_4_3:
+          name: "Conversation History Persistence"
+          complexity:
+            composite: 2.6
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "Store conversation turns in DynamoDB (user message, agent response, tool calls)"
+            - "Retrieve conversation history on session resume"
+            - "Pagination for long conversations (100+ turns)"
+          acceptance_criteria:
+            - "Each turn stored with timestamp, role (user/assistant), content"
+            - "Tool calls stored with input parameters and results"
+            - "History retrieval loads last 50 turns by default (pagination for more)"
+            - "Session resume restores context from history"
+
+          task_4_3_1:
+            name: "Conversation Turn Storage"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "DynamoDB schema for conversation turns"
+              - "Write operations after each agent response"
+              - "Atomic updates to prevent race conditions"
+            acceptance_criteria:
+              - "Turn includes session_id, timestamp, role, content, tool_calls"
+              - "Stored immediately after agent response (before Lambda timeout)"
+              - "DynamoDB transactions ensure atomicity"
+
+          task_4_3_2:
+            name: "History Retrieval and Pagination"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "Query operation to retrieve turns by session_id"
+              - "Pagination with cursor (last_evaluated_key)"
+              - "Reverse chronological order (most recent first)"
+            acceptance_criteria:
+              - "Query returns last 50 turns by default"
+              - "Pagination cursor allows fetching older turns"
+              - "Performance: Query completes in <100ms for 50 turns"
+
+          task_4_3_3:
+            name: "Session Resume Logic and Tests"
+            complexity:
+              composite: 2.5
+            estimated_days: 1
+            deliverables:
+              - "Restore conversation context from history"
+              - "Rebuild agent state (tool results, user preferences)"
+              - "Unit and integration tests"
+            acceptance_criteria:
+              - "Session resume loads history and initializes agent with context"
+              - "User preferences from core memory applied to session"
+              - "Tests verify context restoration correctness"
+
+        feature_4_4:
+          name: "Tool Permission Management"
+          complexity:
+            composite: 2.8
+            dimensions:
+              technical_complexity: 3
+              scope_size: 2
+              dependencies: 3
+              uncertainty: 3
+              risk: 3
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "Permission matrix (which sub-agents can use which tools)"
+            - "Runtime permission checks before tool execution"
+            - "User-level permissions (free vs pro tier)"
+          acceptance_criteria:
+            - "InvoiceAgent can only use invoice tools (not expense or bank tools)"
+            - "Free tier users limited to 50 tool calls per month"
+            - "Unauthorized tool calls rejected with error message"
+            - "Permission violations logged for security audit"
+
+          task_4_4_1:
+            name: "Permission Matrix Definition"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "JSON configuration mapping sub-agents to allowed tools"
+              - "Tier-based permission overrides (free, pro, enterprise)"
+              - "Documentation of permission logic"
+            acceptance_criteria:
+              - "Matrix includes all sub-agents and tools"
+              - "Free tier restricted to basic tools (invoice, expense)"
+              - "Pro tier adds reconciliation and advanced reporting tools"
+
+          task_4_4_2:
+            name: "Runtime Permission Checks"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "Middleware to check permissions before tool execution"
+              - "Usage tracking (tool calls per user per month)"
+              - "Error responses for unauthorized calls"
+            acceptance_criteria:
+              - "Middleware blocks tool calls not in permission matrix"
+              - "Usage count incremented in DynamoDB after each call"
+              - "Limit exceeded returns 403 with upgrade prompt"
+
+          task_4_4_3:
+            name: "Permission Tests and Audit Logging"
+            complexity:
+              composite: 2.5
+            estimated_days: 1
+            deliverables:
+              - "Unit tests for permission logic"
+              - "Integration tests with mock sub-agents"
+              - "Audit log to CloudWatch for security events"
+            acceptance_criteria:
+              - "Tests verify all permission matrix rules"
+              - "Unauthorized attempts logged with user_id, tool_name, timestamp"
+              - "Audit logs retained for 90 days (compliance)"
+
+      epic_5:
+        name: "Core Memory Persistence"
+        weeks: "6-8"
+        milestone: "Core memory operational; relationship progression logic implemented"
+
+        feature_5_1:
+          name: "Core Memory Storage (Free Tier)"
+          complexity:
+            composite: 2.5
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "DynamoDB schema for core memory (user preferences, relationship stage, milestones)"
+            - "CRUD operations for memory items"
+            - "Memory retrieval on session initialization"
+            - "Automatic memory updates based on conversation patterns"
+          acceptance_criteria:
+            - "Core memory includes: xero_org_id, timezone, communication_style, relationship_stage"
+            - "Memory persists across sessions (retained indefinitely)"
+            - "Updates atomic (DynamoDB transactions)"
+            - "Memory size <10 KB per user (free tier cost optimization)"
+
+          task_5_1_1:
+            name: "Core Memory Schema and CRUD Operations"
+            complexity:
+              composite: 2.3
+            estimated_days: 2
+            deliverables:
+              - "DynamoDB schema for core memory items"
+              - "TypeScript types and validation (Zod)"
+              - "Create, read, update operations"
+            acceptance_criteria:
+              - "Schema includes user_id (PK), memory_key (SK), value, updated_at"
+              - "CRUD operations use DynamoDB transactions (prevent race conditions)"
+              - "Validation ensures type safety (e.g., timezone must be IANA string)"
+
+          task_5_1_2:
+            name: "Memory Retrieval on Session Init"
+            complexity:
+              composite: 2.3
+            estimated_days: 1.5
+            deliverables:
+              - "Query all core memory for user_id on session start"
+              - "Attach memory to agent context"
+              - "Performance optimization (caching in Lambda memory)"
+            acceptance_criteria:
+              - "Retrieval completes in <50ms"
+              - "Memory cached in Lambda for session duration (reduce DynamoDB reads)"
+              - "Cache invalidated on memory updates"
+
+          task_5_1_3:
+            name: "Automatic Memory Updates"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "Pattern detection in conversations (extract preferences)"
+              - "Update core memory when patterns detected"
+              - "User confirmation for preference changes"
+            acceptance_criteria:
+              - "Agent detects timezone mentions and updates memory"
+              - "Communication style learned from interaction patterns (formal/casual)"
+              - "User can explicitly set/update preferences via commands"
+
+        feature_5_2:
+          name: "Relationship Stage Progression"
+          complexity:
+            composite: 3.2
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 4
+              risk: 3
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "Relationship stage tracking (Colleague → Partner → Friend)"
+            - "Stage advancement logic (time-based + interaction quality)"
+            - "Milestone recording (first invoice created, 100 transactions reconciled, etc.)"
+            - "Stage-specific agent behavior (colleague: task-focused, friend: proactive)"
+          acceptance_criteria:
+            - "Stage advances from Colleague to Partner after 3 months + 50 interactions"
+            - "Stage advances from Partner to Friend after 12 months + 200 interactions"
+            - "Milestones stored in DynamoDB (timestamp, description)"
+            - "Agent behavior adapts to stage (e.g., friend stage proactively suggests reports)"
+
+          task_5_2_1:
+            name: "Relationship Stage Tracking"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "DynamoDB schema for relationship stage and milestones"
+              - "Stage initialization (new user starts as Colleague)"
+              - "Stage progression logic (time + interaction count)"
+            acceptance_criteria:
+              - "Stage stored in core memory (relationship_stage: colleague/partner/friend)"
+              - "First interaction timestamp tracked (account_created_at)"
+              - "Interaction count incremented on each conversation turn"
+
+          task_5_2_2:
+            name: "Milestone Recording and Detection"
+            complexity:
+              composite: 3.2
+            estimated_days: 2.5
+            deliverables:
+              - "Milestone definitions (first invoice, 10 expenses, 100 transactions reconciled)"
+              - "Detection logic (check after each tool call)"
+              - "Storage in DynamoDB (milestone_name, achieved_at)"
+            acceptance_criteria:
+              - "Milestones detected and recorded automatically"
+              - "Agent acknowledges milestones in conversation (e.g., 'Congrats on your first invoice!')"
+              - "Milestones visible in user profile (PWA)"
+
+          task_5_2_3:
+            name: "Stage-Specific Agent Behavior"
+            complexity:
+              composite: 3.5
+            estimated_days: 1.5
+            deliverables:
+              - "Prompt templates for each stage (colleague, partner, friend)"
+              - "Behavior differences (colleague: reactive, partner: proactive suggestions, friend: trusted advisor)"
+              - "Testing with mock conversations"
+            acceptance_criteria:
+              - "Colleague stage: Agent responds to direct requests only"
+              - "Partner stage: Agent suggests related actions (e.g., 'Want me to reconcile this?')"
+              - "Friend stage: Agent proactively generates reports and insights"
+
+        feature_5_3:
+          name: "Relationship Milestone Notifications"
+          complexity:
+            composite: 2.3
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 2
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 3
+          deliverables:
+            - "In-conversation notifications when milestones achieved"
+            - "Visual milestone display in PWA (badge, timeline)"
+            - "Optional email notifications for major milestones"
+          acceptance_criteria:
+            - "Agent message includes celebration for milestone (e.g., emoji, congrats text)"
+            - "PWA displays milestone badge in user profile"
+            - "Email notifications opt-in (default: off)"
+
+          task_5_3_1:
+            name: "In-Conversation Milestone Notifications"
+            complexity:
+              composite: 2.0
+            estimated_days: 1
+            deliverables:
+              - "Milestone achievement message in agent response"
+              - "Prompt template for celebrations"
+              - "Customization based on relationship stage"
+            acceptance_criteria:
+              - "Notification appears immediately after milestone detected"
+              - "Message tone matches relationship stage (colleague: professional, friend: celebratory)"
+              - "User can dismiss notification (no repeat notifications)"
+
+          task_5_3_2:
+            name: "PWA Milestone Display and Email Notifications"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "PWA user profile with milestone timeline"
+              - "Badge display for recent milestones"
+              - "Email notification service (SES)"
+            acceptance_criteria:
+              - "Timeline shows all achieved milestones with dates"
+              - "Badge visible in profile header"
+              - "Email notifications sent within 1 minute of milestone (if enabled)"
+
+      epic_6:
+        name: "PWA Frontend (MVP)"
+        weeks: "6-8"
+        milestone: "Mobile-first PWA with chat interface, authentication, and basic Xero data visualization"
+
+        feature_6_1:
+          name: "React PWA Project Setup"
+          complexity:
+            composite: 2.2
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 2
+              uncertainty: 1
+              risk: 2
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "Vite + React + TypeScript project initialized"
+            - "TailwindCSS and shadcn/ui components installed"
+            - "Service worker for offline support"
+            - "Build and deployment scripts"
+          acceptance_criteria:
+            - "pnpm dev starts development server on port 5173"
+            - "Service worker caches static assets (HTML, CSS, JS, images)"
+            - "Build output <500 KB gzipped (performance target)"
+            - "PWA installable on mobile (manifest.json configured)"
+
+          task_6_1_1:
+            name: "Vite + React + TypeScript Setup"
+            complexity:
+              composite: 1.8
+            estimated_days: 1
+            deliverables:
+              - "Project initialized with create-vite"
+              - "TypeScript configuration (strict mode)"
+              - "ESLint and Prettier setup"
+            acceptance_criteria:
+              - "TypeScript strict mode enabled (no implicit any)"
+              - "ESLint catches common errors (unused vars, missing deps)"
+              - "Prettier formats on save"
+
+          task_6_1_2:
+            name: "TailwindCSS and shadcn/ui Integration"
+            complexity:
+              composite: 2.0
+            estimated_days: 1.5
+            deliverables:
+              - "TailwindCSS configured with custom theme"
+              - "shadcn/ui components installed (button, input, card, dialog)"
+              - "Dark mode support"
+            acceptance_criteria:
+              - "Tailwind utility classes available in components"
+              - "shadcn/ui components styled with brand colors"
+              - "Dark mode toggles via system preference or user setting"
+
+          task_6_1_3:
+            name: "Service Worker and PWA Manifest"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "Service worker with cache-first strategy for static assets"
+              - "PWA manifest (name, icons, theme_color, background_color)"
+              - "Offline fallback page"
+            acceptance_criteria:
+              - "Service worker registers successfully"
+              - "Static assets cached on first load (verified in DevTools)"
+              - "Offline fallback shows 'No connection' message with cached chat history"
+              - "PWA installable (meets installability criteria)"
+
+        feature_6_2:
+          name: "Authentication UI (Cognito)"
+          complexity:
+            composite: 2.8
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "Sign-up form (email, password, confirm password)"
+            - "Sign-in form (email, password)"
+            - "Password reset flow"
+            - "JWT token storage (localStorage or sessionStorage)"
+            - "Automatic token refresh"
+          acceptance_criteria:
+            - "Sign-up sends email verification (Cognito)"
+            - "Sign-in returns access_token, id_token, refresh_token"
+            - "Tokens stored securely (httpOnly cookies preferred, fallback to localStorage)"
+            - "Token refresh triggered automatically before expiry"
+
+          task_6_2_1:
+            name: "Sign-Up and Sign-In Forms"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "React forms with validation (email format, password strength)"
+              - "Cognito SDK integration (amazon-cognito-identity-js)"
+              - "Error handling (display user-friendly messages)"
+            acceptance_criteria:
+              - "Sign-up validates password strength (min 12 chars, complexity rules)"
+              - "Sign-in handles incorrect credentials gracefully"
+              - "Loading states shown during API calls"
+
+          task_6_2_2:
+            name: "Password Reset Flow"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "Forgot password page (enter email)"
+              - "Reset password page (enter code + new password)"
+              - "Cognito SDK calls (forgotPassword, confirmPassword)"
+            acceptance_criteria:
+              - "Email with reset code sent within 1 minute"
+              - "Reset code expires after 1 hour (Cognito default)"
+              - "New password validated against policy"
+
+          task_6_2_3:
+            name: "JWT Token Management and Refresh"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "Token storage (localStorage or httpOnly cookies)"
+              - "Automatic token refresh before expiry"
+              - "Logout functionality (clear tokens)"
+            acceptance_criteria:
+              - "Tokens persisted across page reloads"
+              - "Refresh triggered at 55 minutes (before 1-hour expiry)"
+              - "Logout clears tokens and redirects to sign-in"
+
+        feature_6_3:
+          name: "Chat Interface"
+          complexity:
+            composite: 3.5
+            dimensions:
+              technical_complexity: 4
+              scope_size: 4
+              dependencies: 4
+              uncertainty: 3
+              risk: 3
+              testing: 3
+          estimated_days: 8
+          deliverables:
+            - "Chat message list (scrollable, reverse chronological)"
+            - "Message input with send button and Enter key support"
+            - "Loading state during agent response"
+            - "Message rendering (Markdown support for agent responses)"
+            - "Tool call visualization (show invoice created, expense added, etc.)"
+            - "Error handling (API failures, network errors)"
+          acceptance_criteria:
+            - "Messages render in <100ms after receiving API response"
+            - "Markdown formatted correctly (code blocks, lists, bold, italic)"
+            - "Tool calls show structured data (e.g., invoice ID, amount, status)"
+            - "Chat scrolls to bottom on new message"
+            - "Loading indicator shows agent is typing"
+
+          task_6_3_1:
+            name: "Chat Message List Component"
+            complexity:
+              composite: 3.2
+            estimated_days: 3
+            deliverables:
+              - "React component for message list (user + agent messages)"
+              - "Reverse chronological order (newest at bottom)"
+              - "Auto-scroll to bottom on new message"
+              - "Virtualization for long conversations (react-window)"
+            acceptance_criteria:
+              - "Message list handles 1000+ messages without performance degradation"
+              - "Auto-scroll only triggers if user at bottom (don't interrupt reading)"
+              - "Messages styled differently for user (right-aligned) vs agent (left-aligned)"
+
+          task_6_3_2:
+            name: "Message Input and Send Logic"
+            complexity:
+              composite: 3.0
+            estimated_days: 2
+            deliverables:
+              - "Text input with send button"
+              - "Enter key sends message (Shift+Enter for newline)"
+              - "API call to agent endpoint (POST /chat)"
+              - "Optimistic UI update (show user message immediately)"
+            acceptance_criteria:
+              - "Message sent on Enter (not Shift+Enter)"
+              - "Send button disabled during API call (prevent double-send)"
+              - "User message appears immediately (optimistic update)"
+              - "Spinner shown while waiting for agent response"
+
+          task_6_3_3:
+            name: "Message Rendering and Tool Call Visualization"
+            complexity:
+              composite: 3.8
+            estimated_days: 3
+            deliverables:
+              - "Markdown rendering for agent messages (react-markdown)"
+              - "Tool call visualization (structured cards for invoices, expenses, reports)"
+              - "Syntax highlighting for code blocks (prism.js)"
+              - "Error message rendering (red banner for failures)"
+            acceptance_criteria:
+              - "Markdown renders correctly (headings, lists, links, code blocks)"
+              - "Tool calls show actionable data (e.g., invoice card with 'View in Xero' link)"
+              - "Code blocks have syntax highlighting (TypeScript, JSON, etc.)"
+              - "Error messages include correlation_id for debugging"
+
+        feature_6_4:
+          name: "Xero OAuth Connection UI"
+          complexity:
+            composite: 2.5
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "Connect Xero button (initiates OAuth flow)"
+            - "OAuth callback handling (receive auth code, display success/error)"
+            - "Xero connection status display (connected org name, last synced)"
+            - "Disconnect Xero option"
+          acceptance_criteria:
+            - "Connect button redirects to Xero authorization page"
+            - "Callback page shows success message and redirects to chat"
+            - "Connection status shows Xero org name and logo"
+            - "Disconnect revokes tokens in backend and updates UI"
+
+          task_6_4_1:
+            name: "Connect Xero Button and OAuth Flow"
+            complexity:
+              composite: 2.3
+            estimated_days: 1.5
+            deliverables:
+              - "Button component to initiate OAuth flow"
+              - "API call to GET /auth/xero (returns OAuth URL)"
+              - "Redirect to Xero authorization page"
+            acceptance_criteria:
+              - "Button disabled if already connected"
+              - "OAuth URL includes correct redirect_uri"
+              - "User redirected to Xero authorization page"
+
+          task_6_4_2:
+            name: "OAuth Callback Handling"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "Callback page component (e.g., /auth/xero/callback)"
+              - "Parse auth code from URL query params"
+              - "API call to backend (exchange code for tokens)"
+              - "Display success/error message"
+            acceptance_criteria:
+              - "Callback extracts code and state params"
+              - "Success message shows Xero org name"
+              - "Error message displays reason (invalid code, revoked access, etc.)"
+              - "Auto-redirect to chat after 3 seconds"
+
+          task_6_4_3:
+            name: "Xero Connection Status and Disconnect"
+            complexity:
+              composite: 2.3
+            estimated_days: 1
+            deliverables:
+              - "Connection status component (show org name, logo, last synced)"
+              - "Disconnect button with confirmation dialog"
+              - "API call to revoke tokens (POST /auth/xero/disconnect)"
+            acceptance_criteria:
+              - "Status shows 'Connected to [Org Name]' with green badge"
+              - "Disconnect confirmation prevents accidental revocation"
+              - "Disconnect API call succeeds and updates UI to 'Not Connected'"
+
+        feature_6_5:
+          name: "Basic Xero Data Visualization"
+          complexity:
+            composite: 3.0
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 3
+              risk: 2
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "Invoice list view (table with ID, contact, amount, status, due date)"
+            - "Expense list view (table with date, category, amount, description)"
+            - "Report summary view (profit/loss, balance sheet with charts)"
+            - "Data fetching via API Gateway (GET /invoices, /expenses, /reports)"
+          acceptance_criteria:
+            - "Invoice list paginated (25 per page)"
+            - "Expense list filterable by date range and category"
+            - "Reports show charts (bar chart for P&L, pie chart for expense categories)"
+            - "Data refreshes on pull-to-refresh (mobile)"
+
+          task_6_5_1:
+            name: "Invoice List View"
+            complexity:
+              composite: 2.8
+            estimated_days: 2.5
+            deliverables:
+              - "Table component for invoices (shadcn/ui table)"
+              - "API call to GET /invoices (pagination, sorting)"
+              - "Row actions (view details, send invoice)"
+            acceptance_criteria:
+              - "Table shows ID, contact, amount, status, due date"
+              - "Pagination controls (prev/next page)"
+              - "Sorting by date or amount (client-side)"
+              - "Row click navigates to invoice detail page"
+
+          task_6_5_2:
+            name: "Expense List View"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Table component for expenses"
+              - "API call to GET /expenses (date range, category filters)"
+              - "Filter UI (date picker, category dropdown)"
+            acceptance_criteria:
+              - "Table shows date, category, amount, description"
+              - "Filters apply on button click (debounced API call)"
+              - "Empty state shows 'No expenses found' message"
+
+          task_6_5_3:
+            name: "Report Summary View with Charts"
+            complexity:
+              composite: 3.5
+            estimated_days: 1.5
+            deliverables:
+              - "Report summary component (profit/loss, balance sheet)"
+              - "API call to GET /reports (report type, date range)"
+              - "Chart components (recharts library)"
+            acceptance_criteria:
+              - "P&L shows bar chart (income vs expenses by month)"
+              - "Balance sheet shows summary totals (assets, liabilities, equity)"
+              - "Charts responsive (mobile and desktop)"
+
+  milestone_2:
+    name: "v1.1 Premium - Pro Tier Release"
+    timeline_weeks: "14"
+    description: "Launch Pro tier with extended memory (vector search), relationship progression, voice integration (WebSocket, Transcribe, Polly), and Stripe billing. Users can interact via voice with <2s latency and access full conversation history."
+    success_criteria:
+      - "Pro users can subscribe via Stripe and payment succeeds"
+      - "Extended memory stores conversation summaries with vector embeddings"
+      - "Semantic search retrieves relevant past conversations"
+      - "Voice interaction works with <2s end-to-end latency (speech → response → audio)"
+      - "Subscription tiers enforce usage limits (voice minutes, agent requests)"
+      - "Relationship stage progression triggers proactive agent behavior"
+
+    epics:
+      epic_7:
+        name: "Extended Memory and Semantic Search"
+        weeks: "9-11"
+        milestone: "Vector embeddings operational; semantic search functional"
+
+        feature_7_1:
+          name: "Vector Embedding Generation"
+          complexity:
+            composite: 3.3
+            dimensions:
+              technical_complexity: 4
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 4
+              risk: 3
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "Lambda function to generate embeddings (OpenAI text-embedding-3-small)"
+            - "Store embeddings in vector database (Amazon OpenSearch Serverless or Pinecone)"
+            - "Embed conversation summaries (1 embedding per session)"
+            - "Incremental updates (embed new sessions only)"
+          acceptance_criteria:
+            - "Embeddings generated for all conversation summaries"
+            - "Vector dimensions: 1536 (text-embedding-3-small)"
+            - "Embedding generation cost <$0.01 per 1000 sessions"
+            - "Stored in vector DB with metadata (user_id, session_id, timestamp)"
+
+          task_7_1_1:
+            name: "OpenAI Embedding API Integration"
+            complexity:
+              composite: 3.0
+            estimated_days: 2.5
+            deliverables:
+              - "Lambda function calling OpenAI embeddings API"
+              - "Batch processing (embed 100 summaries at once)"
+              - "Error handling (rate limiting, API failures)"
+            acceptance_criteria:
+              - "API key retrieved from Secrets Manager"
+              - "Batch requests reduce API calls by 90%"
+              - "Rate limiting handled with exponential backoff"
+
+          task_7_1_2:
+            name: "Vector Database Setup (OpenSearch Serverless or Pinecone)"
+            complexity:
+              composite: 3.5
+            estimated_days: 2.5
+            deliverables:
+              - "OpenSearch Serverless domain (or Pinecone index) created"
+              - "Index schema (vector field, metadata fields)"
+              - "Lambda IAM role with write permissions"
+            acceptance_criteria:
+              - "Index configured for 1536-dimensional vectors"
+              - "Metadata fields: user_id, session_id, timestamp, summary_text"
+              - "Index accessible from Lambda (network policy allows)"
+
+          task_7_1_3:
+            name: "Incremental Embedding Pipeline"
+            complexity:
+              composite: 3.0
+            estimated_days: 1
+            deliverables:
+              - "EventBridge rule triggering Lambda after each session"
+              - "Lambda embeds new session summary only"
+              - "Backfill script for existing sessions (one-time)"
+            acceptance_criteria:
+              - "New sessions embedded within 5 minutes of completion"
+              - "Backfill processes 1000 sessions in <10 minutes"
+              - "Cost: <$10 for initial backfill, <$1/month ongoing"
+
+        feature_7_2:
+          name: "Semantic Search Implementation"
+          complexity:
+            composite: 3.2
+            dimensions:
+              technical_complexity: 4
+              scope_size: 3
+              dependencies: 4
+              uncertainty: 3
+              risk: 3
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "Search Lambda function (embed query, query vector DB)"
+            - "Return top-k relevant conversations (k=5 default)"
+            - "Integration with agent orchestrator (provide context from past conversations)"
+          acceptance_criteria:
+            - "Search latency <200ms (query + retrieval)"
+            - "Relevance score >0.7 for returned results"
+            - "Agent uses retrieved context to inform responses"
+            - "Empty results handled gracefully (fallback to current session only)"
+
+          task_7_2_1:
+            name: "Search Lambda Function"
+            complexity:
+              composite: 3.0
+            estimated_days: 2
+            deliverables:
+              - "Lambda function to embed user query"
+              - "Query vector DB for top-k similar embeddings"
+              - "Return session_ids and summaries"
+            acceptance_criteria:
+              - "Query embedded using same model (text-embedding-3-small)"
+              - "Vector DB query uses cosine similarity"
+              - "Returns top-5 results with scores >0.5 (configurable threshold)"
+
+          task_7_2_2:
+            name: "Agent Orchestrator Integration"
+            complexity:
+              composite: 3.2
+            estimated_days: 2
+            deliverables:
+              - "Agent retrieves relevant past conversations before generating response"
+              - "Context window includes retrieved summaries"
+              - "Performance optimization (parallel API calls)"
+            acceptance_criteria:
+              - "Agent uses retrieved context when relevant (e.g., 'As we discussed last month...')"
+              - "Search triggered only for Pro tier users"
+              - "Context window stays within 100k token limit (truncate old summaries if needed)"
+
+          task_7_2_3:
+            name: "Search Tests and Performance Tuning"
+            complexity:
+              composite: 3.0
+            estimated_days: 1
+            deliverables:
+              - "Unit tests for search logic"
+              - "Integration tests with test embeddings"
+              - "Performance benchmarks (latency, relevance)"
+            acceptance_criteria:
+              - "Tests verify top-k results match expected relevance scores"
+              - "Latency <200ms for 95th percentile"
+              - "Relevance evaluated on test set (NDCG >0.8)"
+
+        feature_7_3:
+          name: "Extended Memory Expiration (Subscription Lapse)"
+          complexity:
+            composite: 2.5
+            dimensions:
+              technical_complexity: 2
+              scope_size: 2
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 4
+          deliverables:
+            - "TTL attribute on extended memory items (90 days after subscription lapse)"
+            - "EventBridge rule to check subscription status daily"
+            - "Graceful degradation (extended memory cleared, core memory retained)"
+          acceptance_criteria:
+            - "Extended memory items have expires_at timestamp (90 days from lapse)"
+            - "DynamoDB TTL deletes expired items automatically"
+            - "User notified of extended memory expiration (in-app + email)"
+            - "Core memory unaffected by subscription lapse"
+
+          task_7_3_1:
+            name: "TTL Configuration on Extended Memory"
+            complexity:
+              composite: 2.0
+            estimated_days: 1.5
+            deliverables:
+              - "DynamoDB TTL attribute (expires_at) on extended memory items"
+              - "Set expires_at on subscription cancellation (90 days from now)"
+              - "Terraform configuration for TTL"
+            acceptance_criteria:
+              - "TTL enabled on DynamoDB table"
+              - "expires_at set to 90 days after subscription_ends_at"
+              - "Items deleted automatically by DynamoDB (no Lambda needed)"
+
+          task_7_3_2:
+            name: "Subscription Status Check and Expiration Notification"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "EventBridge rule triggering Lambda daily"
+              - "Lambda queries subscriptions expiring in next 7 days"
+              - "Send notification (in-app + email) to users"
+            acceptance_criteria:
+              - "Notification sent 7 days before expiration"
+              - "Reminder sent 1 day before expiration"
+              - "Final notification on expiration day"
+
+          task_7_3_3:
+            name: "Graceful Degradation Tests"
+            complexity:
+              composite: 2.3
+            estimated_days: 0.5
+            deliverables:
+              - "Integration tests for subscription lapse scenario"
+              - "Verify extended memory deleted, core memory retained"
+              - "Test agent behavior post-lapse (no semantic search)"
+            acceptance_criteria:
+              - "Tests confirm extended memory cleared after TTL"
+              - "Core memory accessible after lapse"
+              - "Agent functions with reduced context (no errors)"
+
+      epic_8:
+        name: "Voice Integration"
+        weeks: "10-13"
+        milestone: "Real-time voice interaction functional with <2s latency"
+
+        feature_8_1:
+          name: "WebSocket API Gateway for Voice Streaming"
+          complexity:
+            composite: 3.5
+            dimensions:
+              technical_complexity: 4
+              scope_size: 3
+              dependencies: 4
+              uncertainty: 4
+              risk: 4
+              testing: 3
+          estimated_days: 7
+          deliverables:
+            - "WebSocket API Gateway with connect, message, disconnect routes"
+            - "Connection management (store connection IDs in DynamoDB)"
+            - "Binary audio streaming (Opus codec)"
+            - "Authentication (JWT in connection request)"
+          acceptance_criteria:
+            - "WebSocket connection established from PWA"
+            - "Audio chunks streamed bidirectionally (client → Lambda → Transcribe → Agent → Polly → client)"
+            - "Connection IDs stored for message routing"
+            - "Unauthorized connections rejected (invalid JWT)"
+
+          task_8_1_1:
+            name: "WebSocket API Gateway Configuration"
+            complexity:
+              composite: 3.2
+            estimated_days: 3
+            deliverables:
+              - "Terraform API Gateway WebSocket resource"
+              - "Routes: $connect, $message, $disconnect"
+              - "Lambda integrations for each route"
+            acceptance_criteria:
+              - "WebSocket API accessible via wss://voice.xeroagent.com"
+              - "$connect route validates JWT and stores connection_id"
+              - "$disconnect route cleans up connection state"
+
+          task_8_1_2:
+            name: "Connection Management in DynamoDB"
+            complexity:
+              composite: 3.0
+            estimated_days: 2
+            deliverables:
+              - "DynamoDB schema for voice connections (connection_id, user_id, session_id)"
+              - "TTL attribute (expire connections after 1 hour)"
+              - "CRUD operations in Lambda handlers"
+            acceptance_criteria:
+              - "Connection stored on $connect, deleted on $disconnect"
+              - "TTL expires abandoned connections after 1 hour (cleanup)"
+              - "Connection lookup by user_id for message routing"
+
+          task_8_1_3:
+            name: "Binary Audio Streaming"
+            complexity:
+              composite: 3.8
+              dimensions:
+                technical_complexity: 4
+                scope_size: 3
+                dependencies: 4
+                uncertainty: 4
+                risk: 4
+                testing: 4
+              needs_decomposition: true
+              decomposition_reason: "High technical complexity (4) and uncertainty (4) around audio encoding, chunking, and latency optimization"
+            estimated_days: 2
+            deliverables:
+              - "Audio chunk handling (receive Opus-encoded audio from client)"
+              - "Send audio chunks to AWS Transcribe streaming API"
+              - "Return transcribed text to client"
+            acceptance_criteria:
+              - "Audio chunks sent every 100ms (low latency)"
+              - "Transcribe returns partial transcripts in real-time"
+              - "Opus codec used for compression (reduce bandwidth)"
+            status: "flagged_for_breakdown"
+
+        feature_8_2:
+          name: "AWS Transcribe Integration (Speech-to-Text)"
+          complexity:
+            composite: 3.3
+            dimensions:
+              technical_complexity: 4
+              scope_size: 3
+              dependencies: 4
+              uncertainty: 3
+              risk: 3
+              testing: 3
+          estimated_days: 6
+          deliverables:
+            - "Lambda function to stream audio to Transcribe"
+            - "Transcribe streaming API configuration (language, sample rate)"
+            - "Partial transcript handling (interim results)"
+            - "Final transcript sent to agent orchestrator"
+          acceptance_criteria:
+            - "Transcribe returns partial transcripts every 1-2 seconds"
+            - "Final transcript accuracy >90% (tested with sample recordings)"
+            - "Latency: Audio → transcript <500ms"
+            - "Supports English (en-US) initially; extensible to other languages"
+
+          task_8_2_1:
+            name: "Transcribe Streaming API Integration"
+            complexity:
+              composite: 3.2
+            estimated_days: 2.5
+            deliverables:
+              - "Lambda function to initiate Transcribe stream"
+              - "Audio chunk forwarding (from WebSocket to Transcribe)"
+              - "Transcript reception (partial and final)"
+            acceptance_criteria:
+              - "Transcribe stream starts on first audio chunk"
+              - "Partial transcripts sent to client in real-time (for UI feedback)"
+              - "Final transcript forwarded to agent orchestrator"
+
+          task_8_2_2:
+            name: "Transcription Accuracy and Language Configuration"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Configure Transcribe settings (language, sample rate, vocabulary)"
+              - "Custom vocabulary for Xero terminology (invoice, reconciliation, GST)"
+              - "Accuracy benchmarking (test recordings)"
+            acceptance_criteria:
+              - "Sample rate: 16 kHz (optimal for speech)"
+              - "Custom vocabulary improves accuracy for domain terms by 10%+"
+              - "Accuracy tested on 100 sample recordings (>90% word accuracy)"
+
+          task_8_2_3:
+            name: "Transcript Storage and Tests"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "Store final transcripts in DynamoDB (compliance)"
+              - "Link transcripts to voice sessions"
+              - "Unit and integration tests"
+            acceptance_criteria:
+              - "Transcripts stored with user_id, session_id, timestamp, text"
+              - "Retention: 90 days (compliance requirement)"
+              - "Tests verify transcript accuracy and storage"
+
+        feature_8_3:
+          name: "Amazon Polly Integration (Text-to-Speech)"
+          complexity:
+            composite: 3.0
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 3
+              risk: 3
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "Lambda function to convert agent text response to audio"
+            - "Polly API integration (neural voices)"
+            - "Stream audio back to client via WebSocket"
+            - "Voice settings persistence (voice, speed, language)"
+          acceptance_criteria:
+            - "Agent response converted to audio in <500ms"
+            - "Audio streamed to client in chunks (100ms each)"
+            - "Voice settings saved in core memory (user preference)"
+            - "Supports neural voices (Joanna, Matthew, etc.)"
+
+          task_8_3_1:
+            name: "Polly API Integration"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Lambda function to call Polly synthesizeSpeech API"
+              - "Audio format: Opus (compressed) or PCM (high quality)"
+              - "Streaming audio back to WebSocket client"
+            acceptance_criteria:
+              - "Polly returns audio in <500ms for typical responses (1-2 sentences)"
+              - "Audio chunks sent to client every 100ms (low latency)"
+              - "Opus format reduces bandwidth by 80% vs PCM"
+
+          task_8_3_2:
+            name: "Voice Settings Persistence"
+            complexity:
+              composite: 2.5
+            estimated_days: 1.5
+            deliverables:
+              - "Store voice preferences in core memory (voice_id, speed, pitch)"
+              - "UI in PWA to select voice and adjust settings"
+              - "Apply settings on Polly API calls"
+            acceptance_criteria:
+              - "User can select from 5+ neural voices (Joanna, Matthew, Amy, Brian, Emma)"
+              - "Speed adjustable (0.8x - 1.5x)"
+              - "Settings applied immediately on next response"
+
+          task_8_3_3:
+            name: "TTS Tests and Quality Benchmarking"
+            complexity:
+              composite: 2.8
+            estimated_days: 1.5
+            deliverables:
+              - "Unit tests for Polly integration"
+              - "Audio quality benchmarking (naturalness, intelligibility)"
+              - "Latency tests (text → audio → client)"
+            acceptance_criteria:
+              - "Tests verify audio format correctness"
+              - "Quality evaluated by 5+ testers (subjective MOS score >4.0)"
+              - "End-to-end latency <2s (speech → transcript → agent → TTS → client)"
+
+        feature_8_4:
+          name: "Voice Session Management and Usage Tracking"
+          complexity:
+            composite: 2.8
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "Voice session tracking (start time, end time, duration)"
+            - "Usage metering (minutes consumed per user per month)"
+            - "Quota enforcement (free: 0 min, pro: 1000 min)"
+            - "Graceful fallback to text when quota exceeded"
+          acceptance_criteria:
+            - "Voice session duration calculated accurately (start → end)"
+            - "Usage incremented in DynamoDB after each session"
+            - "Quota exceeded returns error message with upgrade prompt"
+            - "Fallback to text preserves conversation context"
+
+          task_8_4_1:
+            name: "Voice Session Tracking"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "DynamoDB schema for voice sessions (session_id, user_id, start_time, end_time, duration_minutes)"
+              - "Session start on $connect, session end on $disconnect"
+              - "Duration calculation (end_time - start_time)"
+            acceptance_criteria:
+              - "Duration rounded to nearest minute (ceiling)"
+              - "Sessions stored with transcript references"
+              - "Abandoned sessions (no $disconnect) timeout after 1 hour (TTL cleanup)"
+
+          task_8_4_2:
+            name: "Usage Metering and Quota Enforcement"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Usage counter in DynamoDB (user_id, month, voice_minutes_used)"
+              - "Quota check on $connect (reject if quota exceeded)"
+              - "Increment usage on session end"
+            acceptance_criteria:
+              - "Quota enforced at connection time (prevent overuse)"
+              - "Usage resets on 1st of each month (EventBridge rule)"
+              - "Free tier users blocked from voice (quota: 0 min)"
+
+          task_8_4_3:
+            name: "Graceful Fallback and Tests"
+            complexity:
+              composite: 2.5
+            estimated_days: 1
+            deliverables:
+              - "Fallback logic (quota exceeded → redirect to text chat)"
+              - "Error message displayed in PWA"
+              - "Integration tests for quota enforcement"
+            acceptance_criteria:
+              - "Error message: 'Voice quota exceeded. Upgrade to Pro for 1000 min/month.'"
+              - "User seamlessly continues conversation in text mode"
+              - "Tests verify quota enforcement and fallback behavior"
+
+      epic_9:
+        name: "Subscription Management and Billing"
+        weeks: "11-14"
+        milestone: "Stripe integration operational; tier enforcement functional"
+
+        feature_9_1:
+          name: "Stripe Integration"
+          complexity:
+            composite: 3.2
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 4
+              uncertainty: 3
+              risk: 4
+              testing: 3
+          estimated_days: 7
+          deliverables:
+            - "Stripe account configuration (products, prices)"
+            - "Checkout session creation (Lambda endpoint)"
+            - "Webhook handler for payment events (subscription.created, subscription.updated, subscription.deleted)"
+            - "Subscription status sync to DynamoDB"
+          acceptance_criteria:
+            - "User can initiate checkout from PWA"
+            - "Payment succeeds and subscription created in Stripe"
+            - "Webhook updates DynamoDB subscription status within 1 minute"
+            - "Failed payments trigger retry logic and user notification"
+
+          task_9_1_1:
+            name: "Stripe Account and Product Configuration"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "Stripe products: Free (implicit), Pro ($29/month), Enterprise (custom)"
+              - "Price objects for Pro tier (recurring monthly)"
+              - "Webhook endpoint configuration"
+            acceptance_criteria:
+              - "Products visible in Stripe dashboard"
+              - "Pro tier price: $29/month USD (tax exclusive)"
+              - "Webhook endpoint registered with Stripe (URL: https://api.xeroagent.com/webhooks/stripe)"
+
+          task_9_1_2:
+            name: "Checkout Session Creation Lambda"
+            complexity:
+              composite: 3.0
+            estimated_days: 2.5
+            deliverables:
+              - "Lambda endpoint: POST /checkout/create-session"
+              - "Create Stripe checkout session (price_id, user_id)"
+              - "Return session URL for redirect"
+            acceptance_criteria:
+              - "Session includes user_id in metadata (for webhook matching)"
+              - "Success URL redirects to PWA dashboard"
+              - "Cancel URL redirects to PWA settings"
+
+          task_9_1_3:
+            name: "Webhook Handler for Payment Events"
+            complexity:
+              composite: 3.8
+            estimated_days: 2.5
+            deliverables:
+              - "Lambda webhook handler (POST /webhooks/stripe)"
+              - "Handle events: customer.subscription.created, updated, deleted, payment_intent.succeeded, failed"
+              - "Update DynamoDB subscription status"
+              - "Send user notifications (email via SES)"
+            acceptance_criteria:
+              - "Webhook signature validated (prevent spoofing)"
+              - "Subscription status updated within 1 minute of event"
+              - "Payment failures trigger retry (3 attempts over 7 days)"
+              - "User notified of payment success, failure, subscription cancellation"
+
+        feature_9_2:
+          name: "Tier Enforcement at API Gateway"
+          complexity:
+            composite: 2.8
+            dimensions:
+              technical_complexity: 3
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 3
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "Lambda authorizer to check subscription tier (JWT custom claim)"
+            - "Usage plan enforcement (free: 50 requests/month, pro: 1000 requests/month)"
+            - "Voice quota enforcement (handled in WebSocket route)"
+            - "Extended memory access control (pro-only)"
+          acceptance_criteria:
+            - "Free tier users blocked from voice and extended memory"
+            - "Request quota enforced (429 error when exceeded)"
+            - "JWT includes tier claim (free/pro/enterprise)"
+            - "Tier updated in JWT after subscription change (requires re-login or token refresh)"
+
+          task_9_2_1:
+            name: "Lambda Authorizer for Tier Check"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Lambda authorizer to extract tier from JWT"
+              - "Attach tier to request context"
+              - "Block unauthorized endpoints (e.g., free tier accessing /voice)"
+            acceptance_criteria:
+              - "Authorizer runs on every API request"
+              - "Tier extracted from JWT custom claim (aud:tier)"
+              - "Unauthorized access returns 403 with upgrade prompt"
+
+          task_9_2_2:
+            name: "Usage Plan Enforcement"
+            complexity:
+              composite: 2.8
+            estimated_days: 2
+            deliverables:
+              - "Usage counter in DynamoDB (user_id, month, requests_used)"
+              - "Increment on each API call (middleware)"
+              - "Quota check before processing request"
+            acceptance_criteria:
+              - "Free tier: 50 requests/month, Pro: 1000 requests/month"
+              - "Counter resets on 1st of each month"
+              - "Quota exceeded returns 429 with Retry-After header"
+
+          task_9_2_3:
+            name: "Extended Memory Access Control and Tests"
+            complexity:
+              composite: 2.5
+            estimated_days: 1
+            deliverables:
+              - "Access control logic for semantic search (pro-only)"
+              - "Block free tier from extended memory features"
+              - "Integration tests for tier enforcement"
+            acceptance_criteria:
+              - "Free tier semantic search requests return 403"
+              - "Pro tier accesses extended memory successfully"
+              - "Tests verify all tier-gated features"
+
+        feature_9_3:
+          name: "Subscription Management UI"
+          complexity:
+            composite: 2.5
+            dimensions:
+              technical_complexity: 2
+              scope_size: 3
+              dependencies: 3
+              uncertainty: 2
+              risk: 2
+              testing: 3
+          estimated_days: 5
+          deliverables:
+            - "Subscription settings page in PWA"
+            - "Display current tier, usage (voice minutes, requests), billing date"
+            - "Upgrade button (redirect to Stripe checkout)"
+            - "Cancel subscription option (with confirmation)"
+            - "Billing history (list past invoices from Stripe)"
+          acceptance_criteria:
+            - "Settings page shows real-time usage (voice minutes, requests)"
+            - "Upgrade button initiates checkout"
+            - "Cancel subscription takes effect at end of billing period (no immediate downgrade)"
+            - "Billing history shows last 12 months of invoices"
+
+          task_9_3_1:
+            name: "Subscription Settings Page"
+            complexity:
+              composite: 2.3
+            estimated_days: 2
+            deliverables:
+              - "React component for settings page"
+              - "API call to GET /subscription/status (tier, usage, billing_date)"
+              - "Display tier badge (free/pro) and usage progress bars"
+            acceptance_criteria:
+              - "Real-time usage displayed (voice: X/1000 min, requests: Y/1000)"
+              - "Billing date shown (next charge on MM/DD/YYYY)"
+              - "Free tier shows 'Upgrade to Pro' CTA"
+
+          task_9_3_2:
+            name: "Upgrade and Cancel Subscription"
+            complexity:
+              composite: 2.5
+            estimated_days: 2
+            deliverables:
+              - "Upgrade button (redirect to Stripe checkout)"
+              - "Cancel button with confirmation dialog"
+              - "API call to POST /subscription/cancel"
+            acceptance_criteria:
+              - "Upgrade redirects to Stripe checkout (pre-filled with user email)"
+              - "Cancel confirmation prevents accidental cancellation"
+              - "Cancellation takes effect at end of billing period (user retains pro access until then)"
+
+          task_9_3_3:
+            name: "Billing History Display"
+            complexity:
+              composite: 2.3
+            estimated_days: 1
+            deliverables:
+              - "API call to GET /billing/history (returns Stripe invoices)"
+              - "Table component to display invoices (date, amount, status, PDF link)"
+              - "Pagination for long history"
+            acceptance_criteria:
+              - "Shows last 12 months of invoices"
+              - "Status displayed (paid, pending, failed)"
+              - "PDF link opens Stripe-hosted invoice"
+
+agent_blueprint:
+  total_estimated: 25
+  parallel_capacity: 5
+  types_needed:
+    - type: "infrastructure-dev"
+      count: 3
+      focus_areas: ["Terraform", "AWS services", "DynamoDB", "Lambda", "API Gateway"]
+    - type: "backend-dev"
+      count: 5
+      focus_areas: ["TypeScript", "Lambda functions", "MCP server", "Agent SDK", "Stripe integration"]
+    - type: "ai-agent-dev"
+      count: 4
+      focus_areas: ["Claude Agent SDK", "sub-agents", "context management", "memory systems"]
+    - type: "frontend-dev"
+      count: 4
+      focus_areas: ["React", "TypeScript", "PWA", "WebSocket", "UI/UX"]
+    - type: "voice-integration-dev"
+      count: 3
+      focus_areas: ["WebSocket", "AWS Transcribe", "Amazon Polly", "audio streaming"]
+    - type: "ml-dev"
+      count: 2
+      focus_areas: ["Vector embeddings", "OpenAI API", "semantic search", "OpenSearch"]
+    - type: "qa-engineer"
+      count: 4
+      focus_areas: ["Unit tests", "integration tests", "E2E tests", "performance testing"]
+
+feature_specifications:
+  - feature: "Infrastructure Foundation"
+    description: "Terraform-managed AWS infrastructure (VPC, DynamoDB, Lambda, API Gateway, Cognito) enabling serverless deployment with minimal operational overhead."
+    complexity: "medium"
+    assigned_agents: 3
+    acceptance_criteria:
+      - "terraform apply creates all resources without errors"
+      - "IAM policies follow least privilege (verified by checkov)"
+      - "DynamoDB table supports all 8 access patterns"
+      - "Lambda cold starts <1s with provisioned concurrency"
+
+  - feature: "Authentication and Authorization"
+    description: "Cognito-based user authentication with Xero OAuth 2.0 integration for secure API access. JWT tokens enforce tier-based permissions."
+    complexity: "medium"
+    assigned_agents: 2
+    acceptance_criteria:
+      - "User can sign up, verify email, and sign in"
+      - "Xero OAuth flow completes successfully and stores tokens in Secrets Manager"
+      - "Token refresh automation prevents re-authentication"
+      - "JWT authorizer validates tokens and enforces tier permissions"
+
+  - feature: "MCP Xero Server"
+    description: "MCP server with tools for invoicing, expenses, bank transactions, and financial reports. Handles Xero API rate limiting and authentication."
+    complexity: "high"
+    assigned_agents: 4
+    acceptance_criteria:
+      - "All 15+ tools operational (invoice, expense, bank, report tools)"
+      - "Tools validate inputs with Zod schemas"
+      - "Rate limiting handled with exponential backoff"
+      - "Integration tests pass against Xero sandbox"
+
+  - feature: "Agent Core"
+    description: "Claude Agent SDK orchestrator with sub-agents (Invoice, Expense, Reconciliation, Reporting). Manages sessions, context, and tool permissions."
+    complexity: "high"
+    assigned_agents: 5
+    acceptance_criteria:
+      - "Orchestrator delegates requests to appropriate sub-agents"
+      - "Session state persisted to DynamoDB"
+      - "Context compaction at 80k tokens"
+      - "Sub-agents scoped to relevant MCP tools"
+
+  - feature: "Core Memory Persistence"
+    description: "Always-retained core memory (preferences, relationship stage, milestones) enabling personalized agent behavior across sessions."
+    complexity: "medium"
+    assigned_agents: 2
+    acceptance_criteria:
+      - "Core memory includes Xero org, timezone, communication style"
+      - "Relationship stage advances (colleague → partner → friend)"
+      - "Milestones detected and celebrated automatically"
+      - "Memory size <10 KB per user (cost optimization)"
+
+  - feature: "Extended Memory and Semantic Search"
+    description: "Pro-tier feature with vector embeddings of conversation summaries. Semantic search retrieves relevant past context to inform agent responses."
+    complexity: "high"
+    assigned_agents: 3
+    acceptance_criteria:
+      - "Conversation summaries embedded with OpenAI text-embedding-3-small"
+      - "Semantic search returns top-5 relevant conversations in <200ms"
+      - "Agent uses retrieved context in responses"
+      - "Extended memory expires 90 days after subscription lapse"
+
+  - feature: "Voice Integration"
+    description: "Real-time voice interaction via WebSocket, AWS Transcribe (speech-to-text), and Amazon Polly (text-to-speech) with <2s end-to-end latency."
+    complexity: "high"
+    assigned_agents: 4
+    acceptance_criteria:
+      - "WebSocket connection established from PWA"
+      - "Audio streamed bidirectionally (client ↔ Lambda ↔ Transcribe/Polly)"
+      - "Transcription accuracy >90%"
+      - "End-to-end latency <2s (speech → response → audio)"
+
+  - feature: "Subscription Management"
+    description: "Stripe-powered billing with tier enforcement (free, pro, enterprise). Usage tracking for voice minutes and API requests."
+    complexity: "medium"
+    assigned_agents: 3
+    acceptance_criteria:
+      - "User can subscribe to Pro tier via Stripe checkout"
+      - "Webhooks update subscription status in real-time"
+      - "Tier enforcement blocks unauthorized features"
+      - "Usage quotas enforced (voice minutes, API requests)"
+
+  - feature: "PWA Frontend"
+    description: "Mobile-first React PWA with chat interface, Xero data visualization, voice recording, and subscription management. Offline-capable with service worker."
+    complexity: "high"
+    assigned_agents: 4
+    acceptance_criteria:
+      - "Chat interface renders messages with Markdown support"
+      - "Voice recording and playback functional"
+      - "Xero data visualization (invoices, expenses, reports)"
+      - "PWA installable and functions offline for cached data"
+
+testing_strategy:
+  levels:
+    - level: "unit"
+      scope: "All Lambda functions, MCP tools, agent logic, React components. Target: 80%+ code coverage."
+      tools: ["Jest", "React Testing Library"]
+    - level: "integration"
+      scope: "API Gateway + Lambda, MCP server + Xero API, Agent + MCP integration, Stripe webhooks. Test against sandbox/staging environments."
+      tools: ["Supertest", "Xero sandbox API", "Stripe test mode"]
+    - level: "e2e"
+      scope: "User flows: signup → Xero connection → create invoice → voice interaction. Run against staging environment."
+      tools: ["Playwright", "Cypress"]
+    - level: "performance"
+      scope: "Voice latency (<2s), semantic search (<200ms), API Gateway p99 latency (<500ms), Lambda cold starts (<1s)."
+      tools: ["Artillery", "k6", "CloudWatch metrics"]
+    - level: "security"
+      scope: "IAM policy validation (checkov), JWT validation, OAuth flow security, Stripe webhook signature verification."
+      tools: ["checkov", "OWASP ZAP", "manual penetration testing"]
+
+documentation_requirements:
+  - document: "API Reference"
+    scope: "All REST and WebSocket endpoints (request/response schemas, error codes)"
+  - document: "MCP Tool Specifications"
+    scope: "Tool descriptions, input schemas (Zod), example usage"
+  - document: "Architecture Decision Records (ADRs)"
+    scope: "Key decisions (AWS vs Firebase, DynamoDB single-table, Polly vs ElevenLabs)"
+  - document: "Deployment Guide"
+    scope: "Terraform setup, environment configuration, Stripe setup, Xero app registration"
+  - document: "User Guide"
+    scope: "How to use voice features, create invoices, reconcile transactions, manage subscription"
+
+project_structure:
+  pattern: "vertical-slice"
+  directories:
+    - path: "specs/"
+      purpose: "Architectural documentation (BLUEPRINT.yaml, ADRs)"
+    - path: "infrastructure/"
+      purpose: "Terraform IaC (modules for VPC, DynamoDB, Lambda, API Gateway)"
+    - path: "packages/mcp-xero-server/"
+      purpose: "MCP server with Xero tools (vertical slice: tool definitions, Xero API wrappers, tests)"
+    - path: "packages/agent-core/"
+      purpose: "Claude Agent SDK orchestrator and sub-agents (vertical slice: agent logic, session management, tests)"
+    - path: "packages/pwa-app/"
+      purpose: "React PWA frontend (vertical slice: components, hooks, API client, tests)"
+    - path: "backend/functions/"
+      purpose: "Lambda functions (auth, webhooks, agent orchestrator, voice handlers)"
+    - path: "backend/shared/"
+      purpose: "Shared utilities (DynamoDB SDK, Secrets Manager client, error handling)"
+    - path: "docs/"
+      purpose: "User-facing documentation (guides, ADRs, API reference)"

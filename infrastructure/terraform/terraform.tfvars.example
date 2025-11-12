@@ -1,0 +1,50 @@
+# Xero Agent - Terraform Configuration Example
+# Copy this file to terraform.tfvars and fill in your values
+# DO NOT commit terraform.tfvars to version control
+
+# Core Configuration
+aws_region  = "us-east-1"  # Change based on user location (see CLAUDE.md)
+environment = "dev"        # dev, staging, or prod
+project_name = "xero-agent"
+
+# Application Configuration
+domain_name = ""  # Optional: your custom domain (e.g., "agent.yourdomain.com")
+
+# Xero OAuth Credentials
+# Get these from: https://developer.xero.com/app/manage
+xero_client_id     = ""  # Your Xero OAuth client ID
+xero_client_secret = ""  # Your Xero OAuth client secret
+
+# Anthropic API Key
+# Get from: https://console.anthropic.com/
+anthropic_api_key = ""  # Your Anthropic API key for Claude
+
+# DynamoDB Configuration
+dynamodb_billing_mode = "PAY_PER_REQUEST"  # Recommended for variable workloads
+# dynamodb_read_capacity  = 5  # Only for PROVISIONED mode
+# dynamodb_write_capacity = 5  # Only for PROVISIONED mode
+
+# Lambda Configuration
+lambda_runtime               = "nodejs20.x"
+lambda_memory_size_agent     = 1024  # MB - agent orchestrator
+lambda_memory_size_mcp       = 512   # MB - MCP tools
+lambda_timeout_agent         = 30    # seconds
+lambda_timeout_mcp           = 15    # seconds
+lambda_provisioned_concurrency = 0   # Set to 2+ for production to reduce cold starts
+
+# Cognito Configuration
+cognito_password_minimum_length = 12
+cognito_mfa_configuration       = "OPTIONAL"  # OFF, OPTIONAL, or ON
+
+# Cost Optimization Flags
+# Disable expensive resources for dev/POC (see terraform-aws-infrastructure skill)
+enable_nat_gateway = false  # ~$50/month - disable for POC
+enable_alb         = false  # ~$25/month - disable for POC
+enable_cloudfront  = true   # Recommended even for dev (within free tier)
+
+# Additional Tags (optional)
+tags = {
+  Owner       = "your-name"
+  CostCenter  = "engineering"
+  Terraform   = "true"
+}

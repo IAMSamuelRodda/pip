@@ -1,0 +1,39 @@
+{
+  "name": "@xero-agent/agent-core",
+  "version": "0.1.0",
+  "description": "Claude Agent SDK orchestrator for Xero Agent",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest"
+  },
+  "keywords": [
+    "claude",
+    "agent",
+    "ai",
+    "xero"
+  ],
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "claude-agent-sdk": "^0.1.0",
+    "@aws-sdk/client-lambda": "^3.700.0",
+    "@aws-sdk/client-dynamodb": "^3.700.0",
+    "@aws-sdk/lib-dynamodb": "^3.700.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8",
+    "eslint": "^9.16.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

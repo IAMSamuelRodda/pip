@@ -34,24 +34,29 @@
 - ✅ Added ADR-008: Voice-to-voice integration (premium tier)
 - ✅ Defined subscription model (Free, Pro, Enterprise tiers)
 - ✅ Created monorepo directory structure (packages/, functions/, infrastructure/)
-- ✅ Set up Terraform infrastructure foundation (provider, variables, outputs)
+- ✅ Set up Terraform infrastructure foundation (9 files, 1,270 lines)
 - ✅ Implemented DynamoDB single-table design in Terraform
 - ✅ Created IAM roles with least-privilege policies (agent, MCP, auth)
 - ✅ Configured Secrets Manager for Xero OAuth tokens
 - ✅ Added terraform.tfvars.example and comprehensive README
+- ✅ Initialized mcp-xero-server package (MCP SDK, 14 tools defined)
+- ✅ Initialized agent-core package (4 sub-agents, session/memory managers)
+- ✅ Initialized pwa-app package (React 18, Vite 6, PWA configured)
+- ✅ Configured pnpm workspaces and Turbo monorepo
+- ✅ Documented Claude Agent SDK architecture and best practices
 
 **In Progress:**
 - 🔵 Infrastructure Foundation (GitHub Issue #1)
-- 🔵 Preparing packages for MCP server and agent core
+- 🔵 Package implementation (handlers, utilities, API clients)
 
 **Next Up:**
-- [ ] Initialize mcp-xero-server package with TypeScript and MCP SDK
-- [ ] Initialize agent-core package with Claude Agent SDK
-- [ ] Initialize pwa-app package with React + Vite + TypeScript
+- [ ] Install dependencies with pnpm (packages + root)
+- [ ] Implement MCP tool handlers (Xero API integration)
+- [ ] Implement agent orchestrator logic (Claude Agent SDK)
 - [ ] Configure AWS account and deploy initial infrastructure (terraform apply)
 - [ ] Initialize Xero OAuth application in Xero Developer Portal
-- [ ] Implement MCP server foundation (Lambda functions)
-- [ ] Build agent orchestrator with Claude Agent SDK (Lambda)
+- [ ] Build Lambda function wrappers for packages
+- [ ] Implement PWA authentication (Cognito integration)
 
 ---
 

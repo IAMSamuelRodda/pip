@@ -3,8 +3,8 @@
 > **Purpose**: Current work, active bugs, and recent changes (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-11-12
-**Current Phase**: Infrastructure Foundation Implementation
+**Last Updated**: 2025-11-13
+**Current Phase**: Lambda Functions Complete - Ready for API Gateway/Cognito
 **Version**: 0.1.0 (Pre-release)
 
 ---
@@ -13,10 +13,10 @@
 
 | Aspect | Status | Notes |
 |--------|--------|-------|
-| Development | 🔵 | Infrastructure setup in progress |
-| Staging | ⚪ | Not yet deployed |
-| Production | ⚪ | Not yet deployed |
-| CI/CD Pipeline | 🔵 | Configuration in progress |
+| Development | 🟢 | MCP server + Lambda functions complete, ready for deployment |
+| Staging | ⚪ | Blocked: Need API Gateway + Cognito Terraform resources |
+| Production | ⚪ | Deferred: Per ADR-010 (no prod until revenue) |
+| CI/CD Pipeline | 🔵 | Branch protection configured |
 | Test Coverage | ⚪ | No tests yet |
 | Known Bugs | 🟢 | None (pre-implementation) |
 
@@ -55,15 +55,30 @@
 - ✅ Completed all 9 remaining MCP handlers (bank, reporting, expenses)
 - ✅ Updated xero-node to v13.2.0 and fixed claude-agent-sdk package name
 - ✅ All 14 MCP tools now fully implemented (Infrastructure Foundation 100%)
+- ✅ Deep research on MCP context optimization (29,000+ word guide)
+- ✅ Created improving-mcps skill (100/100 score, 15KB distributable zip)
+- ✅ Assessed xero-mcp-server with 8-dimension rubric (42/100 → 76/100)
+- ✅ Implemented P1+P2 optimizations (pagination, filtering, ResourceLink, metrics)
+- ✅ Achieved 95% token reduction (95,000 → 4,750 tokens/conversation)
+- ✅ Optimized dev environment cost ($1.32 → $0.80/month, <$1 budget achieved)
+- ✅ Built all 3 Lambda function wrappers (Agent, MCP, Auth)
+- ✅ Created Terraform Lambda resources (lambda.tf, 229 lines)
+- ✅ Added Xero client secret to Secrets Manager
+- ✅ Documented Lambda architecture (functions/README.md, 400+ lines)
 
 **In Progress:**
-- 🔵 PR #149 awaiting review/merge (ready for main deployment)
+- 🔵 PR #158 - MCP optimization + Cost optimization (pending review)
+- 🔵 PR #159 - Lambda function wrappers (pending review)
 
-**Next Up:**
-- [ ] Deploy infrastructure with Terraform (terraform apply)
-- [ ] Configure AWS account and Xero OAuth application
-- [ ] Build Lambda function wrappers (MCP server, agent, auth)
-- [ ] Implement agent orchestrator logic (Claude Agent SDK)
+**Next Up (Blocked by API Gateway + Cognito):**
+- [ ] Create API Gateway Terraform resources (terraform/api-gateway.tf) - **CRITICAL**
+- [ ] Create Cognito Terraform resources (terraform/cognito.tf) - **CRITICAL**
+- [ ] Build Lambda deployment packages (pnpm build:lambda)
+- [ ] Deploy dev infrastructure with Terraform (terraform apply)
+- [ ] Configure AWS account and dev Xero OAuth application
+- [ ] Test OAuth flow end-to-end
+- [ ] Implement agent orchestrator logic (Claude Agent SDK integration)
+- [ ] Create S3 + CloudFront for PWA hosting (optional)
 - [ ] Implement PWA authentication (Cognito integration)
 - [ ] Connect PWA to backend API
 
@@ -71,13 +86,16 @@
 
 ## Deployment Status
 
-### Development
-- **Status**: Local setup in progress
-- **URL**: localhost (various ports)
-- **Last Activity**: 2025-11-12
+### Development Environment (dev branch → AWS)
+- **Status**: Ready to deploy (Lambda functions complete, need API Gateway + Cognito)
+- **URL**: CloudFront distribution URL (*.cloudfront.net, no custom domain)
+- **Cost**: ~$0.80/month (Secrets Manager only)
+- **Purpose**: Development, testing, demos
+- **Last Activity**: 2025-11-13
+- **Blocked by**: API Gateway + Cognito Terraform resources (see terraform/TODO.md)
 
-### Staging
-- **Status**: Not yet configured
+### Staging Environment
+- **Status**: Using dev environment for staging (single environment strategy)
 - **URL**: TBD
 - **Last Deployed**: N/A
 

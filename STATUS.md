@@ -89,8 +89,8 @@ None - Ready for infrastructure deployment.
 
 ### Development Environment (dev branch → AWS)
 - **Status**: Ready to deploy (Terraform configured)
-- **URL**: TBD (will be dev.xero-agent.com)
-- **Cost**: ~$1.32/month
+- **URL**: CloudFront distribution URL (*.cloudfront.net, no custom domain)
+- **Cost**: ~$0.80/month (Secrets Manager only)
 - **Purpose**: Development, testing, demos
 - **Last Activity**: 2025-11-13
 
@@ -136,7 +136,8 @@ None currently - MCP server passed production threshold (76/100).
 **Lean Infrastructure Strategy** ✅
 - Completed: 2025-11-13
 - Created ADR-010: No production deployment until revenue
-- Dev environment only: $1.32/month (vs $504/month for dev+prod)
+- Dev environment only: $0.80/month (vs $504/month for dev+prod)
+- Ultra-lean: Skip custom domain (use CloudFront URL) to stay under $1/month budget
 - Runway savings: $2,000-4,000 during 4-8 week pre-launch period
 - Production deployment deferred until first paying customer or 10+ free users
 - Breakeven: 18 paying customers ($522 revenue vs $504 cost)

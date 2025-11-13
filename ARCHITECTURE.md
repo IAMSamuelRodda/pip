@@ -820,17 +820,19 @@ ANNUAL SAVINGS: $108,000/year
 CURRENT STATE (Pre-Launch):
 ├── dev branch → AWS Dev Environment
 │   ├── Purpose: Development, testing, demos
-│   ├── Cost: ~$1.32/month
+│   ├── Cost: ~$0.80/month (Secrets Manager only, no custom domain)
+│   ├── URL: CloudFront distribution URL (*.cloudfront.net)
 │   └── Users: Developers + early testers
 └── main branch → NO INFRASTRUCTURE (git only)
     └── Purpose: Source of truth, branch protection
 
 FUTURE STATE (Post-First-Paying-Customer):
 ├── dev branch → AWS Dev Environment
-│   └── Cost: ~$1.32/month
+│   └── Cost: ~$0.80/month
 └── main branch → AWS Production Environment
     ├── Created via: terraform workspace new prod
     ├── Cost: ~$503/month (100 users)
+    ├── Custom domain: agent.yourdomain.com (Route53 +$0.50/month)
     └── Revenue: $0-2,900/month (0-100 paying users)
 ```
 
@@ -838,9 +840,10 @@ FUTURE STATE (Post-First-Paying-Customer):
 
 1. **Week 1-2: Dev Environment Only**
    - Deploy to AWS dev workspace: `terraform workspace new dev && terraform apply`
+   - Leave `domain_name` empty in terraform.tfvars (use CloudFront URL)
    - Connect to dev Xero app (separate OAuth credentials)
    - Test with development team
-   - Cost: $1.32/month
+   - Cost: $0.80/month (Secrets Manager: $0.40 × 2 secrets)
 
 2. **Post-Launch: Main Branch Protected, No Infrastructure**
    - Main branch has branch protection (PR from dev only)
@@ -858,11 +861,11 @@ FUTURE STATE (Post-First-Paying-Customer):
 
 | Phase | Dev Cost | Prod Cost | Total | Revenue | Net |
 |-------|----------|-----------|-------|---------|-----|
-| Pre-Launch (Weeks 1-8) | $1.32/mo | $0 | **$10** (8 weeks) | $0 | **-$10** |
-| Post-Launch (No users) | $1.32/mo | $0 | $1.32/mo | $0 | -$1.32/mo |
-| First customer | $1.32/mo | $503/mo | $504/mo | $29/mo | **-$475/mo** |
-| 20 customers | $1.32/mo | $503/mo | $504/mo | $580/mo | **+$76/mo** |
-| 100 customers | $1.32/mo | $503/mo | $504/mo | $2,900/mo | **+$2,396/mo** |
+| Pre-Launch (Weeks 1-8) | $0.80/mo | $0 | **$6** (8 weeks) | $0 | **-$6** |
+| Post-Launch (No users) | $0.80/mo | $0 | $0.80/mo | $0 | -$0.80/mo |
+| First customer | $0.80/mo | $503/mo | $504/mo | $29/mo | **-$475/mo** |
+| 20 customers | $0.80/mo | $503/mo | $504/mo | $580/mo | **+$76/mo** |
+| 100 customers | $0.80/mo | $503/mo | $504/mo | $2,900/mo | **+$2,396/mo** |
 
 **Breakeven**: ~18 paying customers ($522 revenue vs $504 cost)
 
@@ -870,6 +873,7 @@ FUTURE STATE (Post-First-Paying-Customer):
 
 ✅ **Runway Preservation**:
 - Save $500+/month pre-launch (4-8 weeks = $2,000-4,000 saved)
+- Dev environment costs <$1/month ($0.80 for Secrets Manager only)
 - Only pay for production when justified by users
 
 ✅ **Risk Mitigation**:

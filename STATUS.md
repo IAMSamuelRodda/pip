@@ -84,19 +84,19 @@ Primary segments under consideration:
 | Deploy container | ✅ Done | Built and running on VPS |
 | Caddy config | ✅ Done | Reverse proxy configured, auto-HTTPS |
 | Health check | ✅ Done | https://zero.rodda.xyz/health responding |
-| API keys | ⚠️ **Required** | ANTHROPIC_API_KEY not set |
-| Xero OAuth | ⚪ Pending | Add callback URL to Xero app |
+| API keys | ✅ Done | Anthropic + Xero credentials configured |
+| Xero OAuth | ✅ Done | Callback URL added to Xero app |
 
 **Live URL**: https://zero.rodda.xyz
-**Health Status**: ✅ Healthy (server running, chat needs API key)
+**Health Status**: ✅ Fully Operational
 **VPS**: production-syd1 (170.64.169.203) - shared with Nextcloud, Joplin, etc.
 **Memory Budget**: 384MB (of ~2.3GB available)
 
-**To complete setup:**
-1. Add `ZERO_AGENT_ANTHROPIC_KEY` to `/opt/docker/droplet/.env`
-2. Add Xero callback URL: `https://zero.rodda.xyz/auth/callback`
-3. Add `ZERO_AGENT_XERO_CLIENT_ID` and `ZERO_AGENT_XERO_CLIENT_SECRET` to `.env`
-4. Restart: `cd /opt/docker/droplet && docker compose -f docker-compose.zero-agent.yml up -d`
+**Endpoints:**
+- Health: `GET https://zero.rodda.xyz/health`
+- Chat: `POST https://zero.rodda.xyz/api/chat`
+- Xero Auth: `GET https://zero.rodda.xyz/auth/xero`
+- Sessions: `GET https://zero.rodda.xyz/api/sessions`
 
 ---
 

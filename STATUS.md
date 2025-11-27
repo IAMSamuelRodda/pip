@@ -40,7 +40,32 @@
 - Star Atlas connection (future Web3 tie-in)
 - Easy: "I'll ask Pip about my cash flow"
 
+**Domain availability** (checked 2025-11-27):
+| Domain | Status |
+|--------|--------|
+| pip.com | ❌ Taken |
+| pip.com.au | ❌ Taken |
+| pip.au | ⚠️ Check manually |
+| **askpip.com.au** | ✅ Likely available |
+| **heypip.com.au** | ✅ Likely available |
+| **withpip.com.au** | ✅ Likely available |
+| getpip.com | ❌ Taken (Python pip - avoid!) |
+
+**Recommendation**: Register `askpip.com.au` or `heypip.com.au`
+
 **Rebrand from Zero**: "Zero" sounds like "Xero" when spoken—brand collision risk.
+
+### Rename Plan (Zero Agent → Pip)
+Status: Pending validation at Thursday demo
+
+**After name finalized**:
+- [ ] Register chosen domain (.com.au)
+- [ ] Rename repo: `zero-agent` → `pip` or `askpip`
+- [ ] Update packages: `@zero-agent/*` → `@askpip/*`
+- [ ] Update PWA branding, copy, UI
+- [ ] Update Xero app name in developer portal
+- [ ] Update VISION.md, README.md, all docs
+- [ ] Redirect zero.rodda.xyz → new domain
 
 ### Beta Strategy (25 Users)
 | Aspect | Decision |

@@ -28,6 +28,7 @@ Zero Agent is an AI-powered accounting assistant for Xero, providing conversatio
 - [x] Xero OAuth integration
 - [ ] User demo (Thursday next week)
 - [ ] MCP distribution research
+- [ ] ChatGPT MCP integration testing (requires Business account setup)
 
 ---
 
@@ -132,21 +133,39 @@ Zero Agent is an AI-powered accounting assistant for Xero, providing conversatio
 **Dependencies**: Epic 2 complete
 
 ### feature_3_1: MCP Server Distribution
-**Status**: 🔴 Not Started
+**Status**: 🟡 Research In Progress
 **Owner**: Unassigned
 
 **Research Document**: `docs/TODO-mcp-distribution-research.md`
 
 **Acceptance Criteria:**
-- [ ] Architecture research complete
+- [x] Architecture research complete (see Joplin: ChatGPT MCP Research Project)
 - [ ] OAuth flow in MCP context solved
 - [ ] Prototype with 1-2 tools working
 - [ ] Distribution strategy defined
+- [ ] ChatGPT integration tested
 
 **Key Questions:**
 - How does Xero OAuth work with local MCP server?
 - Token cost model (BYOK vs hosted)?
 - Can we publish to MCP registry?
+
+**ChatGPT MCP Research Findings (2025-11-27):**
+| Platform | Local MCP | Remote MCP | Min Cost |
+|----------|-----------|------------|----------|
+| Claude Desktop | ✅ Native | ✅ Pro+ | $0 (Free has local) |
+| ChatGPT | ❌ No localhost | ✅ Plus+ | $20/mo + ngrok |
+| Gemini | ✅ SDK | ✅ SDK | API costs |
+| Copilot Studio | ❌ | ✅ Enterprise | Enterprise pricing |
+
+**ChatGPT-specific barriers:**
+- Cannot connect to localhost (requires ngrok tunnel ~$8-10/mo)
+- Business plan minimum 2 seats ($50-60/mo) for pre-built connectors
+- Enterprise minimum 150 seats for full features
+- Geographic restrictions (EEA, Switzerland, UK blocked for Plus/Pro)
+- Data may be used for training unless opted out
+
+**Action Item:** Set up ChatGPT Business account (2 seats) for MCP testing
 
 ### feature_3_2: User Authentication
 **Status**: 🔴 Not Started
@@ -194,6 +213,34 @@ Zero Agent is an AI-powered accounting assistant for Xero, providing conversatio
 - [ ] Error messages user-friendly
 - [ ] Mobile layout tested
 
+### task_chatgpt_business: ChatGPT Business Account Setup
+**Status**: 🔴 Not Started
+**Priority**: P2 - Medium
+**Blocked By**: None
+
+**Purpose:** Test MCP server distribution via ChatGPT's Developer Mode
+
+**Acceptance Criteria:**
+- [ ] Create OpenAI organization account
+- [ ] Subscribe to Business plan (2 seats minimum @ $50-60/mo)
+- [ ] Enable Developer Mode in workspace settings
+- [ ] Add MCP HTTP endpoint to Zero Agent server (expose via Caddy)
+- [ ] Test Zero Agent MCP server connection from ChatGPT
+- [ ] Document findings and compare to Claude Desktop experience
+
+**Cost Estimate:**
+- ChatGPT Business: $50-60/month (2 seats)
+- HTTPS: $0 (existing VPS + Caddy handles this)
+- **Total**: ~$50-60/month for testing
+
+**Alternative (cheaper but limited):**
+- ChatGPT Plus: $20/month (has Developer Mode MCP)
+- **Total**: ~$20/month (no pre-built connectors, data may train models)
+
+**Note**: No ngrok needed - existing VPS with Caddy already provides HTTPS (same setup used for Xero OAuth callback).
+
+**Research Notes:** See Joplin → 1-PROJECTS → ChatGPT MCP Research Project
+
 ---
 
 ## Blocked Items
@@ -203,6 +250,14 @@ None currently.
 ---
 
 ## Progress Changelog
+
+### 2025-11-27 - ChatGPT MCP Research Complete
+- Completed deep research on ChatGPT MCP ecosystem vs Claude
+- Key finding: ChatGPT cannot connect to localhost (requires ngrok)
+- Key finding: Business plan requires minimum 2 seats ($50-60/mo)
+- Key finding: MCP is now industry standard (OpenAI, Google, Microsoft adopted)
+- Added task for ChatGPT Business account setup for testing
+- Research documented in Joplin: ChatGPT MCP Research Project (2 notes)
 
 ### 2025-11-27 - PWA and Tools Enhancement
 - Added 6 new Xero tools (aged receivables, aged payables, search contacts, bank transactions, bank accounts)

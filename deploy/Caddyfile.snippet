@@ -1,0 +1,38 @@
+# Zero Agent - Caddyfile Snippet
+#
+# Add this to your existing Caddyfile on the VPS
+# Location: /opt/do-vps-prod/docker/droplet/Caddyfile
+#
+# Example domain: zero-agent.rodda.xyz or xero.rodda.xyz
+
+{$ZERO_AGENT_DOMAIN:zero-agent.rodda.xyz} {
+    # Reverse proxy to Zero Agent container
+    reverse_proxy zero-agent:3000 {
+        # Health checks
+        health_uri /health
+        health_interval 30s
+        health_timeout 5s
+
+        # Headers
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # Security headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+
+    # Logging (optional - comment out to reduce disk usage)
+    log {
+        output file /var/log/caddy/zero-agent.log {
+            roll_size 10mb
+            roll_keep 3
+        }
+    }
+}

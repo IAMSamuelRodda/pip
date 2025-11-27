@@ -12,7 +12,7 @@ import type { DatabaseProvider } from '@zero-agent/core';
 export function createChatRoutes(db: DatabaseProvider): Router {
   const router = Router();
 
-  // Initialize orchestrator (singleton per server instance)
+  // Orchestrator with lazy initialization - only initializes on first chat request
   const orchestrator = new AgentOrchestrator();
 
   /**
@@ -52,7 +52,14 @@ export function createChatRoutes(db: DatabaseProvider): Router {
         metadata: response.metadata,
       });
 
-    } catch (error) {
+    } catch (error: any) {
+      // Handle initialization errors gracefully
+      if (error.name === 'AuthenticationError' || error.message?.includes('API key')) {
+        return res.status(503).json({
+          error: 'AI service not configured',
+          details: 'ANTHROPIC_API_KEY is not set. Please configure the API key.',
+        });
+      }
       next(error);
     }
   });

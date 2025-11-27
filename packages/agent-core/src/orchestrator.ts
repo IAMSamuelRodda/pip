@@ -23,17 +23,26 @@ export class AgentOrchestrator {
   private dbProvider: DatabaseProvider | null = null;
   private xeroClient: XeroClient | null = null;
   private xeroTools: Tool[] = [];
-  private initializationPromise: Promise<void>;
+  private initializationPromise: Promise<void> | null = null;
+  private initialized = false;
 
   constructor() {
-    // Initialize providers asynchronously
-    this.initializationPromise = this.initialize();
+    // Lazy initialization - will be triggered on first use
   }
 
   /**
    * Initialize all providers from environment configuration
+   * Can be called explicitly or will be called automatically on first use
    */
-  private async initialize(): Promise<void> {
+  async initialize(): Promise<void> {
+    if (this.initialized) return;
+    if (this.initializationPromise) return this.initializationPromise;
+
+    this.initializationPromise = this._doInitialize();
+    return this.initializationPromise;
+  }
+
+  private async _doInitialize(): Promise<void> {
     try {
       // Initialize database first (required by managers)
       this.dbProvider = await createDatabaseProviderFromEnv();
@@ -57,6 +66,8 @@ export class AgentOrchestrator {
       } else {
         console.warn('⚠ Xero credentials not found - Xero tools will not be available');
       }
+
+      this.initialized = true;
     } catch (error) {
       console.error('Failed to initialize orchestrator:', error);
       throw error;
@@ -67,7 +78,7 @@ export class AgentOrchestrator {
    * Ensure all providers are ready before processing messages
    */
   private async ensureReady(): Promise<void> {
-    await this.initializationPromise;
+    await this.initialize();
     if (!this.llmProvider || !this.llmProvider.isReady()) {
       throw new Error('LLM provider not ready');
     }

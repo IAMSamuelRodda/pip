@@ -573,6 +573,34 @@ feature_3_2 (TTS)
 
 ## Progress Changelog
 
+### 2025-11-28 - Business Context Layer Implementation & Deployment
+- **feature_1_1 COMPLETE**: Document Ingestion & Storage
+  - Added `business_context` table to SQLite schema (RAG-ready with embedding BLOB)
+  - Created document upload API (`POST /api/documents/upload`)
+  - Implemented pdf-parse (v2) for PDF extraction
+  - Implemented mammoth for DOCX extraction
+  - Added text extraction for TXT/MD files
+  - Auto-detect document types (business_plan, kpi, strategy, budget, goals, notes)
+  - Chunking: 2000-char segments with paragraph preservation
+- **feature_1_3 COMPLETE**: Context Injection into Prompts
+  - Added `getBusinessContext()` method to orchestrator
+  - Modified `buildSystemPrompt()` to inject business context
+  - Updated Pip personality in system prompt
+- **PWA UI Updates**
+  - Rebranded from "Zero Agent" to "Pip"
+  - Added document panel toggle in header
+  - Created upload/list/delete UI for documents
+  - Updated welcome message and suggestions
+- **Deployment**
+  - Deployed to VPS (https://zero.rodda.xyz)
+  - Fixed docker-compose caching issue (used `docker compose build --no-cache`)
+  - Configured .env with API keys
+- **Tested End-to-End**
+  - Uploaded sample business plan (1021 chars, 1 chunk)
+  - Query: "Can I afford to hire someone?"
+  - Result: Agent correctly extracted hiring criteria ($40k/month, $55k budget)
+  - Cost: ~$0.0015 per query (Claude Haiku)
+
 ### 2025-11-28 - Cost-First MVP Strategy Consolidation
 - Consolidated multimodal research with context management research
 - Defined $0 MVP stack: Ollama (LLM + embeddings), pdf-parse, Chatterbox, Whisper.cpp

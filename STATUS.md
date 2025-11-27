@@ -3,9 +3,9 @@
 > **Purpose**: Current work, active bugs, and recent changes (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-11-27
+**Last Updated**: 2025-11-28
 **Current Phase**: ✅ Production - Live at https://zero.rodda.xyz
-**Version**: 0.1.0-alpha (Pre-release)
+**Version**: 0.2.0-alpha (Business Context Layer)
 **Infrastructure**: DigitalOcean VPS (shared with do-vps-prod services)
 
 ---
@@ -108,8 +108,9 @@ Status: Pending validation at Thursday demo
 | LLM Abstraction | 🟢 | Provider-agnostic interface (Anthropic + Ollama) |
 | Database Abstraction | 🟢 | SQLite (default) + DynamoDB providers |
 | Agent Foundation | 🟢 | Native tool calling + Xero integration working |
+| **Business Context Layer** | 🟢 | **NEW** Document upload, parsing, context injection |
 | VPS Server | 🟢 | `packages/server` - Express server deployed |
-| PWA Frontend | 🟢 | React chat interface live at root URL |
+| PWA Frontend | 🟢 | React chat interface + document upload UI |
 | CLI Chat Interface | 🟢 | Interactive REPL ready - `pnpm chat` to start |
 | Self-Hosting | 🟢 | Docker configs ready, deployment docs available |
 | SQLite Backups | 🟢 | Daily automated backups at 3am UTC |
@@ -154,6 +155,8 @@ Status: Pending validation at Thursday demo
 **Endpoints:**
 - Health: `GET https://zero.rodda.xyz/health`
 - Chat: `POST https://zero.rodda.xyz/api/chat`
+- **Documents**: `POST https://zero.rodda.xyz/api/documents/upload` (NEW)
+- **Documents**: `GET https://zero.rodda.xyz/api/documents` (NEW)
 - Xero Auth: `GET https://zero.rodda.xyz/auth/xero`
 - Sessions: `GET https://zero.rodda.xyz/api/sessions`
 
@@ -320,7 +323,7 @@ Status: Pending validation at Thursday demo
   - ✅ Built chat history viewer (`examples/view-history.ts`)
   - ✅ Verified conversation persistence in SQLite
 
-**Completed This Week (2025-11-27):**
+**Completed This Week (2025-11-27 - 2025-11-28):**
 - ✅ VPS deployment with Docker + Caddy
 - ✅ PWA frontend with chat interface
 - ✅ Xero OAuth integration working
@@ -348,11 +351,27 @@ Status: Pending validation at Thursday demo
   - Multi-agent support with parallel subagents
   - **Decision**: Not yet for Pip - evaluate post-RAG implementation
   - Joplin note created: "Claude Agent SDK - How It Works" (Quick Capture)
+- ✅ **Multi-Model Research & Cost-First MVP Strategy** (2025-11-28)
+  - Researched codeforge multi-provider orchestration patterns
+  - Consolidated research: Chatterbox (TTS), nomic-embed-text (embeddings), pdf-parse
+  - Defined $0 MVP stack: Ollama + pdf-parse + SQLite
+  - Target: <$1/month with 80% local query routing
+- ✅ **Business Context Layer COMPLETE** (2025-11-28)
+  - Added `business_context` table to SQLite (RAG-ready schema)
+  - Created document upload API (`POST /api/documents/upload`)
+  - Supports PDF, TXT, MD, DOCX parsing (pdf-parse + mammoth)
+  - Auto-detects document types (business_plan, kpi, strategy, etc.)
+  - Chunks documents into 2000-char segments
+  - Injected business context into agent system prompt
+  - Updated orchestrator with Pip personality
+  - Added document management UI to PWA (upload/list/delete)
+  - Rebranded UI from Zero Agent to Pip
+  - **Tested**: Context-aware queries working ("Can I afford to hire?")
 
 **Next Up (Demo Critical Path):**
-1. **feature_1_1**: Document Ingestion & Storage (7 days)
-2. **feature_1_3**: Context Injection into Prompts (6 days)
-3. **task_1_4_2**: Demo Test Cases & Validation (2 days)
+1. ✅ **feature_1_1**: Document Ingestion & Storage - COMPLETE
+2. ✅ **feature_1_3**: Context Injection into Prompts - COMPLETE
+3. 🔵 **task_1_4_2**: Demo Test Cases & Validation (2 days)
 4. **User Demo** - Thursday 10am next week
 
 ---
@@ -420,37 +439,38 @@ Technical debt:
 
 ### Milestone 1: Core Differentiator Release (6-7 weeks)
 
-**Epic 1: Business Context Layer** (3-4 weeks) ⚠️ DEMO CRITICAL
-- feature_1_1: Document Ingestion & Storage (7 days)
-- feature_1_2: Context Chunking & Summarization (8 days) - requires spike
-- feature_1_3: Context Injection into Prompts (6 days)
-- feature_1_4: Context-Aware Reasoning (5 days)
+**Epic 1: Business Context Layer** (3-4 weeks) ✅ DEMO CRITICAL - PHASE 1 COMPLETE
+- ✅ feature_1_1: Document Ingestion & Storage - COMPLETE
+- 🔵 feature_1_2: Context Chunking & Summarization (8 days) - basic chunking done, summarization pending
+- ✅ feature_1_3: Context Injection into Prompts - COMPLETE
+- 🔵 feature_1_4: Context-Aware Reasoning (5 days) - basic reasoning working
 
 **Epic 2: Pip Personality System** (2-3 weeks)
-- feature_2_1: Dynamic System Prompt Generation (5 days)
-- feature_2_2: Relationship Stage Tracking (4 days)
-- feature_2_3: Sub-Agent Architecture (7 days)
+- 🟢 feature_2_1: Dynamic System Prompt Generation (5 days) - basic prompt done
+- ⚪ feature_2_2: Relationship Stage Tracking (4 days)
+- ⚪ feature_2_3: Sub-Agent Architecture (7 days)
 
 ### Milestone 2: Voice Mode & Premium Features (4-5 weeks)
 
 **Epic 3: Voice Mode Architecture**
-- feature_3_1: Speech-to-Text (Whisper) - requires spike
-- feature_3_2: Text-to-Speech (Chatterbox) - requires spike
-- feature_3_3: WebSocket Voice Conversation Flow
-- feature_3_4: Voice Mode PWA UI
+- ⚪ feature_3_1: Speech-to-Text (Whisper) - Chatterbox validated
+- ⚪ feature_3_2: Text-to-Speech (Chatterbox) - Chatterbox validated, $0 cost
+- ⚪ feature_3_3: WebSocket Voice Conversation Flow
+- ⚪ feature_3_4: Voice Mode PWA UI
 
-### Spike Tasks Required
+### Immediate Next Steps (Pre-Demo)
 
-| Spike | Duration | Blocks |
-|-------|----------|--------|
-| task_1_2_0: Chunking Strategy | 2 days | feature_1_2 |
-| task_3_1_0: Whisper Deployment | 2 days | feature_3_1 |
-| task_3_2_0: Chatterbox Feasibility | 3 days | feature_3_2 |
+| Task | Priority | Status |
+|------|----------|--------|
+| Demo test cases & validation | HIGH | 🔵 In Progress |
+| Test with real business plan | HIGH | ⚪ Pending |
+| PWA polish (loading states, error handling) | MEDIUM | ⚪ Pending |
 
 ### Future (Post-Milestone 2)
 - MCP Distribution Research
 - User Authentication (multi-user)
 - Premium Features (subscriptions)
+- RAG with embeddings (Phase 2)
 
 ---
 

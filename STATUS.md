@@ -4,9 +4,9 @@
 > **Lifecycle**: Living (update daily/weekly during active development)
 
 **Last Updated**: 2025-11-27
-**Current Phase**: VPS Migration 🚀 Moving from AWS Lambda to DigitalOcean VPS
+**Current Phase**: VPS Deployment 🚀 Deploying to zero.rodda.xyz
 **Version**: 0.1.0-alpha (Pre-release)
-**Infrastructure**: Migrating to VPS (AWS terminated to save $4/day)
+**Infrastructure**: DigitalOcean VPS (shared with do-vps-prod services)
 
 ---
 
@@ -28,8 +28,8 @@ Primary segments under consideration:
 | Platform | Priority | Status | Notes |
 |----------|----------|--------|-------|
 | PWA (web) | HIGH | Scaffolded | ✅ `display: standalone` configured - native-like experience |
-| Self-hosted (Docker) | HIGH | Pending | Week 2 target |
-| Managed service | HIGH | Ready to deploy | $20/month tier |
+| Self-hosted (Docker) | HIGH | 🔵 Deploying | Docker + systemd configs ready |
+| VPS (zero.rodda.xyz) | HIGH | 🔵 Deploying | DNS configured, deployment in progress |
 | iOS App Store | MEDIUM | Future | Required for scale |
 | Google Play Store | MEDIUM | Future | Broader Android reach |
 | F-Droid | LOW | Future | Privacy-conscious users |
@@ -68,9 +68,27 @@ Primary segments under consideration:
 | API Gateway | AWS API GW | Express routes | ✅ Implemented |
 | Auth | Cognito | Session/JWT | 🔵 Basic (needs expansion) |
 | OAuth | Lambda | Express routes | ✅ Implemented |
-| CDN | CloudFront | Caddy | ⚪ Deployment pending |
+| CDN | CloudFront | Caddy | 🔵 DNS configured |
 
-**Cost Savings**: ~$120/month → ~$12/month (90% reduction)
+**Cost Savings**: ~$120/month → ~$0/month (shared VPS, no additional cost)
+
+### Deployment Progress (2025-11-27)
+
+| Step | Status | Details |
+|------|--------|---------|
+| Git cleanup | ✅ Done | Single `main` branch, deleted feature branches |
+| Server package | ✅ Done | `packages/server` with Express + TypeScript |
+| Docker config | ✅ Done | Dockerfile, docker-compose.yml |
+| VPS integration | ✅ Done | Memory-limited config (384MB) for do-vps-prod |
+| DNS record | ✅ Done | `zero.rodda.xyz` → 170.64.169.203 |
+| Deploy container | 🔵 Next | Clone, build, start on VPS |
+| Caddy config | ⚪ Pending | Add to VPS Caddyfile |
+| Xero OAuth | ⚪ Pending | Add callback URL to Xero app |
+| Health check | ⚪ Pending | Verify https://zero.rodda.xyz/health |
+
+**Target URL**: https://zero.rodda.xyz
+**VPS**: production-syd1 (170.64.169.203) - shared with Nextcloud, Joplin, etc.
+**Memory Budget**: 384MB (of ~2.3GB available)
 
 ---
 

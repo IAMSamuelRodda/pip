@@ -325,12 +325,21 @@ Status: Pending validation at Thursday demo
 - ✅ Xero OAuth integration working
 - ✅ SQLite backup automation (daily at 3am UTC)
 - ✅ AWS cleanup (removed terraform/ and functions/ directories)
+- ✅ **Architectural Blueprint Created** (`specs/BLUEPRINT.yaml` - 942 lines)
+  - 2 milestones, 3 epics, 11 features, 32+ tasks
+  - Business Context Layer (core differentiator)
+  - Pip Personality System (relationship progression)
+  - Voice Mode Architecture (Chatterbox TTS + Whisper STT)
+- ✅ **Document-Based Tracking** (alternative to GitHub Issues)
+  - Updated PROGRESS.md with full blueprint extraction
+  - Updated ISSUES.md with flagged items, spikes, risks
+  - Updated skills: blueprint-creation, github-project-infrastructure
 
-**Next Up:**
-1. **User Demo** - Thursday 10am next week
-2. **PWA Improvements** - Better error handling, loading states
-3. **Additional Xero Tools** - Expenses, bank reconciliation
-4. **User Authentication** - Multi-user support
+**Next Up (Demo Critical Path):**
+1. **feature_1_1**: Document Ingestion & Storage (7 days)
+2. **feature_1_3**: Context Injection into Prompts (6 days)
+3. **task_1_4_2**: Demo Test Cases & Validation (2 days)
+4. **User Demo** - Thursday 10am next week
 
 ---
 
@@ -393,44 +402,41 @@ Technical debt:
 
 ## Next Steps (Priority Order)
 
-1. **User Demo Preparation**
-   - Prepare demo script for dental practice owner
-   - Test common accounting queries
-   - Document feedback gathering process
+**See `specs/BLUEPRINT.yaml` for full architectural plan and `PROGRESS.md` for task tracking.**
 
-2. **Business Context Layer** ⚠️ HIGH PRIORITY
-   - Core differentiator: "JAX knows your numbers. We know your business."
-   - Document ingestion (plans, KPIs, strategy, history)
-   - Context storage per user/business
-   - Combined reasoning (financial data + business context)
-   - Enables questions like: "Can I afford to hire?", "Am I on track for goals?"
-   - **Note**: May require blueprint-creation skill for full architectural planning
-   - See Joplin notes: `Competitive Analysis & Unique Value Proposition`
+### Milestone 1: Core Differentiator Release (6-7 weeks)
 
-3. **PWA Improvements**
-   - Better loading states for OAuth flow
-   - Message timestamps in chat
-   - Error handling improvements
+**Epic 1: Business Context Layer** (3-4 weeks) ⚠️ DEMO CRITICAL
+- feature_1_1: Document Ingestion & Storage (7 days)
+- feature_1_2: Context Chunking & Summarization (8 days) - requires spike
+- feature_1_3: Context Injection into Prompts (6 days)
+- feature_1_4: Context-Aware Reasoning (5 days)
 
-3. **Additional Xero Tools**
-   - Expense tracking
-   - Bank reconciliation
-   - Reporting enhancements
+**Epic 2: Pip Personality System** (2-3 weeks)
+- feature_2_1: Dynamic System Prompt Generation (5 days)
+- feature_2_2: Relationship Stage Tracking (4 days)
+- feature_2_3: Sub-Agent Architecture (7 days)
 
-4. **MCP Distribution Research** (Future)
-   - Research: Make Zero Agent available as MCP server for Claude Code users
-   - See `docs/TODO-mcp-distribution-research.md` for full research spike
-   - Key questions: OAuth flow in MCP context, token costs, distribution
+### Milestone 2: Voice Mode & Premium Features (4-5 weeks)
 
-5. **User Authentication** (Future)
-   - Multi-user support
-   - Session management
-   - User preferences storage
+**Epic 3: Voice Mode Architecture**
+- feature_3_1: Speech-to-Text (Whisper) - requires spike
+- feature_3_2: Text-to-Speech (Chatterbox) - requires spike
+- feature_3_3: WebSocket Voice Conversation Flow
+- feature_3_4: Voice Mode PWA UI
 
-6. **Premium Features** (Future)
-   - Extended memory with semantic search
-   - Voice-to-voice integration
-   - Subscription management
+### Spike Tasks Required
+
+| Spike | Duration | Blocks |
+|-------|----------|--------|
+| task_1_2_0: Chunking Strategy | 2 days | feature_1_2 |
+| task_3_1_0: Whisper Deployment | 2 days | feature_3_1 |
+| task_3_2_0: Chatterbox Feasibility | 3 days | feature_3_2 |
+
+### Future (Post-Milestone 2)
+- MCP Distribution Research
+- User Authentication (multi-user)
+- Premium Features (subscriptions)
 
 ---
 

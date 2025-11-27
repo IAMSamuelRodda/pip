@@ -1,0 +1,942 @@
+project_overview:
+  brief: "Zero Agent (rebranding to Pip) is an AI bookkeeping assistant that combines financial data from Xero with business context to provide intelligent, personalized guidance for small business owners. Unlike JAX (Xero's AI that 'knows your numbers'), Pip 'knows your business' by ingesting business plans, KPIs, and strategy documents to answer questions like 'Can I afford to hire?' or 'Am I on track for my goals?'"
+
+  core_objectives:
+    - "Deliver Business Context Layer enabling context-aware financial advice combining Xero data + business documents by end of Milestone 1"
+    - "Implement dynamic Pip personality system with relationship progression (colleague → partner → friend) powered by Claude Agent SDK by end of Milestone 1"
+    - "Launch Voice Mode with <200ms latency using Whisper STT + Chatterbox TTS for natural conversations by end of Milestone 2"
+
+  complexity: "complex"
+
+  current_state:
+    - "Live production deployment at https://zero.rodda.xyz (VPS-based)"
+    - "Core agent orchestrator functional with 11 Xero tools"
+    - "SQLite database with session/memory/oauth persistence"
+    - "React PWA with basic chat interface"
+    - "LLM abstraction (Anthropic + Ollama support)"
+    - "Database abstraction (SQLite + DynamoDB support)"
+
+  constraints:
+    infrastructure:
+      platform: "DigitalOcean VPS (shared droplet)"
+      memory_budget: "384MB allocated"
+      database: "SQLite (current), must work within memory constraints"
+      package_manager: "pnpm (mandatory)"
+
+    technical:
+      stack: "TypeScript, Express, React PWA"
+      existing_packages:
+        - "@zero-agent/core (LLM + DB abstraction)"
+        - "@zero-agent/agent-core (orchestrator)"
+        - "@zero-agent/server (Express API)"
+        - "@zero-agent/pwa-app (React frontend)"
+
+    business:
+      demo_date: "Thursday next week (10am)"
+      rebrand_pending: "Zero Agent → Pip (validate at demo)"
+      domain_secured: "askpip.au"
+
+architecture:
+  pattern: "vertical-slice"
+  rationale: "Vertical slice enables parallel agent work on independent features. Business Context, Personality System, and Voice Mode each represent complete slices from UI → API → Agent → Storage, minimizing cross-agent dependencies and token usage."
+
+  components:
+    - name: "Business Context Layer"
+      purpose: "Ingest, store, and combine business documents (plans, KPIs, strategy) with Xero financial data for context-aware reasoning"
+      boundaries: "IN: Document upload, parsing, storage, retrieval, context injection into agent prompts. OUT: General document management, CMS features, version control."
+      dependencies:
+        - "@zero-agent/agent-core (orchestrator for context injection)"
+        - "@zero-agent/core (database for storage)"
+        - "@zero-agent/server (upload endpoints)"
+      token_estimate: "<20k (document summarization + chunking for embedding storage)"
+
+    - name: "Pip Personality System"
+      purpose: "Dynamic system prompt generation based on user's business context, relationship stage, and communication preferences using Claude Agent SDK capabilities"
+      boundaries: "IN: Relationship tracking, personality traits, dynamic prompts, memory integration. OUT: Voice synthesis personality, visual avatar."
+      dependencies:
+        - "@zero-agent/agent-core (system prompt generation)"
+        - "@zero-agent/core (memory manager for relationship stage)"
+        - "Claude Agent SDK (sub-agent delegation)"
+      token_estimate: "<10k (prompt templates + memory retrieval)"
+
+    - name: "Voice Mode Architecture"
+      purpose: "Real-time voice conversations with Pip using WebSocket streaming, Whisper STT, and Chatterbox TTS"
+      boundaries: "IN: Audio streaming, STT/TTS integration, WebSocket handling, conversation state. OUT: Voice training, custom voice cloning, phone integration."
+      dependencies:
+        - "Whisper (STT - self-hosted or API)"
+        - "Chatterbox by Resemble AI (TTS - self-hosted)"
+        - "@zero-agent/server (WebSocket server)"
+        - "@zero-agent/agent-core (conversation orchestrator)"
+      token_estimate: "<15k (WebSocket + audio processing + integration)"
+
+milestones:
+  milestone_1:
+    name: "v1.0 Core Differentiator Release"
+    timeline_weeks: "6-7"
+    description: "Deliver Business Context Layer and Pip Personality System - the core differentiators that make Pip superior to JAX (Xero AI). Demo-ready by Thursday next week (limited context), production-ready in 6-7 weeks."
+    success_criteria:
+      - "User can upload business plan/KPIs and ask 'Can I afford to hire?' with context-aware answer"
+      - "Agent personality adapts based on relationship stage (colleague/partner/friend)"
+      - "Context storage working within 384MB VPS memory budget"
+      - "Demo successfully validates product-market fit with dental practice owner"
+
+  milestone_2:
+    name: "v1.1 Voice Mode & Premium Features"
+    timeline_weeks: "4-5"
+    description: "Launch Voice Mode for hands-free interaction (mobile, driving, accessibility). Position as premium tier feature."
+    success_criteria:
+      - "Voice-to-voice conversation with <200ms latency"
+      - "Whisper STT + Chatterbox TTS fully integrated"
+      - "WebSocket streaming stable on VPS (384MB budget)"
+      - "Beta users can conduct voice conversations in production"
+
+epics:
+  epic_1:
+    name: "Business Context Layer (Core Differentiator)"
+    milestone: "milestone_1"
+    weeks: "3-4"
+    completion_criteria: "Users can upload documents, ask context-aware questions, and receive answers combining financial data + business knowledge"
+
+    feature_1_1:
+      name: "Document Ingestion & Storage"
+      complexity:
+        composite: 2.8
+        dimensions:
+          technical_complexity: 3  # PDF/text parsing + chunking
+          scope_size: 3  # Upload UI, API, storage, retrieval
+          dependencies: 2  # SQLite schema, file storage
+          uncertainty: 3  # Unknown: optimal chunk size, storage format
+          risk: 3  # Memory constraints (384MB), large documents
+          testing: 3  # Upload edge cases, file types
+      estimated_days: 7
+      deliverables:
+        - "Upload endpoint accepting PDF, TXT, MD, DOCX files"
+        - "Document parser extracting text from multiple formats"
+        - "SQLite schema: business_context table (user_id, doc_type, content_chunks, metadata)"
+        - "PWA upload UI with drag-and-drop + file type validation"
+
+      task_1_1_1:
+        name: "Backend Upload API & File Processing"
+        complexity:
+          composite: 2.5
+          dimensions:
+            technical_complexity: 3  # Multipart upload, format detection
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 3  # File size limits
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "POST /api/context/upload endpoint with multipart/form-data support"
+          - "File type validation (PDF, TXT, MD, DOCX only)"
+          - "Temporary file storage and cleanup"
+          - "File size limit: 10MB per document"
+
+      task_1_1_2:
+        name: "Document Parsing & Text Extraction"
+        complexity:
+          composite: 2.8
+          dimensions:
+            technical_complexity: 3  # Multiple format parsers
+            scope_size: 3
+            dependencies: 2  # pdf-parse, mammoth libraries
+            uncertainty: 3  # Parser reliability varies
+            risk: 2
+            testing: 3  # Format edge cases
+        estimated_days: 3
+        deliverables:
+          - "PDF text extraction using pdf-parse library"
+          - "DOCX extraction using mammoth library"
+          - "Plain text (TXT, MD) direct reading"
+          - "Error handling for corrupted/unsupported files"
+
+      task_1_1_3:
+        name: "SQLite Storage Schema & API"
+        complexity:
+          composite: 2.2
+          dimensions:
+            technical_complexity: 2
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 3
+        estimated_days: 2
+        deliverables:
+          - "business_context table migration in @zero-agent/core"
+          - "CRUD operations: save, retrieve, list, delete context documents"
+          - "Index on user_id for fast retrieval"
+          - "Document metadata: upload_date, doc_type, file_name, chunk_count"
+
+      task_1_1_4:
+        name: "PWA Upload UI Component"
+        complexity:
+          composite: 2.0
+          dimensions:
+            technical_complexity: 2
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 2
+        estimated_days: 2
+        deliverables:
+          - "React component with drag-and-drop file upload"
+          - "File type validation on client side"
+          - "Upload progress indicator"
+          - "Document list view showing uploaded context files"
+
+    feature_1_2:
+      name: "Context Chunking & Summarization"
+      complexity:
+        composite: 3.2
+        dimensions:
+          technical_complexity: 4  # Semantic chunking, summarization logic
+          scope_size: 3
+          dependencies: 3  # LLM provider for summarization
+          uncertainty: 4  # Optimal chunk size unknown, summarization quality
+          risk: 3  # Token costs for summarization
+          testing: 3
+      estimated_days: 8
+      deliverables:
+        - "Document chunking algorithm (max 2000 chars/chunk with overlap)"
+        - "LLM-powered summarization (Claude Haiku for cost efficiency)"
+        - "Chunk storage with semantic boundaries (paragraphs, sections)"
+        - "Summary storage for quick context retrieval"
+      needs_decomposition: true
+      decomposition_reason: "High technical complexity (4) and uncertainty (4) around optimal chunking strategy and summarization quality"
+
+      task_1_2_1:
+        name: "Chunking Strategy Implementation"
+        complexity:
+          composite: 3.5
+          dimensions:
+            technical_complexity: 4  # Semantic boundary detection
+            scope_size: 3
+            dependencies: 2
+            uncertainty: 4  # Needs experimentation
+            risk: 3
+            testing: 4
+        estimated_days: 5
+        status: "flagged_for_breakdown"
+        deliverables:
+          - "Chunk text on semantic boundaries (paragraphs, headings)"
+          - "Max chunk size: 2000 chars with 200 char overlap"
+          - "Preserve document structure metadata (headings, lists)"
+          - "Unit tests with various document types"
+        notes: "Consider spike task to test chunking strategies with real documents before full implementation"
+
+      task_1_2_2:
+        name: "LLM Summarization Pipeline"
+        complexity:
+          composite: 2.8
+          dimensions:
+            technical_complexity: 3
+            scope_size: 3
+            dependencies: 3  # LLM provider
+            uncertainty: 3
+            risk: 3  # Token costs
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "Summarization prompt template for business documents"
+          - "Batch summarization endpoint (process all chunks)"
+          - "Cost tracking: use Claude 3.5 Haiku ($0.25/1M input tokens)"
+          - "Summary storage linked to document in SQLite"
+
+    feature_1_3:
+      name: "Context Injection into Agent Prompts"
+      complexity:
+        composite: 2.5
+        dimensions:
+          technical_complexity: 3  # Context relevance ranking, prompt engineering
+          scope_size: 2
+          dependencies: 3  # Agent orchestrator, memory manager
+          uncertainty: 3  # Unknown: how much context to inject
+          risk: 2
+          testing: 3
+        estimated_days: 6
+      deliverables:
+        - "Context retrieval based on user query relevance"
+        - "Dynamic system prompt injection with business context"
+        - "Token limit management (max 20k tokens for context)"
+        - "Prompt template: 'Business Context: [summary] ... User Question: [query]'"
+
+      task_1_3_1:
+        name: "Context Retrieval & Relevance Ranking"
+        complexity:
+          composite: 2.8
+          dimensions:
+            technical_complexity: 3  # Keyword matching, future: embeddings
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 3
+            risk: 2
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "Retrieve all context documents for user"
+          - "Simple keyword matching for query relevance (v1 - no embeddings yet)"
+          - "Return top 3 most relevant document summaries"
+          - "Fallback: if no match, return all summaries (token limit permitting)"
+
+      task_1_3_2:
+        name: "System Prompt Context Injection"
+        complexity:
+          composite: 2.2
+          dimensions:
+            technical_complexity: 3  # Prompt engineering
+            scope_size: 2
+            dependencies: 3  # Orchestrator
+            uncertainty: 3  # Prompt effectiveness
+            risk: 2
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "Update buildSystemPrompt in orchestrator.ts"
+          - "Inject business context summaries before tool definitions"
+          - "Format: 'Business Context:\n- [doc1 summary]\n- [doc2 summary]'"
+          - "Token counting to stay within Claude limits"
+
+    feature_1_4:
+      name: "Context-Aware Reasoning (Combined Queries)"
+      complexity:
+        composite: 2.3
+        dimensions:
+          technical_complexity: 3  # Multi-source reasoning
+          scope_size: 2
+          dependencies: 3  # Xero tools, context layer
+          uncertainty: 3  # LLM reasoning quality
+          risk: 2
+          testing: 3
+        estimated_days: 5
+      deliverables:
+        - "Answer 'Can I afford to hire?' using Xero P&L + business plan revenue targets"
+        - "Answer 'Am I on track for goals?' using Xero actuals + KPI targets from docs"
+        - "Natural language responses citing both financial data and business context"
+        - "Demo-ready test cases for Thursday presentation"
+
+      task_1_4_1:
+        name: "Combined Reasoning Prompt Engineering"
+        complexity:
+          composite: 2.5
+          dimensions:
+            technical_complexity: 3
+            scope_size: 2
+            dependencies: 3
+            uncertainty: 3
+            risk: 2
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "Prompt instructs LLM to synthesize Xero data + context"
+          - "Example queries tested: 'Can I afford to hire?', 'Am I on track?'"
+          - "Response format includes financial numbers + context references"
+
+      task_1_4_2:
+        name: "Demo Test Cases & Validation"
+        complexity:
+          composite: 2.0
+          dimensions:
+            technical_complexity: 2
+            scope_size: 2
+            dependencies: 3
+            uncertainty: 3
+            risk: 2
+            testing: 3
+        estimated_days: 2
+        deliverables:
+          - "Prepare demo business plan document (dental practice example)"
+          - "Test 5+ context-aware queries for Thursday demo"
+          - "Document expected responses for demo script"
+          - "Validate response quality with real Xero data"
+
+  epic_2:
+    name: "Pip Personality System (Relationship Progression)"
+    milestone: "milestone_1"
+    weeks: "2-3"
+    completion_criteria: "Agent adapts personality based on user relationship stage, communication preferences, and business context; sub-agents properly delegated"
+
+    feature_2_1:
+      name: "Dynamic System Prompt Generation"
+      complexity:
+        composite: 2.3
+        dimensions:
+          technical_complexity: 3  # Prompt templates, variable injection
+          scope_size: 2
+          dependencies: 2  # Memory manager
+          uncertainty: 2
+          risk: 2
+          testing: 3
+        estimated_days: 5
+      deliverables:
+        - "Prompt template system with variables: {relationship_stage}, {user_preferences}, {business_context}"
+        - "Three personality modes: Colleague (professional), Partner (proactive), Friend (trusted advisor)"
+        - "Tone adaptation: Colleague (formal), Partner (conversational), Friend (familiar)"
+        - "Updated buildSystemPrompt in orchestrator.ts"
+
+      task_2_1_1:
+        name: "Prompt Template Engine"
+        complexity:
+          composite: 2.2
+          dimensions:
+            technical_complexity: 3
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "Template files for each relationship stage (colleague.txt, partner.txt, friend.txt)"
+          - "Variable substitution engine (replace {relationship_stage}, {preferences}, etc.)"
+          - "Pip personality traits: approachable, curious, learns over time (Pippin from LOTR)"
+          - "Store templates in packages/agent-core/src/prompts/"
+
+      task_2_1_2:
+        name: "Integration with Memory Manager"
+        complexity:
+          composite: 2.3
+          dimensions:
+            technical_complexity: 3
+            scope_size: 2
+            dependencies: 3
+            uncertainty: 2
+            risk: 2
+            testing: 3
+        estimated_days: 2
+        deliverables:
+          - "Load relationship_stage from core_memory table"
+          - "Load user preferences (communication_style, timezone)"
+          - "Inject into buildSystemPrompt before conversation"
+
+    feature_2_2:
+      name: "Relationship Stage Tracking & Progression"
+      complexity:
+        composite: 2.0
+        dimensions:
+          technical_complexity: 2
+          scope_size: 2
+          dependencies: 2
+          uncertainty: 2
+          risk: 2
+          testing: 2
+        estimated_days: 4
+      deliverables:
+        - "Automatic progression: Colleague (0-3 months) → Partner (3-12 months) → Friend (12+ months)"
+        - "Milestone tracking in core_memory table (first_interaction_date, total_conversations)"
+        - "Manual override endpoint for testing: POST /api/memory/relationship-stage"
+        - "Display current relationship stage in PWA settings"
+
+      task_2_2_1:
+        name: "Relationship Progression Logic"
+        complexity:
+          composite: 2.0
+          dimensions:
+            technical_complexity: 2
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 2
+        estimated_days: 2
+        deliverables:
+          - "Calculate time since first interaction"
+          - "Auto-update relationship_stage in core_memory based on thresholds"
+          - "Thresholds: 0-90 days (colleague), 91-365 days (partner), 365+ days (friend)"
+
+      task_2_2_2:
+        name: "Milestone & Conversation Tracking"
+        complexity:
+          composite: 2.0
+          dimensions:
+            technical_complexity: 2
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 2
+        estimated_days: 2
+        deliverables:
+          - "Track total_conversations count in core_memory"
+          - "Track key_milestones JSON array (first_query, first_context_upload, 100th_conversation)"
+          - "Update on each processMessage call in orchestrator"
+
+    feature_2_3:
+      name: "Sub-Agent Architecture & Delegation"
+      complexity:
+        composite: 2.7
+        dimensions:
+          technical_complexity: 4  # Sub-agent routing, context isolation
+          scope_size: 3
+          dependencies: 3  # Claude Agent SDK patterns
+          uncertainty: 3  # SDK learning curve
+          risk: 2
+          testing: 3
+        estimated_days: 7
+      deliverables:
+        - "4 sub-agents: InvoiceAgent, ReconciliationAgent, ReportingAgent, ExpenseAgent"
+        - "Main orchestrator routes to sub-agents based on intent detection"
+        - "Sub-agents have limited tool access (permission scoping)"
+        - "Context isolation: sub-agents receive only relevant data, not full history"
+
+      task_2_3_1:
+        name: "Sub-Agent Base Class & Routing"
+        complexity:
+          composite: 2.8
+          dimensions:
+            technical_complexity: 4  # Intent detection
+            scope_size: 3
+            dependencies: 3
+            uncertainty: 3
+            risk: 2
+            testing: 3
+        estimated_days: 4
+        deliverables:
+          - "BaseSubAgent class with tool registration"
+          - "Intent detection in orchestrator (keyword + LLM classification)"
+          - "Routing logic: invoice keywords → InvoiceAgent, reconciliation → ReconciliationAgent"
+          - "Context extraction: pass only relevant Xero data to sub-agent"
+
+      task_2_3_2:
+        name: "Implement 4 Specialized Sub-Agents"
+        complexity:
+          composite: 2.5
+          dimensions:
+            technical_complexity: 3
+            scope_size: 3
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "InvoiceAgent: allowed_tools=[get_invoices, get_invoice, search_contacts]"
+          - "ReconciliationAgent: allowed_tools=[get_bank_transactions, get_bank_accounts]"
+          - "ReportingAgent: allowed_tools=[get_profit_and_loss, get_balance_sheet, get_aged_*]"
+          - "ExpenseAgent: placeholder (future - no Xero expense tools yet)"
+          - "Each in packages/agent-core/src/agents/"
+
+  epic_3:
+    name: "Voice Mode Architecture (Premium Feature)"
+    milestone: "milestone_2"
+    weeks: "4-5"
+    completion_criteria: "Voice-to-voice conversation working with <200ms latency; Whisper STT + Chatterbox TTS fully integrated; stable on VPS"
+
+    feature_3_1:
+      name: "Speech-to-Text Integration (Whisper)"
+      complexity:
+        composite: 2.8
+        dimensions:
+          technical_complexity: 4  # Audio streaming, Whisper API/self-hosted decision
+          scope_size: 3
+          dependencies: 3  # Whisper library or API
+          uncertainty: 4  # Self-hosted vs API performance unknown
+          risk: 3  # VPS memory (384MB) may limit self-hosted
+          testing: 3
+      estimated_days: 8
+      deliverables:
+        - "Whisper integration (API initially, self-hosted spike for cost comparison)"
+        - "Audio streaming from browser (WebRTC or WebSocket)"
+        - "Real-time transcription endpoint: WebSocket /api/voice/stt"
+        - "Latency target: <500ms for STT"
+      needs_decomposition: true
+      decomposition_reason: "High uncertainty (4) around self-hosted vs API decision and VPS resource constraints"
+
+      task_3_1_0:
+        name: "Whisper Deployment Strategy Spike"
+        type: "research"
+        complexity:
+          composite: 2.0
+        estimated_days: 2
+        reduces_uncertainty_for:
+          - task_3_1_1
+          - task_3_1_2
+        deliverables:
+          - "Test Whisper API latency and cost ($0.006/min)"
+          - "Test self-hosted Whisper on VPS (memory usage, latency)"
+          - "Decision matrix: API vs self-hosted based on cost + performance"
+          - "Recommendation document"
+
+      task_3_1_1:
+        name: "Audio Streaming from Browser"
+        complexity:
+          composite: 2.5
+          dimensions:
+            technical_complexity: 3
+            scope_size: 2
+            dependencies: 3
+            uncertainty: 3
+            risk: 3
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "Browser MediaRecorder API capturing microphone audio"
+          - "WebSocket connection to server for audio streaming"
+          - "Audio format: WebM Opus (browser native)"
+          - "PWA voice button to start/stop recording"
+
+      task_3_1_2:
+        name: "Whisper STT Endpoint & Processing"
+        complexity:
+          composite: 3.0
+          dimensions:
+            technical_complexity: 4  # Audio processing
+            scope_size: 3
+            dependencies: 3
+            uncertainty: 4  # Deployment decision pending
+            risk: 3
+            testing: 3
+        estimated_days: 4
+        status: "depends_on_spike_task_3_1_0"
+        deliverables:
+          - "WebSocket /api/voice/stt endpoint"
+          - "Audio buffer handling (stream → chunks)"
+          - "Whisper API or self-hosted integration based on spike"
+          - "Return transcribed text to client in real-time"
+
+    feature_3_2:
+      name: "Text-to-Speech Integration (Chatterbox)"
+      complexity:
+        composite: 3.0
+        dimensions:
+          technical_complexity: 4  # Chatterbox self-hosting, voice cloning
+          scope_size: 3
+          dependencies: 4  # Chatterbox library, GPU optional
+          uncertainty: 4  # VPS GPU availability, latency on CPU
+          risk: 4  # Memory constraints (384MB), may need dedicated instance
+          testing: 3
+        estimated_days: 10
+      deliverables:
+        - "Chatterbox TTS self-hosted on VPS or separate instance"
+        - "Custom 'Pip' voice persona (optional: zero-shot cloning)"
+        - "TTS endpoint: POST /api/voice/tts with text → audio stream"
+        - "Latency target: <200ms for TTS generation"
+      needs_decomposition: true
+      decomposition_reason: "High technical complexity (4), uncertainty (4), and risk (4) due to VPS resource constraints and unknown Chatterbox performance on limited hardware"
+
+      task_3_2_0:
+        name: "Chatterbox Deployment Feasibility Spike"
+        type: "research"
+        complexity:
+          composite: 2.5
+        estimated_days: 3
+        reduces_uncertainty_for:
+          - task_3_2_1
+          - task_3_2_2
+        deliverables:
+          - "Test Chatterbox on VPS (CPU-only, 384MB constraint)"
+          - "Measure latency and memory usage"
+          - "Evaluate: dedicated VPS instance vs cloud GPU (e.g., RunPod)"
+          - "Cost comparison: shared VPS ($0) vs dedicated ($5-20/mo) vs GPU ($0.10/hr)"
+          - "Decision document with recommendation"
+
+      task_3_2_1:
+        name: "Chatterbox Self-Hosting Setup"
+        complexity:
+          composite: 3.5
+          dimensions:
+            technical_complexity: 4  # Library setup, voice model loading
+            scope_size: 3
+            dependencies: 4
+            uncertainty: 4
+            risk: 4
+            testing: 3
+        estimated_days: 5
+        status: "depends_on_spike_task_3_2_0"
+        deliverables:
+          - "Chatterbox library installed and configured"
+          - "Voice model loaded (default or custom 'Pip' voice)"
+          - "TTS service running as separate process or container"
+          - "Health check endpoint for TTS availability"
+
+      task_3_2_2:
+        name: "TTS API Endpoint & Audio Streaming"
+        complexity:
+          composite: 2.8
+          dimensions:
+            technical_complexity: 3
+            scope_size: 3
+            dependencies: 3
+            uncertainty: 3
+            risk: 3
+            testing: 3
+        estimated_days: 3
+        deliverables:
+          - "POST /api/voice/tts endpoint accepting text input"
+          - "Return audio stream (MP3 or WAV)"
+          - "Buffer management for streaming playback"
+          - "Error handling for TTS service failures"
+
+    feature_3_3:
+      name: "WebSocket Voice Conversation Flow"
+      complexity:
+        composite: 2.8
+        dimensions:
+          technical_complexity: 4  # WebSocket state management, audio buffering
+          scope_size: 3
+          dependencies: 4  # STT, TTS, orchestrator
+          uncertainty: 3
+          risk: 3  # WebSocket stability on VPS
+          testing: 4  # End-to-end latency, audio quality
+        estimated_days: 8
+      deliverables:
+        - "WebSocket /api/voice/conversation endpoint"
+        - "Flow: browser audio → STT → orchestrator → LLM → TTS → browser audio"
+        - "Conversation state management (session persistence)"
+        - "Latency monitoring and optimization (<2s end-to-end target)"
+
+      task_3_3_1:
+        name: "WebSocket Conversation State Machine"
+        complexity:
+          composite: 2.8
+          dimensions:
+            technical_complexity: 4  # State management
+            scope_size: 3
+            dependencies: 3
+            uncertainty: 3
+            risk: 3
+            testing: 4
+        estimated_days: 4
+        deliverables:
+          - "WebSocket connection lifecycle (connect, message, disconnect)"
+          - "State transitions: listening → transcribing → processing → speaking"
+          - "Session binding to userId + sessionId"
+          - "Error recovery (reconnection handling)"
+
+      task_3_3_2:
+        name: "End-to-End Voice Pipeline Integration"
+        complexity:
+          composite: 2.8
+          dimensions:
+            technical_complexity: 4
+            scope_size: 3
+            dependencies: 4  # All voice components
+            uncertainty: 3
+            risk: 3
+            testing: 4
+        estimated_days: 4
+        deliverables:
+          - "Connect STT → orchestrator → TTS in WebSocket flow"
+          - "Audio buffer management (minimize latency)"
+          - "Transcript storage in session messages"
+          - "Voice session metadata tracking (duration, turn count)"
+
+    feature_3_4:
+      name: "Voice Mode PWA UI"
+      complexity:
+        composite: 2.0
+        dimensions:
+          technical_complexity: 2
+          scope_size: 2
+          dependencies: 2  # Voice WebSocket endpoint
+          uncertainty: 2
+          risk: 2
+          testing: 2
+        estimated_days: 4
+      deliverables:
+        - "Voice chat interface in PWA (push-to-talk or always-on)"
+        - "Visual feedback: listening indicator, speaking animation"
+        - "Voice settings: voice persona selection, speech rate"
+        - "Fallback to text chat if voice fails"
+
+      task_3_4_1:
+        name: "Voice UI Components"
+        complexity:
+          composite: 2.0
+          dimensions:
+            technical_complexity: 2
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 2
+        estimated_days: 3
+        deliverables:
+          - "VoiceButton component (microphone icon, press-to-talk)"
+          - "Audio visualizer (waveform or simple pulse animation)"
+          - "Transcript display (show user speech + Pip response)"
+
+      task_3_4_2:
+        name: "Voice Settings & Configuration"
+        complexity:
+          composite: 2.0
+          dimensions:
+            technical_complexity: 2
+            scope_size: 2
+            dependencies: 2
+            uncertainty: 2
+            risk: 2
+            testing: 2
+        estimated_days: 1
+        deliverables:
+          - "Settings panel: voice persona, speech rate, auto-play responses"
+          - "Persist voice preferences in localStorage"
+          - "Test mode: play sample Pip voice"
+
+agent_blueprint:
+  total_estimated: 6
+  parallel_capacity: 3
+  types_needed:
+    - type: "backend-dev"
+      count: 2
+      focus_areas: ["Document ingestion", "Voice STT/TTS integration", "WebSocket server"]
+    - type: "agent-dev"
+      count: 2
+      focus_areas: ["Prompt engineering", "Sub-agent architecture", "Context injection"]
+    - type: "frontend-dev"
+      count: 1
+      focus_areas: ["PWA upload UI", "Voice UI components"]
+    - type: "devops"
+      count: 1
+      focus_areas: ["VPS memory optimization", "Chatterbox deployment", "Performance tuning"]
+
+feature_specifications:
+  - feature: "Business Context Layer"
+    description: "Upload business plans, KPIs, strategy docs; ask context-aware questions like 'Can I afford to hire?'"
+    complexity: "medium-high"
+    assigned_agents: 2
+    acceptance_criteria:
+      - "User can upload PDF/DOCX/TXT/MD files via PWA"
+      - "Documents are parsed, chunked, and summarized automatically"
+      - "Agent answers 'Can I afford to hire?' by combining Xero P&L + business plan targets"
+      - "Context stored in SQLite within 384MB memory budget"
+      - "Demo-ready by Thursday next week (basic version)"
+
+  - feature: "Pip Personality System"
+    description: "Dynamic agent personality adapting to relationship stage and communication preferences"
+    complexity: "medium"
+    assigned_agents: 2
+    acceptance_criteria:
+      - "Three personality modes: Colleague (0-3mo), Partner (3-12mo), Friend (12mo+)"
+      - "System prompt dynamically generated based on relationship_stage"
+      - "Pip personality traits: approachable, curious, learns over time"
+      - "Sub-agents properly route specialized tasks (invoices, reports, reconciliation)"
+
+  - feature: "Voice Mode Architecture"
+    description: "Hands-free voice conversation with Pip using Whisper STT + Chatterbox TTS"
+    complexity: "high"
+    assigned_agents: 3
+    acceptance_criteria:
+      - "Voice-to-voice conversation with <2s end-to-end latency"
+      - "Whisper STT transcribes user speech in real-time"
+      - "Chatterbox TTS generates Pip voice responses (<200ms)"
+      - "WebSocket streaming stable on VPS (384MB budget)"
+      - "PWA voice UI with push-to-talk and visual feedback"
+
+testing_strategy:
+  levels:
+    - level: "unit"
+      scope: "Document parsing, chunking logic, prompt generation, sub-agent routing"
+      tools: "Jest, ts-jest"
+
+    - level: "integration"
+      scope: "Upload → parse → store → retrieve flow; STT → orchestrator → TTS pipeline"
+      tools: "Supertest for API, manual WebSocket testing"
+
+    - level: "end-to-end"
+      scope: "Full conversation flows (text and voice); demo test cases"
+      tools: "Manual testing, Playwright (future)"
+
+    - level: "performance"
+      scope: "Voice latency (<2s target), memory usage (384MB constraint), concurrent users"
+      tools: "Artillery for load testing, VPS monitoring"
+
+project_structure:
+  pattern: "vertical-slice"
+  directories:
+    - path: "specs/"
+      purpose: "Architectural documentation (this blueprint, deployment guides)"
+
+    - path: "packages/agent-core/"
+      purpose: "Agent orchestrator, sub-agents, prompt templates, memory manager"
+
+    - path: "packages/core/"
+      purpose: "LLM abstraction, database abstraction, shared types"
+
+    - path: "packages/server/"
+      purpose: "Express API, WebSocket server, upload endpoints, voice endpoints"
+
+    - path: "packages/pwa-app/"
+      purpose: "React PWA, chat UI, voice UI, upload UI"
+
+    - path: "packages/agent-core/src/context/"
+      purpose: "Business context ingestion, document parsing, chunking, storage (NEW)"
+
+    - path: "packages/agent-core/src/prompts/"
+      purpose: "Personality templates (colleague.txt, partner.txt, friend.txt) (NEW)"
+
+    - path: "packages/agent-core/src/agents/"
+      purpose: "Sub-agent implementations (InvoiceAgent, ReportingAgent, etc.) (NEW)"
+
+    - path: "packages/server/src/voice/"
+      purpose: "Voice endpoints (STT, TTS, WebSocket conversation) (NEW)"
+
+risk_assessment:
+  high_risks:
+    - risk: "VPS memory constraint (384MB) insufficient for Chatterbox TTS"
+      mitigation: "Spike task to test Chatterbox on VPS; fallback to cloud GPU instance ($0.10/hr on-demand)"
+      contingency: "Use cloud TTS API (ElevenLabs $0.18/1000 chars) if self-hosting fails"
+
+    - risk: "Document chunking strategy suboptimal (poor context quality)"
+      mitigation: "Spike task with real documents before full implementation"
+      contingency: "Use simple fixed-size chunking (2000 chars) as fallback"
+
+    - risk: "Voice latency >2s end-to-end (poor UX)"
+      mitigation: "Performance testing and optimization at each pipeline stage (STT, LLM, TTS)"
+      contingency: "Accept higher latency for MVP; optimize post-launch"
+
+  medium_risks:
+    - risk: "Demo on Thursday incomplete (Business Context Layer not ready)"
+      mitigation: "Prioritize minimal demo version: upload + basic context injection by Wednesday"
+      contingency: "Demo existing features (Xero queries) + explain context vision"
+
+    - risk: "Relationship progression logic too simplistic"
+      mitigation: "Start with time-based only; enhance with conversation quality metrics post-MVP"
+      contingency: "Manual relationship stage override for beta users"
+
+success_metrics:
+  milestone_1:
+    - metric: "Business Context Layer adoption"
+      target: "50% of beta users upload at least 1 document within first week"
+
+    - metric: "Context-aware query success rate"
+      target: "80% of 'Can I afford to hire?' type queries provide actionable answers"
+
+    - metric: "Relationship progression engagement"
+      target: "Users reaching 'Partner' stage have 2x higher retention than 'Colleague'"
+
+  milestone_2:
+    - metric: "Voice mode usage"
+      target: "30% of active users try voice mode within first month"
+
+    - metric: "Voice conversation latency"
+      target: "95th percentile <2s end-to-end latency"
+
+    - metric: "Voice mode retention"
+      target: "50% of users who try voice mode use it again within 7 days"
+
+timeline_summary:
+  milestone_1_weeks: "6-7 weeks"
+  milestone_1_deliverables:
+    - "Business Context Layer (document upload, context-aware queries)"
+    - "Pip Personality System (relationship progression, sub-agents)"
+    - "Demo validation with dental practice owner (Thursday next week - basic version)"
+
+  milestone_2_weeks: "4-5 weeks"
+  milestone_2_deliverables:
+    - "Voice Mode (STT + TTS + WebSocket streaming)"
+    - "Premium tier positioning"
+    - "Beta user testing with voice conversations"
+
+  total_estimated_duration: "10-12 weeks"
+  demo_ready_date: "Thursday next week (basic context layer + existing Xero features)"
+
+notes:
+  - "Demo next Thursday requires basic Business Context Layer (upload + simple context injection) - prioritize feature_1_1 and feature_1_3"
+  - "Spike tasks (task_1_2_0, task_3_1_0, task_3_2_0) should be completed BEFORE dependent implementation tasks"
+  - "VPS memory constraint (384MB) is critical - monitor closely during Chatterbox testing"
+  - "Rebrand to 'Pip' pending validation at Thursday demo - update all branding if name confirmed"
+  - "Voice Mode (Milestone 2) is premium feature - design paywall and subscription flow in parallel"
+  - "Consider semantic search (embeddings) for context retrieval in future iteration - current design uses simple keyword matching"

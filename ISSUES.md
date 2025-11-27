@@ -1,7 +1,8 @@
 # Issues Tracking
 
-> **Purpose**: Dynamic issue tracking for bugs, improvements, and technical debt
+> **Purpose**: Dynamic issue tracking for bugs, improvements, technical debt, and flagged complexity items
 > **Lifecycle**: Living (update when issues are discovered, resolved, or status changes)
+> **Alternative to**: GitHub Issues (streamlined approach for solo/small team development)
 
 **Last Updated**: 2025-11-27
 
@@ -15,6 +16,7 @@
 | 🟡 In Progress | Actively being worked on |
 | 🟢 Resolved | Fixed and verified |
 | 🔵 Blocked | Cannot proceed due to external factors |
+| ⚠️ Flagged | Needs decomposition or spike before implementation |
 
 ## Priority Guide
 
@@ -36,16 +38,17 @@ None currently.
 ### Improvements
 
 #### issue_000: Business Context Layer
-- **Status**: 🔴 Open
+- **Status**: 🟡 In Progress (Blueprint created)
 - **Priority**: P1
 - **Component**: `packages/agent-core`
+- **Blueprint Reference**: Epic 1 (features 1.1-1.4)
 - **Description**: Add business context ingestion so agent can answer questions requiring both financial data AND business knowledge
 - **Acceptance Criteria**:
-  - [ ] Document upload/ingestion mechanism
-  - [ ] Context storage per user/business
-  - [ ] Agent considers business context when reasoning
-  - [ ] Can answer: "Can I afford to hire?", "Am I on track for goals?"
-- **Notes**: Core differentiator vs JAX (Xero AI). May need blueprint-creation skill for architecture. See Joplin: `Competitive Analysis & Unique Value Proposition`
+  - [ ] Document upload/ingestion mechanism (feature_1_1)
+  - [ ] Context chunking & summarization (feature_1_2)
+  - [ ] Context injection into prompts (feature_1_3)
+  - [ ] Can answer: "Can I afford to hire?", "Am I on track for goals?" (feature_1_4)
+- **Notes**: Core differentiator vs JAX (Xero AI). Full blueprint at `specs/BLUEPRINT.yaml`
 
 #### issue_001: PWA Connect Button Loading State
 - **Status**: 🔴 Open
@@ -69,7 +72,95 @@ None currently.
   - [ ] Consistent formatting
 - **Notes**: Low priority, nice-to-have for demo
 
-### Technical Debt
+---
+
+## Flagged Items (From Blueprint Assessment)
+
+Items flagged by `improving-plans` skill as requiring decomposition or spike tasks before implementation.
+
+### ⚠️ flag_001: Chunking Strategy Implementation
+- **Status**: ⚠️ Flagged for decomposition
+- **Task ID**: task_1_2_1
+- **Complexity**: 3.5/5 (High)
+- **Component**: `packages/agent-core/src/context`
+- **Reason**: Uncertainty=4 around optimal chunking strategy
+- **Decomposition Pattern**: Spike/Investigation First (Pattern 4)
+- **Required Spike**: task_1_2_0 (Chunking Strategy Spike)
+- **Acceptance Criteria**:
+  - [ ] Complete task_1_2_0 spike first
+  - [ ] Test chunking strategies with real documents
+  - [ ] Reduce uncertainty from 4 → 2 before implementation
+- **Notes**: Do NOT implement until spike completes and approach is validated
+
+### ⚠️ flag_002: Chatterbox Self-Hosting Setup
+- **Status**: ⚠️ Flagged for decomposition
+- **Task ID**: task_3_2_1
+- **Complexity**: 3.5/5 (High)
+- **Component**: `packages/server/src/voice`
+- **Reason**: Risk=4 due to VPS 384MB memory constraint
+- **Decomposition Pattern**: Spike/Investigation First (Pattern 4)
+- **Required Spike**: task_3_2_0 (Chatterbox Deployment Feasibility Spike)
+- **Acceptance Criteria**:
+  - [ ] Complete task_3_2_0 spike first
+  - [ ] Test Chatterbox on VPS (CPU-only, 384MB constraint)
+  - [ ] Decision: shared VPS vs dedicated instance vs cloud GPU
+- **Notes**: High risk - may need fallback to cloud TTS API if VPS insufficient
+
+---
+
+## Spike Tasks Required
+
+Research/investigation tasks that must complete before dependent implementation tasks.
+
+### spike_001: Chunking Strategy Spike
+- **Status**: 🔴 Open
+- **Task ID**: task_1_2_0
+- **Duration**: 2 days
+- **Priority**: P1 (blocks feature_1_2)
+- **Reduces Uncertainty For**: task_1_2_1 (Chunking Strategy Implementation)
+- **Deliverables**:
+  - [ ] Test semantic chunking with real business documents
+  - [ ] Compare fixed-size vs paragraph-based vs heading-based
+  - [ ] Determine optimal chunk size (target: 2000 chars with overlap)
+  - [ ] Decision document with recommendation
+- **Acceptance Criteria**:
+  - Uncertainty reduced from 4 → 2 for subsequent tasks
+  - Clear chunking algorithm selected with rationale
+
+### spike_002: Whisper Deployment Strategy Spike
+- **Status**: 🔴 Open
+- **Task ID**: task_3_1_0
+- **Duration**: 2 days
+- **Priority**: P2 (blocks feature_3_1)
+- **Reduces Uncertainty For**: task_3_1_2 (Whisper STT Endpoint)
+- **Deliverables**:
+  - [ ] Test Whisper API latency and cost ($0.006/min)
+  - [ ] Test self-hosted Whisper on VPS (memory usage, latency)
+  - [ ] Decision matrix: API vs self-hosted
+  - [ ] Recommendation document
+- **Acceptance Criteria**:
+  - Clear decision on Whisper deployment approach
+  - Performance benchmarks documented
+
+### spike_003: Chatterbox Deployment Feasibility Spike
+- **Status**: 🔴 Open
+- **Task ID**: task_3_2_0
+- **Duration**: 3 days
+- **Priority**: P2 (blocks feature_3_2)
+- **Reduces Uncertainty For**: task_3_2_1 (Chatterbox Self-Hosting Setup)
+- **Deliverables**:
+  - [ ] Test Chatterbox on VPS (CPU-only, 384MB constraint)
+  - [ ] Measure latency and memory usage
+  - [ ] Evaluate: shared VPS vs dedicated ($5-20/mo) vs cloud GPU ($0.10/hr)
+  - [ ] Cost comparison document
+  - [ ] Decision document with recommendation
+- **Acceptance Criteria**:
+  - Clear deployment approach selected
+  - Fallback plan if VPS insufficient (e.g., ElevenLabs API)
+
+---
+
+## Technical Debt
 
 #### debt_001: No Formal Test Coverage
 - **Status**: 🔴 Open
@@ -82,6 +173,39 @@ None currently.
   - [ ] E2E tests for PWA
 - **Notes**: Defer until after user demo validation
 
+#### debt_002: Legacy GitHub Issues Cleanup
+- **Status**: 🟢 Resolved
+- **Priority**: P3
+- **Description**: 157 legacy GitHub issues from deprecated AWS blueprint
+- **Resolution**: All closed 2025-11-27, now using PROGRESS.md + ISSUES.md
+
+---
+
+## Risk Registry
+
+Risks identified during blueprint complexity assessment.
+
+### risk_001: VPS Memory Constraint
+- **Severity**: High
+- **Probability**: Medium
+- **Impact**: Cannot self-host Chatterbox TTS
+- **Mitigation**: spike_003 (Chatterbox Feasibility Spike)
+- **Contingency**: Use cloud TTS API (ElevenLabs $0.18/1000 chars)
+
+### risk_002: Demo Incomplete
+- **Severity**: Medium
+- **Probability**: Low
+- **Impact**: Thursday demo fails to show Business Context Layer
+- **Mitigation**: Prioritize features 1.1, 1.3, task 1.4.2 (demo critical path)
+- **Contingency**: Demo existing Xero features + explain context vision
+
+### risk_003: Voice Latency Too High
+- **Severity**: Medium
+- **Probability**: Medium
+- **Impact**: Voice conversations feel sluggish (>2s latency)
+- **Mitigation**: Performance testing at each pipeline stage
+- **Contingency**: Accept higher latency for MVP; optimize post-launch
+
 ---
 
 ## Resolved Issues (Last 2 Weeks)
@@ -92,13 +216,11 @@ None currently.
 - **Status**: 🟢 Resolved
 - **Priority**: P1
 - **Resolution**: Changed from `<a href>` to `window.location.href` for proper navigation
-- **Commit**: (included in VPS deployment)
 
 #### issue_fixed_002: Docker Network Connectivity
 - **Status**: 🟢 Resolved
 - **Priority**: P0
 - **Resolution**: Added `droplet_frontend` external network to docker-compose.yml
-- **Commit**: (included in deployment updates)
 
 ---
 
@@ -108,8 +230,34 @@ Move resolved issues here after 2 weeks.
 
 ---
 
+## Using PROGRESS.md + ISSUES.md vs GitHub Issues
+
+This project uses a **streamlined markdown-based tracking approach** instead of GitHub Issues.
+
+### When to Use This Approach
+- Solo developer or small team (1-3 people)
+- Fast iteration cycles
+- Don't need external stakeholder visibility
+- Want to keep all project context in repository
+- AI-assisted development (context stays in codebase)
+
+### When to Use GitHub Issues Instead
+- Team > 3 people needing assignment/ownership
+- External stakeholders need visibility
+- Need automated workflows (GitHub Actions triggered by issues)
+- Complex dependency tracking with sub-issues
+- Roadmap views and project boards
+
+### Relationship to Blueprint
+- **BLUEPRINT.yaml**: Architectural plan with complexity scores
+- **PROGRESS.md**: Execution tracking (task status, completion)
+- **ISSUES.md**: Problems, improvements, flagged items, risks
+- **STATUS.md**: 2-week rolling snapshot for quick reference
+
+---
+
 ## References
 
 - **PROGRESS.md**: Project tracking (epics, features, tasks)
+- **specs/BLUEPRINT.yaml**: Full architectural blueprint
 - **STATUS.md**: Current work snapshot (2-week rolling window)
-- **GitHub Issues**: Legacy (closed) - use this file for active tracking

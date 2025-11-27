@@ -1,9 +1,11 @@
 # Zero Agent: AWS to DigitalOcean VPS Migration Plan
 
+> **Status**: ✅ **COMPLETE** (2025-11-27)
+> **Live URL**: https://zero.rodda.xyz
 > **Purpose**: Migrate from AWS serverless (Lambda, DynamoDB, API Gateway, Cognito) to self-hosted VPS architecture
 > **Target**: DigitalOcean VPS at `repos/do-vps-prod`
 > **Previous AWS Cost**: ~$4/day ($120/month) despite optimizations
-> **Target VPS Cost**: ~$6-12/month (single droplet)
+> **Actual VPS Cost**: $0/month additional (shared VPS)
 
 ---
 
@@ -377,13 +379,13 @@ export default router;
 | `pnpm-workspace.yaml` | Add `packages/server` |
 | `package.json` | Add `server:start` script |
 
-### Files No Longer Needed (AWS-specific)
+### Files Removed (AWS-specific)
 
-| File/Directory | Reason |
-|----------------|--------|
-| `functions/` | Lambda wrappers (replaced by Express routes) |
-| `terraform/` | AWS infrastructure |
-| `docs/SESSION_SUMMARY.md` | AWS deployment docs |
+| File/Directory | Reason | Status |
+|----------------|--------|--------|
+| `functions/` | Lambda wrappers (replaced by Express routes) | ✅ Deleted |
+| `terraform/` | AWS infrastructure | ✅ Deleted |
+| `docs/SESSION_SUMMARY.md` | AWS deployment docs | Kept for reference |
 
 ---
 
@@ -417,14 +419,14 @@ export default router;
 
 ## Success Criteria
 
-- [ ] Chat functionality works (Claude API integration)
-- [ ] Xero OAuth flow completes successfully
-- [ ] Session persistence across server restarts
-- [ ] PWA loads and is installable
-- [ ] Response latency < 3 seconds
-- [ ] Server handles 10+ concurrent users
-- [ ] Auto-restart on crash
-- [ ] HTTPS with valid certificate
+- [x] Chat functionality works (Claude API integration)
+- [x] Xero OAuth flow completes successfully
+- [x] Session persistence across server restarts
+- [ ] PWA loads and is installable (API-only for now)
+- [x] Response latency < 3 seconds
+- [ ] Server handles 10+ concurrent users (not tested)
+- [x] Auto-restart on crash (Docker restart policy)
+- [x] HTTPS with valid certificate (Caddy auto-HTTPS)
 
 ---
 

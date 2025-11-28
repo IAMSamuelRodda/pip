@@ -586,9 +586,12 @@ feature_3_2 (TTS)
   - Added LoginPage and SignupPage with Arc Forge dark theme
   - Added ProtectedRoute component for route protection
   - Created admin CLI (`pnpm admin`) for managing invite codes
-- **Deployment**
+- **Deployment** ✅ COMPLETE
   - Committed and pushed to GitHub (24 files, 1969 lines added)
-  - Ready for VPS deployment
+  - Deployed to VPS (https://zero.rodda.xyz)
+  - JWT_SECRET generated and configured
+  - 10 invite codes generated for beta testers
+  - Signup/login flow tested and verified working
 
 ### 2025-11-28 - Demo Preparation & UX Enhancements
 - **task_1_4_2 COMPLETE**: Demo Test Cases & Validation

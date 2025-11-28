@@ -394,13 +394,19 @@ Status: Pending validation at Thursday demo
   - Terminal-style input with `>` prefix
   - Updated header branding with "Pip by Arc Forge"
 
-**User Authentication COMPLETE** (2025-11-28):
+**User Authentication COMPLETE & DEPLOYED** (2025-11-28):
 - ✅ User authentication implemented (`specs/PLAN-user-authentication.md`)
+- ✅ Deployed to VPS (https://zero.rodda.xyz)
 - Email + Password with invite codes for beta access
 - Per-user data isolation (sessions, documents, Xero connections)
 - JWT tokens with bcrypt password hashing
 - Admin CLI for invite code management (`pnpm admin`)
-- 25 beta users can now sign up with invite codes
+- 10 invite codes generated and ready for beta testers:
+  ```
+  7HWJX9QT  LRTE4BS6  F2NMC8KJ  9XPRW5HY  QBZE3NU7
+  K6DJHS2V  YAMC4PWT  5TNVG8RZ  E9HWBJ3L
+  ```
+- Test signup/login verified working
 
 ---
 

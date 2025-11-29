@@ -98,35 +98,38 @@
 - [ ] `get_organisation`: Basic validation
 
 #### feature_1_1_4: User Documentation
-**Status**: ⚪ Not Started
+**Status**: ✅ Complete
 
 | Task | Status | Notes |
 |------|--------|-------|
-| Connection guide | ⚪ Pending | How to add to Claude.ai |
-| Troubleshooting guide | ⚪ Pending | Common issues |
-| Example queries | ⚪ Pending | What to ask Pip |
+| Connection guide | ✅ Done | README.md - Claude.ai + ChatGPT |
+| Troubleshooting guide | ✅ Done | README.md - common issues |
+| Example queries | ✅ Done | README.md - what to ask Pip |
 
 ---
 
 ### Epic 1.2: ChatGPT Integration
 
-**Status**: 🔵 In Progress (Claude.ai validated, now ChatGPT)
-**Priority**: HIGH (current focus)
+**Status**: ✅ Complete (validated working)
+**Priority**: HIGH
 
-**Subscription Requirements** (researched 2025-11-29):
+**Subscription Requirements**:
 - **Minimum**: ChatGPT Plus ($20/month) - has Developer Mode with MCP support
 - ChatGPT Pro ($200/month) - also has MCP support
-- ChatGPT Team/Enterprise - has MCP with admin controls
+- ChatGPT Team/Business (2+ users) - Admin can publish connectors to workspace
+- ChatGPT Enterprise - Admin controls + RBAC
 
-**How it works**: Users enable Developer Mode (Settings → Connectors → Advanced → Developer mode), then add our MCP server URL as a custom connector.
+**How it works**: Users enable Developer Mode (Settings → Apps & Connectors → Advanced → Developer mode), then add our MCP server URL as a custom connector.
 
 | Task | Status | Notes |
 |------|--------|-------|
 | Research subscription requirements | ✅ | Plus ($20/mo) minimum |
 | Research MCP in ChatGPT | ✅ | Developer Mode required |
-| Test with ChatGPT Plus | ⚪ Pending | Need subscription |
-| Adapt server if needed | ⚪ Pending | May need tweaks |
-| Document ChatGPT setup | ⚪ Pending | |
+| Test with ChatGPT Plus | ✅ | Working! Same MCP server, no changes needed |
+| Adapt server if needed | ✅ | No changes required |
+| Document ChatGPT setup | ✅ | README.md updated |
+
+**Key Finding**: Zero code changes required - same MCP server works for both Claude.ai and ChatGPT!
 
 **References**:
 - [OpenAI MCP Docs](https://platform.openai.com/docs/mcp)

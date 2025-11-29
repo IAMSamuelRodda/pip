@@ -462,28 +462,12 @@ export async function getAgedReceivables(
       ["AUTHORISED"] // statuses - only unpaid/approved invoices
     );
 
-    const rawInvoices = response.body.invoices || [];
-    console.log(`[getAgedReceivables] Raw invoices returned: ${rawInvoices.length}`);
-    if (rawInvoices.length > 0) {
-      console.log(`[getAgedReceivables] First invoice: type=${rawInvoices[0].type}, status=${rawInvoices[0].status}, contact=${rawInvoices[0].contact?.name}`);
-    }
-
     // Filter to only ACCREC (sales invoices) in case where clause didn't work
-    const invoices = rawInvoices.filter(
+    const invoices = (response.body.invoices || []).filter(
       inv => String(inv.type || "") === "ACCREC" && String(inv.status || "") === "AUTHORISED"
     );
-    console.log(`[getAgedReceivables] After filter: ${invoices.length}`);
 
     if (invoices.length === 0) {
-      // Debug: try fetching ALL invoices to see what's there
-      const allResponse = await client.accountingApi.getInvoices(tenantId);
-      const allInvoices = allResponse.body.invoices || [];
-      console.log(`[getAgedReceivables] DEBUG - All invoices in Xero: ${allInvoices.length}`);
-      if (allInvoices.length > 0) {
-        allInvoices.slice(0, 5).forEach((inv, i) => {
-          console.log(`  [${i}] type=${inv.type}, status=${inv.status}, total=${inv.total}, contact=${inv.contact?.name}`);
-        });
-      }
       return successResult("No outstanding receivables! Nobody owes you money. 🎉");
     }
 

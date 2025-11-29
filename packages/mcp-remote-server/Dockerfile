@@ -25,8 +25,8 @@ COPY packages/core/ ./packages/core/
 COPY packages/mcp-remote-server/ ./packages/mcp-remote-server/
 
 # Build packages
-RUN pnpm --filter @zero-agent/core run build && \
-    pnpm --filter @zero-agent/mcp-remote-server run build
+RUN pnpm --filter @pip/core run build && \
+    pnpm --filter @pip/mcp-remote-server run build
 
 # ============================================
 # Stage 2: Production

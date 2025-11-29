@@ -62,12 +62,29 @@ pnpm dev
 # Testing
 pnpm test
 
-# VPS Deployment
-docker compose build
-docker compose up -d
+# VPS SSH Access
+ssh root@170.64.169.203
+# or via doctl: doctl compute ssh production-syd1
+
+# VPS Deployment (run from /opt/pip on VPS)
+cd /opt/pip && git pull
+docker build -t pip-mcp:latest -f packages/mcp-remote-server/Dockerfile .
+docker stop pip-mcp && docker rm pip-mcp
+docker run -d --name pip-mcp --restart unless-stopped \
+  --network droplet_frontend \
+  -v zero-agent-data:/app/data \
+  -e NODE_ENV=production \
+  -e MCP_PORT=3001 \
+  -e DATABASE_PATH=/app/data/zero-agent.db \
+  -e XERO_CLIENT_ID=$XERO_CLIENT_ID \
+  -e XERO_CLIENT_SECRET=$XERO_CLIENT_SECRET \
+  -e JWT_SECRET=$JWT_SECRET \
+  -e BASE_URL=https://mcp.pip.arcforge.au \
+  pip-mcp:latest
 
 # Check health
 curl https://app.pip.arcforge.au/health
+curl https://mcp.pip.arcforge.au/health
 ```
 
 ---

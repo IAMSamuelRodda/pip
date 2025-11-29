@@ -3,7 +3,7 @@
 > **Purpose**: Technical reference for system design, database schema, and architectural decisions
 > **Lifecycle**: Living (update as architecture evolves)
 
-**Last Updated**: 2025-11-27
+**Last Updated**: 2025-11-29
 
 ---
 
@@ -57,7 +57,11 @@ zero-agent/
 │   ├── agent-core/          # Agent orchestrator + Xero tools
 │   ├── server/              # Express API server
 │   ├── pwa-app/             # Progressive Web App (React)
+│   ├── mcp-remote-server/   # Remote MCP server (Claude.ai/ChatGPT) ← NEW
 │   └── mcp-xero-server/     # MCP server (legacy/unused)
+├── deploy/
+│   ├── docker-compose.vps-integration.yml  # VPS deployment
+│   └── Caddyfile.pip-mcp    # Caddy config for pip.arcforge.au
 ├── examples/
 │   ├── chat.ts              # CLI chat interface
 │   └── view-history.ts      # Session history viewer
@@ -701,7 +705,98 @@ Using Claude 3.5 Sonnet:
 
 ---
 
+## MCP Remote Server Architecture
+
+The MCP Remote Server (`packages/mcp-remote-server`) enables Pip to work directly within Claude.ai and ChatGPT, with users bringing their own LLM subscription.
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│         Claude.ai / ChatGPT (User's Subscription)           │
+│                      LLM Inference                          │
+└────────────────────┬────────────────────────────────────────┘
+                     │ SSE Connection
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│            MCP Remote Server (pip.arcforge.au)              │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              Lazy-Loading Layer                      │   │
+│  │  ┌─────────────────┐  ┌─────────────────────────┐   │   │
+│  │  │get_tools_in_    │  │    execute_tool         │   │   │
+│  │  │   category      │  │                         │   │   │
+│  │  └────────┬────────┘  └───────────┬─────────────┘   │   │
+│  └───────────┼───────────────────────┼─────────────────┘   │
+│              │                       │                      │
+│  ┌───────────▼───────────────────────▼─────────────────┐   │
+│  │              Tool Registry (10 tools)                │   │
+│  │  invoices (3) │ reports (2) │ banking (2)           │   │
+│  │  contacts (2) │ organisation (1)                     │   │
+│  └──────────────────────────┬──────────────────────────┘   │
+│                             │                               │
+└─────────────────────────────┼───────────────────────────────┘
+                              │ Xero API
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Xero Accounting API                      │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Key Components
+
+| Component | Purpose |
+|-----------|---------|
+| SSE Transport | Real-time bidirectional MCP communication |
+| JWT Auth | Multi-tenant user authentication |
+| Lazy-Loading | 2 meta-tools expose 10 underlying tools on demand |
+| Session Manager | Per-connection state management |
+| Xero Client | OAuth token management, API calls |
+
+### Lazy-Loading Pattern
+
+**Problem**: Exposing all tools consumes ~2000 tokens immediately
+**Solution**: Expose 2 meta-tools, expand on demand
+
+```
+Initial Connection:
+  tools/list → [get_tools_in_category, execute_tool]  (~300 tokens)
+
+On Demand:
+  get_tools_in_category("invoices") → [get_invoices, get_aged_receivables, get_aged_payables]
+  execute_tool("get_invoices", {status: "AUTHORISED"}) → Invoice data
+```
+
+**Context Reduction**: 85% (2000 → 300 tokens)
+
+### Deployment
+
+- **URL**: https://pip.arcforge.au
+- **Container**: `pip-mcp` (256MB memory limit)
+- **Network**: `droplet_frontend` (shared with Caddy)
+- **Storage**: Shared SQLite volume with main server
+- **DNS**: Cloudflare DNS Only (required for SSE compatibility)
+
+---
+
 ## Recent Architecture Changes
+
+### 2025-11-29: MCP Remote Server with Lazy-Loading
+
+**Change:** Added MCP remote server for Claude.ai/ChatGPT distribution
+
+**Reason:**
+- Enable $0 LLM inference costs (users bring their own subscription)
+- Distribute Pip to Claude.ai and ChatGPT users
+- Implement context-efficient lazy-loading pattern
+
+**Impact:**
+- New package: `packages/mcp-remote-server`
+- New deployment: https://pip.arcforge.au
+- Token reduction: 85% via lazy-loading
+- Same pattern applicable to Claude Desktop
+
+---
 
 ### 2025-11-27: AWS to VPS Migration
 

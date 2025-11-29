@@ -4,7 +4,7 @@
 > **Lifecycle**: Living (update on task completion, status changes, or blocking issues)
 > **Alternative to**: GitHub Issues (streamlined approach for solo/small team development)
 
-**Last Updated**: 2025-11-27
+**Last Updated**: 2025-11-29
 **Blueprint**: `specs/BLUEPRINT.yaml` (942 lines)
 
 ---
@@ -572,6 +572,42 @@ feature_3_2 (TTS)
 ---
 
 ## Progress Changelog
+
+### 2025-11-29 - MCP Remote Server Deployment with Lazy-Loading
+
+**MCP Remote Server DEPLOYED** ✅
+- Created `packages/mcp-remote-server` for Claude.ai + ChatGPT distribution
+- HTTP/SSE transport using `@modelcontextprotocol/sdk`
+- Pip personality via MCP prompts (pip_assistant)
+- Multi-tenant session management (JWT auth + session ID per SSE connection)
+- Deployed to VPS at https://pip.arcforge.au
+- DNS configured: `pip.arcforge.au` → 170.64.169.203 (Cloudflare DNS Only for SSE compatibility)
+- Caddy reverse proxy with auto-HTTPS
+- Docker container sharing SQLite volume with main server
+
+**Lazy-Loading Implementation** ✅
+- Refactored from 10 direct tools to 2 meta-tools:
+  - `get_tools_in_category` - Discover tools by category
+  - `execute_tool` - Execute a discovered tool by name
+- Tool categories: invoices (3), reports (2), banking (2), contacts (2), organisation (1)
+- **Context reduction**: ~2000 tokens → ~300 tokens (85% reduction)
+- Pattern documented: `docs/research-notes/PATTERN-lazy-loading-mcp-tools.md`
+- Joplin note created: "Lazy-Loading MCP Tools - Context Efficiency Pattern"
+
+**Key Files Created/Modified**:
+- `packages/mcp-remote-server/src/index.ts` - Main MCP server with lazy-loading
+- `packages/mcp-remote-server/src/services/xero.ts` - Xero client service
+- `packages/mcp-remote-server/src/handlers/xero-tools.ts` - 10 Xero tool handlers
+- `packages/mcp-remote-server/Dockerfile` - Production Docker image
+- `deploy/docker-compose.vps-integration.yml` - Updated with pip-mcp service
+- `deploy/Caddyfile.pip-mcp` - Caddy config for pip.arcforge.au
+
+**Business Impact**:
+- Users bring their own LLM subscription = **$0 inference costs** for Arc Forge
+- Same MCP server works with Claude.ai AND ChatGPT
+- Lazy-loading pattern applicable to Claude Desktop integration
+
+---
 
 ### 2025-11-28 - User Authentication Implementation
 - **User Authentication COMPLETE**: Full auth system for 25 beta testers

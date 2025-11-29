@@ -3,9 +3,9 @@
 > **Purpose**: Current work, active bugs, and recent changes (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-11-29 (morning)
-**Current Phase**: ✅ Production - Live at https://zero.rodda.xyz
-**Version**: 0.2.2-alpha (MCP Remote Server + Claude/ChatGPT Distribution)
+**Last Updated**: 2025-11-29 (evening)
+**Current Phase**: ✅ Production - Live at https://zero.rodda.xyz + https://pip.arcforge.au
+**Version**: 0.2.3-alpha (MCP Remote Server with Lazy-Loading Deployed)
 **Infrastructure**: DigitalOcean VPS (shared with do-vps-prod services)
 
 ---
@@ -81,12 +81,19 @@ Status: Pending validation at Thursday demo
 |----------|----------|--------|-------|
 | PWA (web) | HIGH | ✅ Live | https://zero.rodda.xyz - functional chat interface |
 | Self-hosted (Docker) | HIGH | ✅ Ready | Docker configs in repo, docs available |
-| **MCP Remote Server** | HIGH | ✅ Built | `packages/mcp-remote-server` - works with Claude.ai + ChatGPT |
+| **MCP Remote Server** | HIGH | ✅ **DEPLOYED** | https://pip.arcforge.au - works with Claude.ai + ChatGPT |
 | **ChatGPT App** | HIGH | 🔵 Testing | Same MCP server, ChatGPT Apps SDK integration |
 | iOS App Store | LOW | Future | Evaluate after 6 months based on adoption |
 | Google Play Store | LOW | Future | Evaluate after 6 months based on adoption |
 
 **MCP-First Distribution Strategy (2025-11-29)**: Major pivot to distribute Pip as a Remote MCP Server. Users connect from their Claude.ai or ChatGPT subscription - we provide Xero tools + Pip personality, they provide LLM inference. **$0 LLM costs for Arc Forge.** See `docs/research-notes/SPIKE-pip-inside-claude-chatgpt.md`.
+
+**MCP Remote Server (pip.arcforge.au)**:
+- **Live URL**: https://pip.arcforge.au/sse
+- **Health**: https://pip.arcforge.au/health
+- **Architecture**: Lazy-loading with 2 meta-tools (90% context reduction)
+- **Categories**: invoices (3), reports (2), banking (2), contacts (2), organisation (1)
+- **Pattern**: `docs/research-notes/PATTERN-lazy-loading-mcp-tools.md`
 
 ### Strategic Documents (Joplin: Arc Forge Business Planning)
 - **Avatar Profile**: "Primary Avatar Profile: Small Business Owner (Self-Managing)"
@@ -408,29 +415,42 @@ Status: Pending validation at Thursday demo
   ```
 - Test signup/login verified working
 
-**MCP Remote Server BUILT** (2025-11-29):
+**MCP Remote Server DEPLOYED** (2025-11-29):
 - ✅ Created `packages/mcp-remote-server` for Claude.ai + ChatGPT distribution
 - ✅ HTTP/SSE transport for remote MCP connections
 - ✅ Pip personality via MCP prompts (pip_assistant)
-- ✅ 10 Xero tools exposed (invoices, reports, bank transactions, etc.)
+- ✅ **Lazy-loading implemented**: 2 meta-tools instead of 10 direct tools (90% context reduction)
 - ✅ Multi-tenant session management (session ID per SSE connection)
-- ✅ Protocol tested with MCP SDK client (all tests passed)
+- ✅ **Deployed to VPS**: https://pip.arcforge.au
+- ✅ DNS configured: pip.arcforge.au → 170.64.169.203 (DNS Only for SSE)
+- ✅ Caddy reverse proxy with auto-HTTPS
+- ✅ Docker container running with shared SQLite volume
 - **Key insight**: Users bring their own LLM subscription = $0 inference costs
 - **Endpoints**: `/sse` (SSE), `/messages` (POST), `/health`, `/auth/xero`
-- **Next**: Deploy to VPS, test with Claude.ai Pro account
+- **Lazy-loading categories**: invoices, reports, banking, contacts, organisation
 - Research: `docs/research-notes/SPIKE-pip-inside-claude-chatgpt.md`
+- Pattern: `docs/research-notes/PATTERN-lazy-loading-mcp-tools.md`
 
 ---
 
 ## Deployment Status
 
 ### Production (VPS)
-- **Status**: ✅ Live
-- **URL**: https://zero.rodda.xyz
+- **Status**: ✅ Live (2 services)
+- **Main App**: https://zero.rodda.xyz (PWA + Chat API)
+- **MCP Server**: https://pip.arcforge.au (Claude.ai/ChatGPT integration)
 - **VPS**: DigitalOcean Sydney (170.64.169.203)
-- **Container**: Docker with Caddy reverse proxy
-- **Database**: SQLite with daily backups
+- **Containers**:
+  - `zero-agent` - Express server + PWA (384MB)
+  - `pip-mcp` - MCP remote server (256MB)
+- **Database**: SQLite with daily backups (shared volume)
 - **Cost**: $0/month (shared droplet)
+
+### MCP Server (pip.arcforge.au)
+- **SSE Endpoint**: https://pip.arcforge.au/sse
+- **Health Check**: https://pip.arcforge.au/health
+- **Architecture**: Lazy-loading (2 meta-tools → 10 underlying tools)
+- **Connect from Claude.ai**: Settings → Integrations → Add Custom Integration
 
 ### Self-Hosted
 - **Status**: ✅ Available

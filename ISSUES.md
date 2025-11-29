@@ -64,20 +64,20 @@
 - **Notes**: All current tools are read-only (zero risk). This must be implemented BEFORE adding any write operations.
 
 #### issue_005: ChatGPT Memory Disabled in Developer Mode
-- **Status**: 🟡 In Progress (Memory Stack planned)
-- **Priority**: P2 (Medium - affects Plus users)
+- **Status**: 🟡 In Progress (Spike complete, implementation ready)
+- **Priority**: P1 (High - blocks memory features)
 - **Component**: External (ChatGPT limitation) + `packages/mcp-remote-server`
 - **Description**: ChatGPT disables memory when MCP connectors are used in Developer Mode
-- **Solution**: Implement Pip Memory Stack (Priority 2 in STATUS.md)
+- **Solution**: Use official `mem0ai` npm package (spike_mem0 complete)
 - **ChatGPT Business Option**: Published connectors MAY retain memory (UNVERIFIED)
 - **Acceptance Criteria**:
-  - [ ] Research memory approaches (mem0, SQLite, vector DB)
-  - [ ] Implement user_memories table
+  - [x] Research memory approaches (mem0, SQLite, vector DB) - spike_mem0 COMPLETE
+  - [ ] Install mem0ai and configure with in-memory + SQLite
   - [ ] Add memory extraction + injection to MCP
   - [ ] Create memory import endpoint
   - [ ] Add memory management UI to PWA
 - **Notes**: Memory stack enables "Pip knows me" for Plus users and cross-platform memory portability.
-- **Reference**: docs/CHATGPT-MEMORY-GUIDE.md
+- **Reference**: docs/CHATGPT-MEMORY-GUIDE.md, docs/research-notes/SPIKE-mem0-integration.md
 
 #### issue_006: Google Docs Integration
 - **Status**: 🔴 Open
@@ -179,33 +179,6 @@ Items flagged by `improving-plans` skill as requiring decomposition or spike tas
 ## Spike Tasks Required
 
 Research/investigation tasks that must complete before dependent implementation tasks.
-
-### spike_mem0: Mem0 Integration Feasibility (NEW - P1)
-- **Status**: 🔴 Open
-- **Task ID**: spike_mem0
-- **Duration**: 2-3 days
-- **Priority**: P1 (blocks Epic 1.4)
-- **Reduces Uncertainty For**: All Mem0 Memory Stack implementation
-- **Context**: Pip is Node.js/TypeScript; Mem0 SDK is Python. Need to evaluate integration approaches.
-- **Options to Evaluate**:
-  - A: OpenMemory MCP (official Mem0 MCP server, Python)
-  - B: Mem0 Cloud API (REST, managed infrastructure)
-  - C: Self-hosted Mem0 (Python process on VPS)
-  - D: Python subprocess (call Mem0 SDK from Node.js)
-  - E: Refactor Pip to Python (FastMCP rewrite)
-  - F: Port Mem0 to TypeScript (create pip-mem0 package)
-  - G: Community TS alternatives (mem0-ts, langmem, etc.)
-- **Deliverables**:
-  - [ ] Test OpenMemory MCP locally
-  - [ ] Test Mem0 Cloud API latency
-  - [ ] Research TypeScript alternatives
-  - [ ] Assess VPS resource impact (Python on 384MB shared)
-  - [ ] Evaluate refactor tradeoffs with pros/cons
-  - [ ] Decision document: `docs/research-notes/SPIKE-mem0-integration.md`
-- **Acceptance Criteria**:
-  - Clear integration approach selected with rationale
-  - Tradeoffs documented for each option
-  - Resource/cost implications understood
 
 ### spike_001: Chunking Strategy Spike (DEPRIORITIZED)
 - **Status**: 🟡 Deprioritized (Mem0 may replace need)

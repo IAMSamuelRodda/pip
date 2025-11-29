@@ -10,14 +10,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Planned
+- Mem0 Memory Stack implementation (using official `mem0ai` npm package)
 - Safety Guardrails (tiered permissions for write operations)
-- Memory Technology Stack (Pip-native memory for ChatGPT Plus users)
 - Landing page at pip.arcforge.au
 
 ### Added
 - ChatGPT memory research and documentation (docs/CHATGPT-MEMORY-GUIDE.md)
 - Google Docs integration planned (issue_006)
 - Nextcloud integration planned (issue_007)
+
+### Researched
+- **spike_mem0**: Mem0 Integration Feasibility spike COMPLETE
+  - Evaluated 8 integration approaches (A-H)
+  - Key discovery: Official `mem0ai` npm package provides native TypeScript support
+  - Decision: Use `mem0ai` with in-memory vector store + SQLite history
+  - Resource impact: ~100-200MB RAM, fits 384MB VPS constraint
+  - Decision document: `docs/research-notes/SPIKE-mem0-integration.md`
 
 ---
 

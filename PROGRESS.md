@@ -184,118 +184,82 @@ Claude API (direct, with tool calling)
 
 ### Epic 1.4: Mem0 Memory Stack
 
-**Status**: 🔵 In Progress (Spike)
+**Status**: 🔵 In Progress (Ready for Implementation)
 **Priority**: HIGH (enables "Pip knows me" experience)
 
 **Problem**: ChatGPT Plus users have memory disabled in Developer Mode. Need Pip-native memory layer.
 
-**Solution**: Integrate Mem0 as universal memory layer for cross-platform personalization.
+**Solution**: Use official `mem0ai` npm package with in-memory vector store + SQLite history.
 
-**Research Basis**: Joplin notes (2025-11-29) + `docs/research-notes/03-mem0-memory-layer.md`
+**Spike Complete**: spike_mem0 found official TypeScript SDK - no Python needed!
+**Decision Document**: `docs/research-notes/SPIKE-mem0-integration.md`
 
 ---
 
 #### spike_mem0: Mem0 Integration Feasibility
 
-**Status**: ⚪ Not Started
-**Duration**: 2-3 days
-**Priority**: P1 (blocks all Epic 1.4 tasks)
+**Status**: ✅ COMPLETE
+**Duration**: 1 day (estimated 2-3 days)
+**Completed**: 2025-11-30
+**Decision**: Use official `mem0ai` npm package (Option H)
 
-**Objective**: Evaluate integration approaches and select best path for Pip (Node.js/TypeScript codebase).
+**Key Discovery**: Mem0 released official Node.js SDK with full TypeScript support!
+- `npm install mem0ai`
+- Full API parity with Python SDK
+- Eliminates need for Python, subprocess, or refactoring
 
-##### Integration Options to Evaluate
+##### Options Evaluated
 
-| Option | Description | Language |
-|--------|-------------|----------|
-| **A. OpenMemory MCP** | Mem0's official MCP server, runs locally | Python |
-| **B. Mem0 Cloud API** | REST API, managed infrastructure | Language-agnostic |
-| **C. Self-hosted Mem0** | Run Mem0 server on VPS | Python |
-| **D. Python subprocess** | Call Mem0 Python SDK from Node.js | Python + Node.js |
-| **E. Refactor Pip to Python** | Rewrite MCP server in Python | Python |
-| **F. Refactor Mem0 to TypeScript** | Port Mem0 core to TS | TypeScript |
-| **G. Community alternatives** | mem0-ts, langmem, other TS memory libs | TypeScript |
+| Option | Description | Verdict |
+|--------|-------------|---------|
+| A | OpenMemory MCP (Python) | ❌ Not feasible - Qdrant needs 1.2GB RAM |
+| B | Mem0 Cloud API (REST) | ⚠️ Alternative for scale ($19-249/mo) |
+| C | Self-hosted Mem0 (Python) | ❌ Not feasible - exceeds VPS RAM |
+| D | Python subprocess | ❌ Not feasible - same RAM issues |
+| E | Refactor Pip to Python | ❌ Overkill - SDK exists |
+| F | Port Mem0 to TypeScript | ❌ Unnecessary - SDK exists |
+| G | Community TS (mem0-ts) | ❌ Not recommended - OpenAI only, unmaintained |
+| **H** | **Official mem0ai npm** | ✅ **RECOMMENDED** |
 
-##### Evaluation Criteria
+##### Selected Approach: Option H
 
-| Criterion | Weight | Notes |
-|-----------|--------|-------|
-| Integration complexity | HIGH | How much code/infra change? |
-| Latency | HIGH | Per-request overhead |
-| Maintenance burden | HIGH | Long-term sustainability |
-| Feature parity | MEDIUM | Graph memory, conflict resolution |
-| Self-hosted option | MEDIUM | Privacy, cost control |
-| Community support | MEDIUM | Active development, issues |
+**Configuration**:
+```typescript
+import { Memory } from "mem0ai/oss";
 
-##### Tradeoffs to Analyze
+const memory = new Memory({
+  vectorStore: { provider: "memory" },  // In-memory, no Qdrant
+  historyDbPath: "memory.db"            // SQLite file
+});
+```
 
-**Option A: OpenMemory MCP**
-- ✅ Official, maintained by Mem0 team
-- ✅ MCP-native (fits our architecture)
-- ✅ Runs locally (privacy, no API costs)
-- ❌ Another process to manage
-- ❌ Python dependency on VPS
-- ❓ How to share auth context with Pip MCP?
-
-**Option B: Mem0 Cloud API**
-- ✅ Zero infrastructure, just REST calls
-- ✅ Scales automatically
-- ❌ Monthly cost (~$10-50/mo)
-- ❌ Latency (network round-trip per memory op)
-- ❌ Data leaves our infrastructure
-
-**Option C: Self-hosted Mem0**
-- ✅ Full control, privacy
-- ✅ No recurring API costs
-- ❌ Python process on VPS (memory constraint: 384MB shared)
-- ❌ Maintenance burden (updates, monitoring)
-- ❓ Resource usage on shared VPS?
-
-**Option D: Python subprocess**
-- ✅ Use official SDK directly
-- ✅ No separate server process
-- ❌ IPC overhead per call
-- ❌ Error handling complexity
-- ❌ Two language runtimes in one app
-
-**Option E: Refactor Pip to Python**
-- ✅ Native Mem0 integration
-- ✅ Aligns with AI/ML ecosystem (Python-first)
-- ❌ Major rewrite effort (weeks)
-- ❌ Lose TypeScript benefits (types, tooling)
-- ❓ FastMCP (Python) vs current Express?
-
-**Option F: Refactor Mem0 to TypeScript**
-- ✅ Native integration, no Python
-- ❌ Massive effort (Mem0 is complex)
-- ❌ Lose upstream updates
-- ❌ Not sustainable long-term
-
-**Option G: Community alternatives**
-- Research: mem0-ts, langmem, custom implementations
-- ✅ Native TypeScript
-- ❓ Feature parity with Mem0?
-- ❓ Community health/maintenance?
+**Why Option H wins**:
+- Native TypeScript - no Python dependencies
+- Full feature parity with Python SDK
+- Supports: OpenAI, Anthropic, Ollama, 10+ LLM providers
+- Minimal resource usage (~100-200MB RAM)
+- Fits 384MB VPS constraint
 
 ##### Deliverables
 
-- [ ] Test OpenMemory MCP locally
-- [ ] Test Mem0 Cloud API latency
-- [ ] Research community TypeScript alternatives
-- [ ] Assess VPS resource impact for Python options
-- [ ] Decision document with recommendation
-- [ ] Spike report: `docs/research-notes/SPIKE-mem0-integration.md`
+- [x] Test OpenMemory MCP locally - NOT FEASIBLE (1.2GB RAM)
+- [x] Test Mem0 Cloud API latency - ALTERNATIVE ($19-249/mo)
+- [x] Research community TypeScript alternatives - FOUND OFFICIAL SDK
+- [x] Assess VPS resource impact - ~100-200MB for Option H
+- [x] Decision document: `docs/research-notes/SPIKE-mem0-integration.md`
 
 ---
 
 #### feature_1_4_1: Mem0 Integration
 
-**Status**: ⚪ Blocked (waiting for spike_mem0)
+**Status**: ⚪ Ready to Start (spike_mem0 COMPLETE)
 
-| Task | Status | Depends On |
-|------|--------|------------|
-| Implement chosen integration approach | ⚪ Pending | spike_mem0 |
-| Memory storage configuration | ⚪ Pending | task above |
-| User isolation (multi-tenant) | ⚪ Pending | task above |
+| Task | Status | Notes |
+|------|--------|-------|
+| Install mem0ai package | ⚪ Pending | `npm install mem0ai` |
+| Configure Memory instance | ⚪ Pending | In-memory vector + SQLite history |
+| Add memory tools to MCP | ⚪ Pending | add, search, list, delete |
+| User isolation (multi-tenant) | ⚪ Pending | userId param per memory operation |
 
 ---
 

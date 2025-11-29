@@ -24,41 +24,53 @@ Based on consolidated Joplin research, Pip adopts:
 - **Defer LangGraph** (only if complex approval flows needed)
 
 **Priority Order**:
-1. **spike_mem0** - Evaluate integration approaches (2-3 days)
-2. **Mem0 Memory Stack** - Implement chosen approach (Epic 1.4)
+1. ~~**spike_mem0**~~ ✅ COMPLETE - Use official `mem0ai` npm package
+2. **Mem0 Memory Stack** - Implement using `mem0ai` (Epic 1.4)
 3. **Safety Guardrails** - Tiered permissions before write ops (Epic 1.3)
 4. **Landing Page** - Create pip.arcforge.au (Epic 1.5)
 
 **Why this order**:
-- Spike first: Must choose integration approach before implementation
 - Memory enables "Pip knows me" for dental client demo
 - Safety before writes: Xero has NO user restore
 
 ### Current Priorities
 
-#### spike_mem0: Integration Feasibility (Priority 1)
+#### spike_mem0: Integration Feasibility - ✅ COMPLETE
+**Decision**: Use official `mem0ai` npm package with in-memory vector store + SQLite history
+
+**Key Discovery**: Mem0 released official Node.js SDK with full TypeScript support!
+- `npm install mem0ai`
+- Full API parity with Python SDK
+- Supports: OpenAI, Anthropic, Ollama, and 10+ other LLM providers
+- Vector stores: in-memory (default), Qdrant, Chroma, Pinecone, pgvector, 20+ others
+- History: SQLite (default), Supabase
+- Resource impact: ~100-200MB RAM, fits 384MB VPS
+
+**Decision Document**: `docs/research-notes/SPIKE-mem0-integration.md`
+
+**Options Evaluated**:
+| Option | Description | Verdict |
+|--------|-------------|---------|
+| A | OpenMemory MCP (Python) | Not feasible - Qdrant needs 1.2GB RAM |
+| B | Mem0 Cloud API | Alternative for scale ($19-249/mo) |
+| C | Self-hosted Mem0 (Python) | Not feasible - exceeds VPS RAM |
+| D | Python subprocess | Not feasible - same RAM issues |
+| E | Refactor Pip to Python | Overkill - SDK exists |
+| F | Port Mem0 to TypeScript | Unnecessary - SDK exists |
+| G | Community TS (mem0-ts) | Not recommended - OpenAI only, unmaintained |
+| **H** | **Official mem0ai npm** | **RECOMMENDED** |
+
+#### Mem0 Memory Stack Implementation (Priority 1 - NOW UNBLOCKED)
 | Task | Status | Notes |
 |------|--------|-------|
-| Test OpenMemory MCP locally | ⚪ Pending | Official Mem0 MCP server |
-| Test Mem0 Cloud API latency | ⚪ Pending | REST API option |
-| Research TS alternatives | ⚪ Pending | mem0-ts, langmem, etc |
-| Assess VPS resource impact | ⚪ Pending | Python options on 384MB shared |
-| Evaluate refactor options | ⚪ Pending | Pip→Python or Mem0→TS |
-| Decision document | ⚪ Pending | Recommendation with tradeoffs |
+| Install mem0ai package | ⚪ Pending | `npm install mem0ai` |
+| Configure Memory instance | ⚪ Pending | In-memory vector + SQLite history |
+| Add memory operations to MCP | ⚪ Pending | add, search, list, delete |
+| Memory injection to prompts | ⚪ Pending | Retrieve relevant memories per request |
+| ChatGPT memory import | ⚪ Pending | Parse conversations.json |
+| Memory management UI | ⚪ Pending | PWA interface |
 
-**Duration**: 2-3 days
-**Blocks**: All Epic 1.4 implementation
-
-**Options Being Evaluated**:
-- A: OpenMemory MCP (Python, official)
-- B: Mem0 Cloud API (REST, managed)
-- C: Self-hosted Mem0 (Python, VPS)
-- D: Python subprocess (hybrid)
-- E: Refactor Pip to Python
-- F: Port Mem0 to TypeScript
-- G: Community TS alternatives
-
-**Why Mem0?**: Joplin research (2025-11-29) recommends Mem0 as universal memory layer. 26% better accuracy than OpenAI Memory, 90% token reduction. Graph-based memory for relationships.
+**Guide Ready**: docs/CHATGPT-MEMORY-GUIDE.md (export instructions)
 
 #### Safety Guardrails (Priority 2)
 | Task | Status | Notes |
@@ -70,17 +82,6 @@ Based on consolidated Joplin research, Pip adopts:
 | Add settings UI to PWA | ⚪ Pending | Permission level selector |
 
 **Why Safety Before Writes?**: Xero has NO user restore. Must protect users from AI mistakes before adding any write capabilities.
-
-#### Mem0 Implementation (Priority 3 - after spike)
-| Task | Status | Notes |
-|------|--------|-------|
-| Implement chosen approach | ⚪ Blocked | Waiting for spike_mem0 |
-| Memory injection to MCP | ⚪ Blocked | Depends on implementation |
-| ChatGPT memory import | ⚪ Blocked | Parse conversations.json |
-| Memory management UI | ⚪ Blocked | PWA interface |
-
-**Dependency**: Blocked by spike_mem0 decision.
-**Guide Ready**: docs/CHATGPT-MEMORY-GUIDE.md (export instructions)
 
 **ChatGPT Business Option** (NEEDS VERIFICATION):
 - Research suggests published connectors retain memory
@@ -123,8 +124,8 @@ Based on consolidated Joplin research, Pip adopts:
 | **MCP Server** | 🟢 | Deployed at mcp.pip.arcforge.au |
 | **Claude.ai Integration** | 🟢 | Fully validated and working |
 | **ChatGPT Integration** | 🟡 | Working, but memory disabled for Plus users |
-| **spike_mem0** | ⚪ | Not started - evaluating 7 integration options |
-| **Mem0 Memory Stack** | ⚪ | Blocked by spike_mem0 |
+| **spike_mem0** | ✅ | COMPLETE - Use `mem0ai` npm package |
+| **Mem0 Memory Stack** | 🔵 | Ready to implement (unblocked) |
 | **Safety Guardrails** | 🔵 | Architecture designed, implementation pending |
 | PWA Frontend | 🟢 | Live at app.pip.arcforge.au |
 | Xero Integration | 🟢 | OAuth + 10 READ-ONLY tools |
@@ -189,61 +190,58 @@ See **ISSUES.md** for detailed tracking.
 
 ### Immediate (This Week)
 
-1. **spike_mem0** (2-3 days)
-   - Test OpenMemory MCP locally
-   - Test Mem0 Cloud API latency
-   - Research TypeScript alternatives (mem0-ts, langmem)
-   - Assess VPS resource impact for Python options
-   - Evaluate refactor tradeoffs (Pip→Python vs Mem0→TS)
-   - Decision document with recommendation
-
-### After Spike
-
-2. **Mem0 Memory Stack Implementation** (Epic 1.4)
-   - Implement chosen integration approach
-   - Memory injection into MCP tool context
+1. **Mem0 Memory Stack Implementation** (Epic 1.4) - NOW READY
+   - Install `mem0ai` package in mcp-remote-server
+   - Configure Memory with in-memory vector store + SQLite
+   - Add memory tools (add, search, list, delete)
+   - Inject relevant memories into MCP tool context
    - ChatGPT memory import endpoint
    - Memory management UI in PWA
 
-3. **Safety Guardrails Implementation** (Epic 1.3)
+2. **Safety Guardrails Implementation** (Epic 1.3)
    - Add database tables (user_settings, operation_snapshots)
    - Implement permission checks in tool router
    - Add settings UI to PWA
 
 ### After Memory + Safety
 
-4. **Landing Page** (Epic 1.5)
+3. **Landing Page** (Epic 1.5)
    - Create pip.arcforge.au
    - What is Pip? + How to connect (Claude.ai/ChatGPT/PWA)
    - Arc Forge branding, dark theme
 
 ### Future
 
-5. Voice Mode (Milestone 2)
-6. Write operations (create/update invoices) - requires safety guardrails first
-7. Additional accounting platform support
-8. Verify ChatGPT Business published connector memory behavior
+4. Voice Mode (Milestone 2)
+5. Write operations (create/update invoices) - requires safety guardrails first
+6. Additional accounting platform support
+7. Verify ChatGPT Business published connector memory behavior
 
 ---
 
 ## Recent Achievements
+
+### 2025-11-30: spike_mem0 COMPLETE - Key Discovery!
+- **DISCOVERY**: Official `mem0ai` npm package provides native TypeScript support!
+  - Eliminates need for Python, subprocess, or refactoring
+  - Full API parity with Python SDK
+  - Supports: OpenAI, Anthropic, Ollama, 10+ LLM providers
+  - Vector stores: in-memory, Qdrant, Chroma, Pinecone, pgvector, 20+ others
+- **DECISION**: Use `mem0ai` with in-memory vector store + SQLite history
+  - Resource impact: ~100-200MB RAM (fits 384MB VPS)
+  - Decision document: `docs/research-notes/SPIKE-mem0-integration.md`
+- **OPTIONS REJECTED**:
+  - OpenMemory MCP: Qdrant needs 1.2GB RAM
+  - Self-hosted Python: Exceeds VPS constraints
+  - mem0-ts community port: OpenAI-only, unmaintained
+- **UNBLOCKED**: Epic 1.4 (Mem0 Memory Stack) ready for implementation
 
 ### 2025-11-30: Mem0 Architecture Decision + Spike Created
 - **ARCHITECTURE**: Consolidated Joplin research → adopted Mem0 as memory layer
   - Skip traditional RAG (Mem0 + tools approach instead)
   - Skip LangChain (obsolete for agentic systems)
   - Defer LangGraph (only if complex approval flows needed)
-- **SPIKE**: Created spike_mem0 with 7 integration options
-  - A: OpenMemory MCP (official, Python)
-  - B: Mem0 Cloud API (REST, managed)
-  - C: Self-hosted Mem0 (Python, VPS)
-  - D: Python subprocess (hybrid)
-  - E: Refactor Pip to Python
-  - F: Port Mem0 to TypeScript
-  - G: Community TS alternatives
 - **EPIC 1.4**: Restructured from "Memory Import" → "Mem0 Memory Stack"
-  - 5 features with clear dependencies
-  - All blocked by spike_mem0 decision
 - **RESEARCH**: ChatGPT memory behavior confirmed
   - Developer Mode disables memory (security feature)
   - Published connectors in Business/Teams MAY retain memory (UNVERIFIED)
@@ -346,6 +344,7 @@ See **ISSUES.md** for detailed tracking.
 - `ARCHITECTURE.md` - System design and ADRs
 - `specs/SAFETY-ARCHITECTURE.md` - Xero API safety guardrails design
 - `docs/CHATGPT-MEMORY-GUIDE.md` - ChatGPT memory + Pip user guide
+- `docs/research-notes/SPIKE-mem0-integration.md` - Mem0 integration decision (spike_mem0)
 - `docs/research-notes/SPIKE-pip-inside-claude-chatgpt.md` - MCP strategy research
 - `docs/research-notes/PATTERN-lazy-loading-mcp-tools.md` - Context optimization pattern
 

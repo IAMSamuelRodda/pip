@@ -3,9 +3,9 @@
 > **Purpose**: Current work, active bugs, and recent changes (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-11-29 (evening - Domain Migration)
+**Last Updated**: 2025-11-29 (evening - Full Pip Rebrand)
 **Current Phase**: ✅ Production - Live at https://app.pip.arcforge.au + https://mcp.pip.arcforge.au
-**Version**: 0.2.4-alpha (Consolidated under arcforge.au domain)
+**Version**: 0.2.0 (Fully rebranded to Pip)
 **Infrastructure**: DigitalOcean VPS (shared with do-vps-prod services)
 
 ---
@@ -444,7 +444,7 @@ Status: Pending validation at Thursday demo
 - **MCP Server**: https://mcp.pip.arcforge.au (Claude.ai/ChatGPT integration)
 - **VPS**: DigitalOcean Sydney (170.64.169.203)
 - **Containers**:
-  - `zero-agent` - Express server + PWA (384MB) - rename to `pip-app` planned
+  - `pip-app` - Express server + PWA (384MB)
   - `pip-mcp` - MCP remote server (256MB)
 - **Database**: SQLite with daily backups (shared volume)
 - **Cost**: $0/month (shared droplet)
@@ -549,9 +549,16 @@ Technical debt:
 
 | Task | Priority | Status |
 |------|----------|--------|
+| **Landing page at pip.arcforge.au** | HIGH | ⚪ Pending |
 | Demo test cases & validation | HIGH | 🔵 In Progress |
 | Test with real business plan | HIGH | ⚪ Pending |
 | PWA polish (loading states, error handling) | MEDIUM | ⚪ Pending |
+
+**Landing Page Requirements** (pip.arcforge.au):
+- Simple intro explaining what Pip is (AI bookkeeper for Xero)
+- Links to: Try the App (app.pip.arcforge.au), Use with Claude.ai (mcp.pip.arcforge.au/login)
+- Arc Forge branding with dark theme
+- Mobile-friendly, single page
 
 ### ✅ User Authentication (Complete)
 - ✅ **Implemented**: `specs/PLAN-user-authentication.md`

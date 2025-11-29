@@ -573,6 +573,27 @@ feature_3_2 (TTS)
 
 ## Progress Changelog
 
+### 2025-11-29 - Full Pip Rebrand
+
+**Codebase Rename** ✅
+- Renamed GitHub repo from `zero-agent` to `pip`
+- Updated all package names from `@zero-agent/*` to `@pip/*`
+- Updated all import statements across codebase
+- Root package version bumped to `0.2.0`
+- Updated README, CLAUDE.md, ARCHITECTURE.md, STATUS.md, PROGRESS.md
+
+**VPS Deployment Updated** ✅
+- Renamed VPS folder from `/opt/zero-agent` to `/opt/pip`
+- Renamed container from `zero-agent` to `pip-app`
+- Updated git remote to `https://github.com/IAMSamuelRodda/pip.git`
+- Containers: `pip-app` (main), `pip-mcp` (MCP server)
+
+**Domain Redirect Fixed** ✅
+- Changed `pip.arcforge.au` redirect: `mcp.pip.arcforge.au` → `app.pip.arcforge.au`
+- Reserved `pip.arcforge.au` for future landing page
+
+---
+
 ### 2025-11-29 - Domain Migration + MCP OAuth
 
 **Domain Migration to arcforge.au** ✅

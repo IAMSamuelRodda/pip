@@ -685,7 +685,11 @@ app.get("/auth/xero/callback", async (req: Request, res: Response) => {
       return;
     }
 
-    const tokens = await tokenResponse.json();
+    const tokens = await tokenResponse.json() as {
+      access_token: string;
+      refresh_token: string;
+      expires_in: number;
+    };
     console.log("Xero tokens received, expires_in:", tokens.expires_in);
 
     // Get connected tenants (organizations)
@@ -702,7 +706,11 @@ app.get("/auth/xero/callback", async (req: Request, res: Response) => {
       return;
     }
 
-    const connections = await connectionsResponse.json();
+    const connections = await connectionsResponse.json() as Array<{
+      tenantId: string;
+      tenantName: string;
+      tenantType: string;
+    }>;
 
     if (!connections || connections.length === 0) {
       res.status(400).send("No Xero organizations found. Please ensure you have access to at least one organization.");
@@ -721,12 +729,18 @@ app.get("/auth/xero/callback", async (req: Request, res: Response) => {
       const { getDb } = await import("./services/xero.js");
       const db = await getDb();
 
-      await db.saveOAuthTokens(pendingFlow.userId, "xero", {
+      await db.saveOAuthTokens({
+        userId: pendingFlow.userId,
+        provider: "xero",
         accessToken: tokens.access_token,
         refreshToken: tokens.refresh_token,
+        tokenType: "Bearer",
         expiresAt: Date.now() + (tokens.expires_in * 1000),
+        scopes: ["offline_access", "openid", "profile", "email", "accounting.transactions", "accounting.reports.read", "accounting.contacts.read", "accounting.settings.read"],
         tenantId: tenant.tenantId,
         tenantName: tenant.tenantName,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
       });
 
       console.log("Xero tokens saved for user:", pendingFlow.userId);

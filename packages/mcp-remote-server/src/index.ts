@@ -1068,7 +1068,8 @@ app.post("/oauth/authorize/submit", express.urlencoded({ extended: true }), asyn
   // Validate credentials against main database
   try {
     const { getDb } = await import("./services/xero.js");
-    const bcrypt = await import("bcryptjs");
+    const bcryptModule = await import("bcryptjs");
+    const bcrypt = bcryptModule.default;
     const db = await getDb();
 
     // Validate email format
@@ -1162,7 +1163,8 @@ app.post("/oauth/register/submit", express.urlencoded({ extended: true }), async
 
   try {
     const { getDb } = await import("./services/xero.js");
-    const bcrypt = await import("bcryptjs");
+    const bcryptModule = await import("bcryptjs");
+    const bcrypt = bcryptModule.default;
     const db = await getDb();
 
     // Validate email format

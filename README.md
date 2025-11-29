@@ -34,9 +34,122 @@ Visit https://app.pip.arcforge.au to try Pip with your Xero account.
 
 ### Use with Claude.ai
 
-1. Visit https://mcp.pip.arcforge.au/login
-2. Enter your email to get a personal token URL
-3. Add to Claude.ai as a Custom Integration (Settings → Claude.ai Integrations)
+**Requirements**: Claude Pro, Max, or Team subscription
+
+#### Step 1: Add Custom Connector in Claude.ai
+
+1. Open [Claude.ai](https://claude.ai) and sign in
+2. Click your profile icon (bottom-left) → **Settings**
+3. Go to **Connectors** tab
+4. Click **Add Connector** → **Add custom connector**
+
+#### Step 2: Enter Connection Details
+
+| Field | Value |
+|-------|-------|
+| **Name** | `Pip by Arc Forge` |
+| **URL** | `https://mcp.pip.arcforge.au/sse` |
+| **Authentication** | Select `OAuth 2.0` |
+| **Client ID** | `pip-mcp-client` |
+| **Client Secret** | *(provided separately with your invite)* |
+
+Click **Add** to save.
+
+#### Step 3: Connect Your Account
+
+1. Click **Connect** on the Pip connector
+2. You'll be redirected to the Pip sign-in page
+3. **New users**: Click "Sign Up" tab, enter your email, password, and invite code
+4. **Existing users**: Sign in with your email and password
+5. You'll then be redirected to connect your Xero account
+6. Authorize Pip to access your Xero organization
+7. You'll be redirected back to Claude.ai
+
+#### Step 4: Start Using Pip
+
+In any Claude conversation, try:
+- "Who owes me money?"
+- "Show me my recent invoices"
+- "What's my profit and loss this financial year?"
+- "Get my balance sheet"
+
+---
+
+### Use with ChatGPT
+
+**Requirements**: ChatGPT Plus ($20/month) or higher with Developer Mode enabled
+
+#### Step 1: Enable Developer Mode
+
+1. Open [ChatGPT](https://chat.openai.com) and sign in
+2. Click your profile icon (bottom-left) → **Settings**
+3. Go to **Apps & Connectors**
+4. Scroll to **Advanced** section
+5. Enable **Developer Mode**
+
+#### Step 2: Add Custom Connector
+
+1. In Apps & Connectors, click the **+** button to add a new connector
+2. Fill in the connection details:
+
+| Field | Value |
+|-------|-------|
+| **Name** | `Pip by Arc Forge` |
+| **Description** | `The helpful bookkeeping assistant - connects to Xero for invoices, reports, and financial insights` |
+| **MCP Server URL** | `https://mcp.pip.arcforge.au/sse` |
+| **Authentication** | Select `OAuth` |
+| **OAuth Client ID** | `pip-mcp-client` |
+| **OAuth Client Secret** | *(provided separately with your invite)* |
+
+3. Check "I understand and want to continue"
+4. Click **Create**
+
+#### Step 3: Connect Your Account
+
+1. You'll see the connector in your list showing "Pip by Arc Forge"
+2. The OAuth flow will redirect you to sign in/sign up
+3. Connect your Xero account when prompted
+4. You'll be redirected back to ChatGPT
+
+#### Step 4: Start Using Pip
+
+In any ChatGPT conversation (with Developer Mode badge visible), try:
+- "Can you see who owes me money?"
+- "Show me my Xero invoices"
+- "What's my profit and loss?"
+- "Get my organisation details"
+
+---
+
+### Available Tools
+
+Once connected, Pip provides these Xero tools:
+
+| Category | Tools |
+|----------|-------|
+| **Invoices** | `get_invoices`, `get_aged_receivables`, `get_aged_payables` |
+| **Reports** | `get_profit_and_loss`, `get_balance_sheet` |
+| **Banking** | `get_bank_accounts`, `get_bank_transactions` |
+| **Contacts** | `get_contacts`, `search_contacts` |
+| **Organisation** | `get_organisation` |
+
+---
+
+### Troubleshooting
+
+**"Configure" button instead of "Connect"** (Claude.ai)
+- The OAuth flow isn't triggering. Check that you entered the correct URL ending in `/sse`
+
+**No invoices showing when you know there are some**
+- Check you're connected to the correct Xero organisation
+- Invoices must be in "Authorised" status (not Draft) to appear in aged receivables
+
+**OAuth error during sign-up**
+- Ensure you have a valid invite code
+- Check your email is correctly formatted
+
+**Need an invite code?**
+- Contact the Pip team at Arc Forge for beta access
 
 ### Run Locally (CLI)
 

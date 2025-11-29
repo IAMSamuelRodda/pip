@@ -4,7 +4,7 @@
 > **Lifecycle**: Living (update daily/weekly during active development)
 
 **Last Updated**: 2025-11-29
-**Current Phase**: MCP Integration Validation
+**Current Phase**: Production Hardening
 **Version**: 0.2.0
 **Infrastructure**: DigitalOcean VPS (shared with do-vps-prod services)
 
@@ -12,40 +12,56 @@
 
 ## Current Focus
 
-### Phase: MCP Remote Server Integration
+### Phase: Safety Guardrails + Memory Import
 
-**Objective**: Validate Pip works seamlessly inside Claude.ai, then ChatGPT.
+**Objective**: Harden Pip for production use before adding write operations.
 
 **Priority Order**:
-1. **Claude.ai Integration** - Validate MCP server works with Claude Pro/Max/Team
-2. **ChatGPT App Integration** - Once Claude works, adapt for ChatGPT Apps SDK
-3. **Landing Page** - Create pip.arcforge.au to explain both options
+1. **Safety Guardrails** - Tiered permissions before ANY write operations (Epic 1.3)
+2. **Memory Import** - ChatGPT memory → Pip context layer workaround (Epic 1.4)
+3. **Landing Page** - Create pip.arcforge.au (Epic 1.5)
 
-**Why this order**: Claude.ai has mature MCP support. ChatGPT Apps SDK is newer and in preview.
+**Why this order**: Xero has NO user restore. Must protect users from AI mistakes before adding write capabilities.
 
-### Integration Checklist
+### Current Priorities
 
-#### Claude.ai Integration (Priority 1)
+#### Safety Guardrails (Priority 1) - NEW
+| Task | Status | Notes |
+|------|--------|-------|
+| Design safety architecture | ✅ Done | specs/SAFETY-ARCHITECTURE.md |
+| Add `user_settings` table | ⚪ Pending | permission_level column |
+| Add `operation_snapshots` table | ⚪ Pending | Pre-operation state capture |
+| Implement permission checks | ⚪ Pending | Tool router validation |
+| Add settings UI to PWA | ⚪ Pending | Permission level selector |
+
+#### Memory Import (Priority 2) - NEW
+| Task | Status | Notes |
+|------|--------|-------|
+| Document memory export process | ⚪ Pending | ChatGPT prompt method |
+| Create memory import guide | ⚪ Pending | Upload to context layer |
+| Test with existing user context | ⚪ Pending | Verify personalization |
+
+**Why Memory Import?**: ChatGPT disables memory when MCP connectors used. Dental client demo needs "Pip knows him" experience.
+
+### Completed Integrations
+
+#### Claude.ai Integration - ✅ COMPLETE
 | Task | Status | Notes |
 |------|--------|-------|
 | MCP server deployed | ✅ Done | https://mcp.pip.arcforge.au |
 | SSE endpoint working | ✅ Done | /sse with lazy-loading |
 | OAuth 2.0 flow | ✅ Done | Authorization Code flow with PKCE |
-| OAuth discovery endpoint | ✅ Done | /.well-known/oauth-authorization-server |
-| Sign In + Sign Up page | ✅ Done | Tabbed UI with invite code validation |
-| Password verification | ✅ Done | bcrypt against database |
-| Unified Xero OAuth | ✅ Done | Redirects to Xero if not connected |
 | Test with Claude.ai | ✅ Done | Full OAuth flow verified working |
 | Xero tools via Claude | ✅ Done | All 10 tools audited and working |
-| Document connection flow | ⚪ Pending | User guide for Claude.ai setup |
+| Document connection flow | ✅ Done | README.md - step-by-step guide |
 
-#### ChatGPT Integration (Priority 2)
+#### ChatGPT Integration - ✅ COMPLETE
 | Task | Status | Notes |
 |------|--------|-------|
-| Research Apps SDK | ✅ Done | Uses same MCP standard |
-| Adapt MCP server | ⚪ Pending | May need minor changes |
-| Test in developer mode | ⚪ Pending | After Claude.ai validated |
-| Directory submission | ⚪ Future | When SDK is stable |
+| Research MCP support | ✅ Done | Developer Mode required |
+| Test with ChatGPT Plus | ✅ Done | Works with zero code changes! |
+| Document ChatGPT setup | ✅ Done | README.md - step-by-step guide |
+| Memory limitation | ⚠️ Known | Memory disabled in Developer Mode |
 
 ---
 
@@ -55,9 +71,10 @@
 |--------|--------|-------|
 | **MCP Server** | 🟢 | Deployed at mcp.pip.arcforge.au |
 | **Claude.ai Integration** | 🟢 | Fully validated and working |
-| **ChatGPT Integration** | ⚪ | Pending (next priority) |
+| **ChatGPT Integration** | 🟢 | Working (memory disabled in Dev Mode) |
+| **Safety Guardrails** | 🔵 | Architecture designed, implementation pending |
 | PWA Frontend | 🟢 | Live at app.pip.arcforge.au |
-| Xero Integration | 🟢 | OAuth + 10 tools audited and working |
+| Xero Integration | 🟢 | OAuth + 10 READ-ONLY tools |
 | User Auth | 🟢 | Email/password + invite codes |
 | Business Context | 🟢 | Document upload + context injection |
 
@@ -111,7 +128,7 @@
 
 See **ISSUES.md** for detailed tracking.
 
-**Summary**: 0 Critical | 0 High | 2 Medium | 1 Low
+**Summary**: 0 Critical | 1 High (safety guardrails) | 3 Medium | 1 Low
 
 ---
 
@@ -119,37 +136,43 @@ See **ISSUES.md** for detailed tracking.
 
 ### Immediate
 
-1. **Validate Claude.ai Integration**
-   - Connect MCP server to Claude.ai (Pro account required)
-   - Test all 10 Xero tools via Claude
-   - Document any issues or required changes
+1. **Memory Import Feature** (Epic 1.4)
+   - Document ChatGPT memory export process
+   - Create guide for uploading to Pip context layer
+   - Test with dental client's existing context
 
-2. **Create User Guide**
-   - How to get token URL from /login
-   - How to add custom integration in Claude.ai
-   - Troubleshooting common issues
+2. **Safety Guardrails Implementation** (Epic 1.3)
+   - Add database tables (user_settings, operation_snapshots)
+   - Implement permission checks in tool router
+   - Add settings UI to PWA
 
-### After Claude.ai Validated
+### After Safety + Memory
 
-3. **ChatGPT Integration**
-   - Test with ChatGPT Apps SDK
-   - Adapt server if needed
-   - Document ChatGPT-specific setup
-
-4. **Landing Page** (pip.arcforge.au)
-   - What is Pip? (one-liner)
-   - Two options: PWA or Claude.ai/ChatGPT integration
+3. **Landing Page** (Epic 1.5)
+   - Create pip.arcforge.au
+   - What is Pip? + How to connect (Claude.ai/ChatGPT/PWA)
    - Arc Forge branding, dark theme
 
 ### Future
 
-5. Voice Mode (Milestone 2)
-6. Enhanced personality/memory features
-7. Additional accounting platform support
+4. Voice Mode (Milestone 2)
+5. Write operations (create/update invoices) - requires safety guardrails first
+6. Additional accounting platform support
 
 ---
 
 ## Recent Achievements
+
+### 2025-11-29: Safety Architecture + ChatGPT Validated
+- **DESIGN**: Created safety guardrails architecture (specs/SAFETY-ARCHITECTURE.md)
+  - Tiered permissions: Read-only (default) → Create drafts → Approve/Update → Delete/Void
+  - Pre-operation snapshots for audit trail
+  - Dynamic tool visibility based on user permission level
+- **CHATGPT**: Validated working with zero code changes
+  - Same MCP server works for both Claude.ai and ChatGPT
+  - Discovered: Memory disabled when MCP connectors used (Developer Mode security)
+  - Workaround: Export ChatGPT memories → upload to Pip context layer
+- **RESEARCH**: Xero has NO user-accessible restore - critical finding for safety design
 
 ### 2025-11-29: Xero Tools Audit & Bug Fixes
 - **BUG FIX**: Aged receivables/payables tools now correctly find unpaid invoices
@@ -210,12 +233,14 @@ See **ISSUES.md** for detailed tracking.
 
 | Platform | Priority | Status | Cost to Us |
 |----------|----------|--------|------------|
-| **Claude.ai MCP** | HIGH | 🔵 Validating | $0 LLM |
-| **ChatGPT App** | HIGH | ⚪ After Claude | $0 LLM |
+| **Claude.ai MCP** | HIGH | 🟢 Working | $0 LLM |
+| **ChatGPT App** | HIGH | 🟢 Working | $0 LLM |
 | PWA (standalone) | MEDIUM | 🟢 Live | API costs |
 | Self-hosted | LOW | 🟢 Ready | $0 |
 
 **Key Insight**: MCP distribution = users bring their own LLM subscription = $0 inference costs for Arc Forge.
+
+**ChatGPT Limitation**: Memory disabled in Developer Mode. Workaround: export ChatGPT memories → upload to Pip context layer.
 
 ### Secured Domains
 - askpip.au (secured)
@@ -230,6 +255,7 @@ See **ISSUES.md** for detailed tracking.
 - `PROGRESS.md` - Detailed task tracking
 - `ISSUES.md` - Bug and improvement tracking
 - `ARCHITECTURE.md` - System design and ADRs
+- `specs/SAFETY-ARCHITECTURE.md` - Xero API safety guardrails design
 - `docs/research-notes/SPIKE-pip-inside-claude-chatgpt.md` - MCP strategy research
 - `docs/research-notes/PATTERN-lazy-loading-mcp-tools.md` - Context optimization pattern
 

@@ -12,10 +12,10 @@
 
 | Metric | Value |
 |--------|-------|
-| Current Focus | Claude.ai MCP Integration |
-| Phase | Validation |
+| Current Focus | Safety Guardrails + Memory Import |
+| Phase | Production Hardening |
 | Milestones Complete | 1/3 (Core Platform) |
-| Overall | MVP deployed, validating distribution |
+| Overall | MCP validated, adding safety before write ops |
 
 ---
 
@@ -137,10 +137,52 @@
 
 ---
 
-### Epic 1.3: Landing Page
+### Epic 1.3: Safety Guardrails (NEW PRIORITY)
+
+**Status**: 🔵 In Progress
+**Priority**: HIGH (before adding any write operations)
+**Spec**: `specs/SAFETY-ARCHITECTURE.md`
+
+**Why This Matters**: Xero has NO user-accessible restore. Deleted/voided data is permanently lost. An unrestricted AI could cause catastrophic business damage.
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Design safety architecture | ✅ Done | specs/SAFETY-ARCHITECTURE.md |
+| Add `user_settings` table | ⚪ Pending | permission_level column |
+| Add `operation_snapshots` table | ⚪ Pending | Pre-operation state capture |
+| Implement permission checks | ⚪ Pending | Tool router validation |
+| Add settings UI to PWA | ⚪ Pending | Permission level selector |
+| Dynamic tool visibility | ⚪ Pending | Hide write tools based on level |
+
+**Permission Levels**:
+- **Level 0 (Default)**: Read-only - current 10 tools, zero risk
+- **Level 1**: Create drafts - new invoices/contacts as DRAFT only
+- **Level 2**: Approve/update - requires confirmation dialog
+- **Level 3**: Delete/void - requires per-operation confirmation + delay
+
+---
+
+### Epic 1.4: Memory Import (ChatGPT Workaround)
 
 **Status**: ⚪ Not Started
-**Priority**: MEDIUM (after both integrations work)
+**Priority**: HIGH (for demo with dental client)
+
+**Problem**: ChatGPT disables memory when MCP connectors are used (Developer Mode security).
+
+**Solution**: Export ChatGPT memories → upload to Pip's Business Context Layer → personalized experience works across all platforms.
+
+| Task | Status | Notes |
+|------|--------|-------|
+| Document memory export process | ⚪ Pending | ChatGPT prompt method |
+| Create memory import guide | ⚪ Pending | Upload to context layer |
+| Test with existing user context | ⚪ Pending | Verify personalization works |
+
+---
+
+### Epic 1.5: Landing Page
+
+**Status**: ⚪ Not Started
+**Priority**: MEDIUM (after safety + memory import)
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -179,6 +221,26 @@ The Thursday demo with dental practice owner has been completed. Demo materials 
 ---
 
 ## Progress Changelog
+
+### 2025-11-29 - Safety Architecture + Memory Import Priority
+
+**New Priorities**:
+1. **Safety Guardrails** (Epic 1.3) - Critical before adding any write operations
+   - Designed tiered permission model (read-only → create drafts → full access)
+   - Created `specs/SAFETY-ARCHITECTURE.md` with full design
+   - Xero has NO user restore - we must protect users from AI mistakes
+
+2. **Memory Import** (Epic 1.4) - ChatGPT workaround for demo
+   - ChatGPT disables memory when MCP connectors used
+   - Solution: export ChatGPT memories → upload to Pip context layer
+   - Preserves personalized experience across all platforms
+
+**Key Research Findings**:
+- Xero deleted/voided data is permanently lost
+- Third-party backup services have significant limitations
+- Users must explicitly opt-in to write operations
+
+---
 
 ### 2025-11-29 - Claude.ai Validated, ChatGPT Next
 

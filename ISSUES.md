@@ -86,6 +86,37 @@
   - [ ] Cannot use Pip until verified
 - **Notes**: Deferred - invite codes provide sufficient access control for beta. Implement before public launch.
 
+#### issue_004: Safety Guardrails for Write Operations
+- **Status**: 🔵 In Progress (Design complete)
+- **Priority**: P1 (HIGH - before any write operations)
+- **Component**: `packages/mcp-remote-server`, `packages/server`, `packages/pwa-app`
+- **Spec**: `specs/SAFETY-ARCHITECTURE.md`
+- **Description**: Implement tiered permission model to prevent AI from accidentally destroying Xero data
+- **Why Critical**: Xero has NO user-accessible restore. Deleted/voided data is permanently lost.
+- **Acceptance Criteria**:
+  - [ ] Database tables: user_settings, operation_snapshots
+  - [ ] Permission levels: Read-only (default), Create drafts, Approve/Update, Delete/Void
+  - [ ] Pre-operation snapshots before any write
+  - [ ] Dynamic tool visibility based on permission level
+  - [ ] Settings UI in PWA
+- **Notes**: All current tools are read-only (zero risk). This must be implemented BEFORE adding any write operations.
+
+#### issue_005: ChatGPT Memory Disabled in Developer Mode
+- **Status**: 🟡 Workaround Available
+- **Priority**: P2 (Medium - affects demo)
+- **Component**: External (ChatGPT limitation)
+- **Description**: ChatGPT disables memory when MCP connectors are used in Developer Mode
+- **Workaround**:
+  1. Export ChatGPT memories (prompt: "Write out your memories of me verbatim")
+  2. Save as text file
+  3. Upload to Pip's Business Context Layer
+  4. Personalization works across all platforms (Claude.ai, ChatGPT, PWA)
+- **Acceptance Criteria**:
+  - [ ] Document memory export process
+  - [ ] Create user guide for memory import
+  - [ ] Test with existing user context
+- **Notes**: This is actually BETTER than relying on ChatGPT memory - user controls what Pip knows, works across all platforms.
+
 #### issue_000: Business Context Layer
 - **Status**: 🟡 In Progress (Blueprint created)
 - **Priority**: P1

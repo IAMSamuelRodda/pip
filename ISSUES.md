@@ -69,6 +69,21 @@
 
 ### Improvements
 
+#### issue_003: Email Verification for Sign-Up
+- **Status**: 🔴 Open
+- **Priority**: P3 (Low - deferred)
+- **Component**: `packages/mcp-remote-server` (OAuth sign-up)
+- **Description**: Add email verification before account activation
+- **Options**:
+  - Resend (3000/month free)
+  - SendGrid (100/day free)
+  - Postmark (100/month free)
+- **Acceptance Criteria**:
+  - [ ] User signs up → receives verification email
+  - [ ] User clicks link → account activated
+  - [ ] Cannot use Pip until verified
+- **Notes**: Deferred - invite codes provide sufficient access control for beta. Implement before public launch.
+
 #### issue_000: Business Context Layer
 - **Status**: 🟡 In Progress (Blueprint created)
 - **Priority**: P1

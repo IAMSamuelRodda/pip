@@ -55,7 +55,10 @@
 - [x] Memory tools via Claude.ai (`add_memory`, `search_memory`) - **WORKING**
   - `add_memory`: Stored "I like invoices on Monday" (category: preference)
   - `search_memory`: Found with 80% relevance for query "invoices Monday"
-- [ ] Memory tools via ChatGPT Dev Mode
+- [x] Memory tools via ChatGPT - **WORKING**
+  - Requires meta-tool pattern: `get_tools_in_category` → `execute_tool`
+  - `add_memory`: Stored "I like financial reports on the weekend"
+  - `search_memory`: Found with 80% relevance
 
 ---
 

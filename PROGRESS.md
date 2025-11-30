@@ -508,19 +508,21 @@ Deep research into alternative memory architectures. Key findings:
 
 ### Epic 2.4: Per-Chat Document Upload
 
-**Status**: ⚪ Not Started (spike-dependent)
+**Status**: ⚪ Not Started (spike complete, ready to implement)
 **Priority**: MEDIUM
 
 #### feature_2_4_1: React.js Refactor Assessment (SPIKE)
-**Status**: ⚠️ SPIKE REQUIRED
-**Complexity**: 2.0/5 | **Est**: 2 days
+**Status**: ✅ COMPLETE
+**Complexity**: 2.0/5 | **Est**: 2 days | **Completed**: 2025-12-01
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_4_1_1: Research PWA file upload patterns | ⚪ | 2.0 | **needs_spike** (uncertainty: 4) |
-| task_2_4_1_2: Evaluate refactor cost vs benefits | ⚪ | 2.0 | **needs_spike** |
+| task_2_4_1_1: Research PWA file upload patterns | ✅ | 2.0 | Use react-dropzone for + icon UX |
+| task_2_4_1_2: Evaluate refactor cost vs benefits | ✅ | 2.0 | **Decision: Keep React** - aligns with ChatGPT/Claude stacks |
 
-**Spike**: spike_m2_002 (React.js Refactor Assessment) - 2 days
+**Spike**: spike_m2_002 (React.js Refactor Assessment) - ✅ COMPLETE
+**Output**: `docs/research-notes/SPIKE-m2-002-react-refactor-assessment.md`
+**Decision**: Keep React. Both ChatGPT (Next.js) and Claude (React+Ink) use React. Migration cost (3-5 weeks) not justified.
 
 #### feature_2_4_2: Document Upload Backend
 **Complexity**: 2.5/5 | **Est**: 4 days | **Depends on**: feature_2_4_1
@@ -665,6 +667,25 @@ The Thursday demo with dental practice owner has been completed. Demo materials 
 ---
 
 ## Progress Changelog
+
+### 2025-12-01 - spike_m2_002: React Refactor Assessment Complete
+
+**Spike Complete**:
+- Researched ChatGPT and Claude.ai frontend stacks
+- ChatGPT uses React + Next.js (SSR, React Server Components)
+- Claude Code uses TypeScript + React (Ink) + Bun
+- Anthropic hiring explicitly requires "React development expertise"
+
+**Decision**: Keep React - no framework migration needed
+- Current stack (React 18, Vite, Zustand, TanStack Query) is modern best-practice
+- Migration cost (3-5 weeks) not justified
+- Industry alignment validated (both major LLM chat apps use React)
+
+**File upload recommendation**: react-dropzone for + icon attachment UX
+
+**Output**: `docs/research-notes/SPIKE-m2-002-react-refactor-assessment.md`
+
+---
 
 ### 2025-11-30 (Evening) - Full Deployment & Claude.ai Verification
 

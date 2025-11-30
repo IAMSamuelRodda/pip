@@ -52,9 +52,12 @@ See `ARCHITECTURE.md` for complete details.
 
 ## Workflow Quick Reference
 
-**Branch from dev, PR to dev** (NOT main). See `CONTRIBUTING.md` for details.
+**Work on `dev` branch. Commit directly, no PRs.** See `CONTRIBUTING.md` for details.
 
 ```bash
+# ALWAYS start on dev
+git checkout dev && git pull origin dev
+
 # Development
 pnpm install
 pnpm dev
@@ -62,25 +65,14 @@ pnpm dev
 # Testing
 pnpm test
 
-# VPS SSH Access
-ssh root@170.64.169.203
-# or via doctl: doctl compute ssh production-syd1
+# VPS Deployment - EXPLICIT (never automatic)
+# VPS tracks main. Deploy is manual.
 
-# VPS Deployment (run from /opt/pip on VPS)
-cd /opt/pip && git pull
-docker build -t pip-mcp:latest -f packages/mcp-remote-server/Dockerfile .
-docker stop pip-mcp && docker rm pip-mcp
-docker run -d --name pip-mcp --restart unless-stopped \
-  --network droplet_frontend \
-  -v zero-agent-data:/app/data \
-  -e NODE_ENV=production \
-  -e MCP_PORT=3001 \
-  -e DATABASE_PATH=/app/data/zero-agent.db \
-  -e XERO_CLIENT_ID=$XERO_CLIENT_ID \
-  -e XERO_CLIENT_SECRET=$XERO_CLIENT_SECRET \
-  -e JWT_SECRET=$JWT_SECRET \
-  -e BASE_URL=https://mcp.pip.arcforge.au \
-  pip-mcp:latest
+# Deploy dev (testing quick fixes)
+ssh root@170.64.169.203 "cd /opt/pip && git fetch && git checkout dev && git pull && docker compose up -d --build"
+
+# Deploy main (production release) - after PR merged
+ssh root@170.64.169.203 "cd /opt/pip && git fetch && git checkout main && git pull && docker compose up -d --build"
 
 # Check health
 curl https://app.pip.arcforge.au/health
@@ -89,4 +81,4 @@ curl https://mcp.pip.arcforge.au/health
 
 ---
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-12-01

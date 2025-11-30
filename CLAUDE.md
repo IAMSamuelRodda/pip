@@ -52,9 +52,12 @@ See `ARCHITECTURE.md` for complete details.
 
 ## Workflow Quick Reference
 
-**Commit directly to dev**. See `CONTRIBUTING.md` for Standard tier workflow.
+**Work on `dev` branch. Commit directly, no PRs.** See `CONTRIBUTING.md` for details.
 
 ```bash
+# ALWAYS start on dev
+git checkout dev && git pull origin dev
+
 # Development
 pnpm install
 pnpm dev
@@ -89,4 +92,4 @@ curl https://mcp.pip.arcforge.au/health
 
 ---
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-12-01

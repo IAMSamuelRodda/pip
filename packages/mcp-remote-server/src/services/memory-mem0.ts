@@ -88,8 +88,8 @@ export async function getMemory(): Promise<Mem0Memory> {
           model: CLAUDE_MODEL,
         },
       },
-      // Disable history for now - mem0's SQLite has issues in Docker
-      // historyDbPath,
+      // Use in-memory SQLite to avoid file permission issues in Docker
+      historyDbPath: ":memory:",
     });
 
     console.log("[Memory] Mem0 initialized successfully (no history persistence)");

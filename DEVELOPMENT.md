@@ -5,91 +5,45 @@
 
 ---
 
-## Git Branching Strategy
+## Git Workflow
 
-**Model**: Three-Tier with Aggressive Branch Protection
+**Model**: Simple (main only)
 
-### Branch Structure & Environments
-
-| Branch | Environment | Purpose | PR Source | Deployment Trigger |
-|--------|-------------|---------|-----------|-------------------|
-| `main` | **Production** | Stable releases only | ⚠️ ONLY from `dev` | `v*.*.*` tags |
-| `dev` | **Staging** | Integration testing | feature/fix/sync/* | `staging-*` tags |
-| `feature/*` | Local | Feature development | N/A | N/A |
-| `fix/*` | Local | Bug fixes | N/A | N/A |
-| `sync/*` | Local | Dependency updates | N/A | N/A |
-
-### Critical Branch Protection Rules
-
-**⛔ main branch** - ONLY accepts PRs from `dev`:
-- Enforced by `.github/workflows/enforce-main-pr-source.yml`
-- Any PR from feature/fix/sync branches → main will be REJECTED
-- Prevents accidental production deployments
-
-**⛔ dev branch** - ONLY accepts PRs from feature/fix/sync branches:
-- Configure in GitHub: Settings → Branches → Branch protection rules
-- Enable "Require pull request reviews before merging"
-- Enable "Require status checks to pass before merging"
-
-**Why these rules exist**: They ensure ALL code passes through staging testing before reaching production.
+Fast prototyping phase - direct commits to main, manual VPS deployment.
 
 ### Development Flow
 
 ```bash
-# 1. Always branch from dev (NOT main)
-git checkout dev
-git pull origin dev
-git checkout -b feature/add-user-auth
+# Start work
+git pull origin main
 
-# 2. Develop and commit
+# Develop and commit directly to main
 git add .
-git commit -m "feat: add user authentication
+git commit -m "[type]: description"
+git push origin main
 
-Implements login/logout flows with JWT tokens
+# Deploy to VPS (manual)
+ssh root@170.64.169.203 "cd /opt/pip && git pull && docker compose up -d --build"
 
-Relates to #42"
-
-# 3. Push and create PR to dev (NOT main)
-git push -u origin feature/add-user-auth
-gh pr create --base dev --head feature/add-user-auth
-
-# 4. After PR approval and merge to dev:
-#    - Code automatically deploys to staging environment
-#    - Comprehensive E2E tests run on staging
-#    - If tests pass, code is ready for production release
-
-# 5. To release to production (maintainers only):
-git checkout dev
-git pull origin dev
-gh pr create --base main --head dev --title "Release v1.2.0"
+# Verify deployment
+curl https://app.pip.arcforge.au/health
+curl https://mcp.pip.arcforge.au/health
 ```
 
-### Deployment Flow
+### Commit Message Types
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation changes
+- `refactor:` - Code changes that neither fix bugs nor add features
+- `test:` - Adding or updating tests
+- `chore:` - Maintenance tasks
 
-```
-feature branch → (PR) → dev branch
-                           ↓
-                    [Deploy to Staging]
-                           ↓
-                    [Comprehensive E2E Tests]
-                           ↓
-                    [Lighthouse Audits]
-                           ↓
-                (When ready for production)
-                           ↓
-dev branch → (PR) → main branch
-                           ↓
-                 [Deploy to Production]
-                           ↓
-                    [Smoke Tests Only]
-                           ↓
-                  [CloudWatch Monitoring]
-```
+### When to Upgrade to Standard Tier (main + dev)
+- Multiple developers need release isolation
+- Production stability becomes critical
+- Need staging environment for testing
 
-### Merge Strategy
-**Use**: `--merge` (preserve feature branch history)
-
-**Reason**: Full commit history preserved for debugging and audit trails
+See `CONTRIBUTING.md` for workflow tier definitions
 
 ---
 
@@ -117,40 +71,30 @@ git diff --staged
 
 ## CI/CD Workflows
 
-### Branch Protection Enforcement
+### Current State: Manual Deployment
 
-**enforce-main-pr-source.yml** - CRITICAL
-- **Trigger**: Any PR to `main` branch
-- **Purpose**: Enforce that main ONLY accepts PRs from `dev`
-- **Action**: Rejects PRs from any other branch with helpful error message
-- **Status**: ✅ Must be in place from project start
+Simple tier uses manual VPS deployment (no automated CI/CD pipelines yet).
 
-### Standard Workflows
+```bash
+# Deploy to production VPS
+ssh root@170.64.169.203 "cd /opt/pip && git pull && docker compose up -d --build"
+```
 
-| Workflow | Triggers | Purpose | Duration |
-|----------|----------|---------|----------|
-| **validate.yml** | All PRs + pushes to dev/main | Linting, formatting, security scans | ~2-3min |
-| **test.yml** | All PRs + pushes to dev/main | Unit + integration tests | ~3-5min |
-| **build.yml** | Push to main branch | Build Docker images, push to ECR | ~5-8min |
-| **deploy-staging.yml** | Tags: `staging-*` | Deploy to staging + comprehensive E2E tests | ~10-15min |
-| **deploy-prod.yml** | Tags: `v*.*.*` | Deploy to production + smoke tests | ~15-20min |
+### Future: Automated Workflows
 
-### Testing Strategy (Amazon-Style)
+When upgrading to Standard tier, add these workflows:
 
-**Staging Environment** (comprehensive testing):
-- ALL E2E tests run (complete test suite)
-- Lighthouse performance audits
-- Security scans
-- Load testing (if applicable)
-- **Goal**: Catch ALL bugs before production
+| Workflow | Triggers | Purpose |
+|----------|----------|---------|
+| **validate.yml** | All pushes | Linting, formatting, type checking |
+| **test.yml** | All pushes | Unit + integration tests |
+| **deploy.yml** | Push to main | Build + deploy to VPS |
 
-**Production Environment** (minimal testing):
-- ONLY smoke tests (authentication, health checks)
-- Fast validation (< 2 minutes)
-- Comprehensive tests already passed on staging
-- **Goal**: Fast deployment + rollback capability
+### Branch Protection (When Needed)
 
-**Why this approach**: Staging validates quality, production prioritizes speed and stability.
+**enforce-main-pr-source.yml** - For Standard tier
+- Enforce main ONLY accepts PRs from `dev`
+- Not needed for Simple tier (direct commits)
 
 ---
 
@@ -219,4 +163,4 @@ docker build --platform linux/amd64 -t pip-app .
 
 ---
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-12-01

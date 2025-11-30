@@ -21,7 +21,7 @@
 | **PWA Frontend** | 🟢 | Live at app.pip.arcforge.au |
 | **Landing Page** | 🟢 | Live at pip.arcforge.au |
 | **Xero Integration** | 🟢 | 10 READ-ONLY tools verified |
-| **Git Workflow** | 🟢 | Standard tier (main + dev, direct commits) |
+| **Git Workflow** | 🟢 | Simple tier (main only, direct commits) |
 | **Milestone 2** | 🔵 | Implementation started, 2/3 spikes complete |
 
 **Legend**: 🟢 Good | 🟡 Attention | 🔴 Critical | 🔵 In Progress
@@ -34,12 +34,13 @@
 
 ### Just Completed (2025-12-01)
 
-1. **Git Workflow Cleanup** ✅
-   - Adopted Standard tier workflow (main + dev, direct commits to dev)
-   - Removed all feature/spike branches (work merged to dev)
-   - Removed stale worktrees (3 removed)
-   - Removed `enforce-dev-pr-source.yml` (not needed for Standard tier)
-   - Kept `enforce-main-pr-source.yml` (main only accepts PRs from dev)
+1. **Git Workflow Simplified to Simple Tier** ✅
+   - Simplified from Standard tier (main + dev) to Simple tier (main only)
+   - Fast prototyping mode - direct commits to main
+   - Fixed VPS remote URL (was pointing to old repo)
+   - Merged dev to main and deleted dev branch
+   - Removed all feature/spike branches and stale worktrees
+   - Updated CLAUDE.md, CONTRIBUTING.md, DEVELOPMENT.md for Simple tier
 
 2. **Epic 2.1: Memory Architecture Refactor** ✅
    - Aligned with Anthropic MCP Memory Server patterns (~350 lines)
@@ -118,10 +119,11 @@
 ## Recent Achievements (Last 2 Weeks)
 
 ### 2025-12-01
-- **Git Workflow Cleanup**: Adopted Standard tier (main + dev only)
-  - Merged all feature/spike branch work to dev
+- **Git Workflow Simplified**: Moved to Simple tier (main only)
+  - Merged dev to main, deleted dev branch
   - Removed 5 stale branches, 3 worktrees
-  - Removed enforce-dev-pr-source.yml workflow
+  - Fixed VPS remote URL pointing to correct repo
+  - Updated all documentation for Simple tier
 - **Epic 2.1 Complete**: Memory architecture aligned with Anthropic patterns
 - **Spike M2-002 Complete**: React assessment - keep current stack
 - **Spike M2-003 Complete**: Character voice methodology + profiles

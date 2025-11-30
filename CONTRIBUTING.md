@@ -118,50 +118,25 @@ Update when:
 
 ## Git Workflow
 
-### Branch Strategy
+### Workflow Tier: Simple
 
-```
-feature/fix/sync branches
-         ↓  (PR only)
-      dev branch → staging
-         ↓  (PR only - main ONLY accepts PRs from dev)
-     main branch → production
-```
-
-### Starting Work
+**Main only.** Fast prototyping, no release isolation needed yet.
 
 ```bash
-# Always branch from dev (NOT main)
-git checkout dev
-git pull origin dev
-git checkout -b feature/[feature-name]  # or fix/, sync/
+# Start work
+git pull origin main
 
-# Update PROGRESS.md with task status
+# Commit directly to main
+git add . && git commit -m "[type]: description" && git push
+
+# Deploy to VPS
+ssh root@170.64.169.203 "cd /opt/pip && git pull && docker compose up -d --build"
 ```
 
-### Completing Work
-
-```bash
-# Commit with descriptive message
-git commit -m "[type]: [description]
-
-Closes #[issue-number] (if applicable)"
-
-# Push and create PR targeting dev branch
-git push -u origin feature/[feature-name]
-gh pr create --base dev --head feature/[feature-name]
-
-# Update PROGRESS.md and STATUS.md
-```
-
-### Releasing to Production
-
-```bash
-# After staging testing, create dev → main PR
-gh pr create --base main --head dev --title "Release v[version]"
-
-# This is the ONLY way to get code into main
-```
+**When to upgrade to Standard tier** (main + dev):
+- Multiple developers need release isolation
+- Production stability becomes critical
+- Need staging environment for testing
 
 ---
 
@@ -204,14 +179,14 @@ docs/
 - [ ] PROGRESS.md updated (task complete)
 - [ ] STATUS.md updated (if significant)
 - [ ] ARCHITECTURE.md updated (if design changed)
-- [ ] PR merged to dev
+- [ ] Committed and pushed to main
 
 ### Bug Fixes
 - [ ] Root cause documented in ISSUES.md
 - [ ] Fix implemented
 - [ ] Issue removed from ISSUES.md
 - [ ] Fix added to CHANGELOG.md (under "Fixed")
-- [ ] PR merged to dev
+- [ ] Committed and pushed to main
 
 ### Spike/Research
 - [ ] Research documented in `docs/research-notes/SPIKE-*.md`

@@ -52,27 +52,17 @@ See `ARCHITECTURE.md` for complete details.
 
 ## Workflow Quick Reference
 
-**Work on `dev` branch. Commit directly, no PRs.** See `CONTRIBUTING.md` for details.
+**Work on `main`. Commit directly.** Simple tier for fast prototyping.
 
 ```bash
-# ALWAYS start on dev
-git checkout dev && git pull origin dev
+# Start work
+git pull origin main
 
 # Development
-pnpm install
-pnpm dev
+pnpm install && pnpm dev
 
-# Testing
-pnpm test
-
-# VPS Deployment - EXPLICIT (never automatic)
-# VPS tracks main. Deploy is manual.
-
-# Deploy dev (testing quick fixes)
-ssh root@170.64.169.203 "cd /opt/pip && git fetch && git checkout dev && git pull && docker compose up -d --build"
-
-# Deploy main (production release) - after PR merged
-ssh root@170.64.169.203 "cd /opt/pip && git fetch && git checkout main && git pull && docker compose up -d --build"
+# Deploy to VPS
+ssh root@170.64.169.203 "cd /opt/pip && git pull && docker compose up -d --build"
 
 # Check health
 curl https://app.pip.arcforge.au/health

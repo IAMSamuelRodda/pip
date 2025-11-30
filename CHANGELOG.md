@@ -9,23 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned
-- Mem0 Memory Stack implementation (using official `mem0ai` npm package)
-- Safety Guardrails (tiered permissions for write operations)
-- Landing page at pip.arcforge.au
-
 ### Added
-- ChatGPT memory research and documentation (docs/CHATGPT-MEMORY-GUIDE.md)
-- Google Docs integration planned (issue_006)
-- Nextcloud integration planned (issue_007)
+- **Mem0 memory tools**: 5 MCP tools implemented (add, search, list, delete, clear_all)
+- **Memory service**: Using `mem0ai` v2.1.38 with in-memory vector + SQLite history
+- **System prompt update**: Memory guidelines for Pip personality
+- **ChatGPT memory guide**: docs/CHATGPT-MEMORY-GUIDE.md (export/import instructions)
+- **Repository renamed**: `pip` → `pip-by-arc-forge` (GitHub + local)
 
 ### Researched
-- **spike_mem0**: Mem0 Integration Feasibility spike COMPLETE
-  - Evaluated 8 integration approaches (A-H)
-  - Key discovery: Official `mem0ai` npm package provides native TypeScript support
-  - Decision: Use `mem0ai` with in-memory vector store + SQLite history
-  - Resource impact: ~100-200MB RAM, fits 384MB VPS constraint
+- **spike_mem0** (COMPLETE): Mem0 Integration Feasibility
+  - Evaluated 8 approaches (A-H), selected Option H: official `mem0ai` npm
+  - Key discovery: Official TypeScript SDK with full API parity
+  - Resource impact: ~100-200MB RAM, fits 384MB VPS
   - Decision document: `docs/research-notes/SPIKE-mem0-integration.md`
+- **Memory architecture deep research** (2025-11-30):
+  - Option A: mem0 + Claude LLM + Ollama embeddings (~$0.001/req)
+  - Option B: MCP-native Memento-style ($0, ChatGPT memory works)
+  - Decision pending: issue_008 in ISSUES.md
+- **Architecture direction adopted**:
+  - USE: Mem0 (memory) + Lazy-MCP (tools)
+  - SKIP: LangChain (obsolete), traditional RAG
+  - DEFER: LangGraph (only if complex approval flows needed)
+
+### Planned
+- Safety Guardrails implementation (tiered permissions)
+- Landing page at pip.arcforge.au
+- Google Docs integration (issue_006)
+- Nextcloud integration (issue_007)
 
 ---
 

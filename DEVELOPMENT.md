@@ -98,17 +98,19 @@ dev branch → (PR) → main branch
 Before every commit:
 
 ```bash
-# 1. Lint and format
-[lint-command]
-[format-command]
+# 1. Lint
+pnpm lint
 
 # 2. Run tests
-[test-command]
+pnpm test
 
-# 3. Review changes
+# 3. Build to verify compilation
+pnpm build
+
+# 4. Review changes
 git diff --staged
 
-# 4. Verify commit message includes issue reference
+# 5. Verify commit message includes issue reference (if applicable)
 ```
 
 ---
@@ -155,19 +157,22 @@ git diff --staged
 ## Environment Setup
 
 ### Prerequisites
-- [Requirement 1]
-- [Requirement 2]
+- Node.js 20+
+- pnpm 9+ (`npm install -g pnpm`)
+- Xero Developer Account (for OAuth credentials)
+- Anthropic API Key (for LLM)
 
 ### Installation
 ```bash
 # Install dependencies
-[install-command]
+pnpm install
 
 # Configure environment
-[config-command]
+cp .env.example .env
+# Edit .env with your API keys and credentials
 
 # Start development servers
-[start-command]
+pnpm dev
 ```
 
 ---
@@ -176,17 +181,17 @@ git diff --staged
 
 ### Unit Tests
 ```bash
-[test-command]
+pnpm test
 ```
 
 ### E2E Tests
 ```bash
-[e2e-command]
+# Not yet implemented - see debt_001 in ISSUES.md
 ```
 
 ### Test Organization
-- Unit tests: [location/pattern]
-- E2E tests: [location/pattern]
+- Unit tests: `packages/*/src/**/*.test.ts`
+- E2E tests: `packages/*/e2e/**/*.spec.ts` (planned)
 
 ---
 
@@ -194,18 +199,24 @@ git diff --staged
 
 ### Common Issues
 
-**[Issue 1]**
+**pnpm install fails with peer dependency errors**
 ```bash
-# Solution
-[command]
+# Use --shamefully-hoist flag
+pnpm install --shamefully-hoist
 ```
 
-**[Issue 2]**
+**Docker build fails on Apple Silicon**
 ```bash
-# Solution
-[command]
+# Build for linux/amd64
+docker build --platform linux/amd64 -t pip-app .
+```
+
+**Xero OAuth callback fails**
+```bash
+# Ensure XERO_REDIRECT_URI matches your callback URL
+# Check service worker isn't intercepting /auth/callback
 ```
 
 ---
 
-**Last Updated**: {{DATE}}
+**Last Updated**: 2025-11-30

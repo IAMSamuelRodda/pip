@@ -3,13 +3,13 @@
 > **Purpose**: Technical reference for system design, database schema, and architectural decisions
 > **Lifecycle**: Living (update as architecture evolves)
 
-**Last Updated**: 2025-11-29
+**Last Updated**: 2025-11-30
 
 ---
 
 ## System Overview
 
-Zero Agent uses a **monolithic VPS architecture** for cost efficiency and simplicity:
+Pip uses a **monolithic VPS architecture** for cost efficiency and simplicity:
 
 ```
 ┌─────────────────────────────────────────────────────┐
@@ -51,7 +51,7 @@ Zero Agent uses a **monolithic VPS architecture** for cost efficiency and simpli
 
 **Structure**: Monorepo with packages
 ```
-zero-agent/
+pip-by-arc-forge/
 ├── packages/
 │   ├── core/                # LLM + Database abstractions
 │   ├── agent-core/          # Agent orchestrator + Xero tools
@@ -174,7 +174,7 @@ CREATE INDEX idx_extended_memory_user ON extended_memory(user_id);
 ### Backup Strategy
 - Daily automated backups via cron at 3am UTC
 - 7-day retention with automatic cleanup
-- Backup script: `/opt/backups/backup-zero-agent.sh` on VPS
+- Backup script: `/opt/backups/backup-pip.sh` on VPS
 
 ---
 
@@ -595,7 +595,7 @@ Local Development → Git Push → SSH to VPS
   ↓
 git pull on VPS
   ↓
-docker build -t zero-agent .
+docker build -t pip-app .
   ↓
 docker compose up -d
   ↓
@@ -617,7 +617,7 @@ Health check verification
 ### Current Infrastructure Cost
 
 **VPS Deployment (Shared Droplet):**
-- **Zero Agent allocation**: $0/month (shared with other services)
+- **Pip allocation**: $0/month (shared with other services)
 - **Anthropic API**: Usage-based (~$0.003/chat interaction)
 - **Domain**: Included in existing DNS
 - **Total**: **~$0/month** fixed + API usage
@@ -875,4 +875,4 @@ Two authentication methods supported:
 
 ---
 
-**Last Updated**: 2025-11-29
+**Last Updated**: 2025-11-30

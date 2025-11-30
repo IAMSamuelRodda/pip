@@ -544,55 +544,62 @@ Deep research into alternative memory architectures. Key findings:
 
 ### Epic 2.5: Pip's Voice & Personality System
 
-**Status**: ⚪ Not Started (spike-dependent)
+**Status**: 🔵 In Progress (spike complete, implementation ready)
 **Priority**: CRITICAL (retention impact)
 
 #### feature_2_5_1: Character Voice Methodology Research (SPIKE)
-**Status**: ⚠️ SPIKE REQUIRED
-**Complexity**: 2.5/5 | **Est**: 3 days
+**Status**: ✅ Complete
+**Complexity**: 2.5/5 | **Actual**: 1 day
+**Branch**: `spike/m2-003-character-voice`
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_5_1_1: Analyze literary voice techniques | ⚪ | 2.3 | **needs_spike** - novels, objective description |
-| task_2_5_1_2: Research Grok speech modes | ⚪ | 2.0 | **needs_spike** - Assistant, Motivational, etc. |
-| task_2_5_1_3: Define voice profile schema | ⚪ | 2.8 | **needs_spike** - switchable prompts |
+| task_2_5_1_1: Analyze literary voice techniques | ✅ | 2.3 | Word choice, sentence structure, verbal tics |
+| task_2_5_1_2: Research Grok speech modes | ✅ | 2.0 | 13 modes analyzed (Unhinged, Storyteller, etc.) |
+| task_2_5_1_3: Define personality profile schema | ✅ | 2.8 | TypeScript types + 2 draft profiles |
 
-**Spike**: spike_m2_003 (Character Voice Methodology) - 3 days
+**Deliverables**:
+- `docs/research-notes/SPIKE-character-voice-methodology.md` - Full research
+- `packages/core/src/database/types.ts` - Personality types
+- `packages/core/src/personalities/` - Adelaide + Pippin profiles
+- `buildPersonalityPrompt()` function for system prompt injection
 
-#### feature_2_5_2: Adelaide Bookkeeper Voice Profile
-**Complexity**: 2.3/5 | **Est**: 3 days | **Depends on**: feature_2_5_1
+#### feature_2_5_2: Adelaide Bookkeeper Personality Profile
+**Complexity**: 2.3/5 | **Est**: 3 days | **Depends on**: feature_2_5_1 ✅
+**Status**: 🟡 Draft Complete (from spike)
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_5_2_1: Define Adelaide character profile | ⚪ | 2.2 | Professional, approachable, no jargon |
+| task_2_5_2_1: Define Adelaide character profile | ✅ | 2.2 | `personalities/adelaide.ts` created |
 | task_2_5_2_2: Create system prompt + test | ⚪ | 2.5 | Invoice, report, troubleshooting scenarios |
 | task_2_5_2_3: Refine based on user testing | ⚪ | 2.0 | Iterate on tone |
 
-#### feature_2_5_3: LOTR Pippin Voice Profile
-**Complexity**: 2.5/5 | **Est**: 3 days | **Depends on**: feature_2_5_1
+#### feature_2_5_3: LOTR Pippin Personality Profile
+**Complexity**: 2.5/5 | **Est**: 3 days | **Depends on**: feature_2_5_1 ✅
+**Status**: 🟡 Draft Complete (from spike)
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_5_3_1: Define Pippin character profile | ⚪ | 2.3 | Fun, endearing, competent |
+| task_2_5_3_1: Define Pippin character profile | ✅ | 2.3 | `personalities/pippin.ts` created |
 | task_2_5_3_2: Create system prompt + test | ⚪ | 2.8 | Balance playfulness with professionalism |
 | task_2_5_3_3: Refine based on user testing | ⚪ | 2.2 | Ensure not undermining trust |
 
-#### feature_2_5_4: Voice Switching Infrastructure
+#### feature_2_5_4: Personality Switching Infrastructure
 **Complexity**: 2.2/5 | **Est**: 3 days
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_5_4_1: Extend user_settings schema | ⚪ | 1.5 | voice_profile field |
-| task_2_5_4_2: Voice loading in AgentOrchestrator | ⚪ | 2.5 | Inject into system prompt |
-| task_2_5_4_3: Mid-chat voice switching | ⚪ | 2.8 | Maintain conversation context |
+| task_2_5_4_1: Extend user_settings schema | ✅ | 1.5 | `personality: PersonalityId` added (from spike) |
+| task_2_5_4_2: Personality loading in AgentOrchestrator | ⚪ | 2.5 | Inject via `buildPersonalityPrompt()` |
+| task_2_5_4_3: Mid-chat personality switching | ⚪ | 2.8 | Maintain conversation context |
 
-#### feature_2_5_5: Voice Selector UI
+#### feature_2_5_5: Personality Selector UI
 **Complexity**: 1.8/5 | **Est**: 2 days
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_5_5_1: Voice selector in settings | ⚪ | 1.8 | Radio buttons/cards |
-| task_2_5_5_2: Quick voice toggle in chat | ⚪ | 2.0 | Icon/dropdown, visual confirm |
+| task_2_5_5_1: Personality selector in settings | ⚪ | 1.8 | Radio buttons/cards |
+| task_2_5_5_2: Quick personality toggle in chat | ⚪ | 2.0 | Icon/dropdown, visual confirm |
 
 ---
 

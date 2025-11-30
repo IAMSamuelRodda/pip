@@ -87,10 +87,8 @@ export interface OAuthTokens {
 }
 
 /**
- * Memory variant for A/B testing
- * - 'a': Option A (mem0 + Claude LLM + Ollama embeddings)
- * - 'b': Option B (MCP-native + local embeddings)
- * - 'control': No memory features
+ * Memory variant (legacy - kept for DB compatibility)
+ * All users now use knowledge graph memory (previously Option B)
  */
 export type MemoryVariant = 'a' | 'b' | 'control';
 

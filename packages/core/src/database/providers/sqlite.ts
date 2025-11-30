@@ -1086,7 +1086,7 @@ export class SQLiteProvider implements DatabaseProvider {
         user.passwordHash,
         user.name || null,
         user.isAdmin ? 1 : 0,
-        user.memoryVariant || 'a',
+        user.memoryVariant || 'b',
         now,
         now
       );

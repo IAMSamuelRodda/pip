@@ -52,7 +52,7 @@ See `ARCHITECTURE.md` for complete details.
 
 ## Workflow Quick Reference
 
-**Branch from dev, PR to dev** (NOT main). See `CONTRIBUTING.md` for details.
+**Commit directly to dev**. See `CONTRIBUTING.md` for Standard tier workflow.
 
 ```bash
 # Development

@@ -215,6 +215,20 @@ export class SQLiteProvider implements DatabaseProvider {
       // Column already exists, ignore
     }
 
+    // User settings table (for safety/permissions)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS user_settings (
+        user_id TEXT PRIMARY KEY,
+        permission_level TEXT NOT NULL DEFAULT 'read_only',
+        require_confirmation INTEGER NOT NULL DEFAULT 0,
+        daily_email_summary INTEGER NOT NULL DEFAULT 0,
+        require_2fa INTEGER NOT NULL DEFAULT 0,
+        vacation_mode_until TEXT,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      );
+    `);
+
     // MCP-Native Memory tables (Option B)
     this.db.exec(`
       CREATE TABLE IF NOT EXISTS memory_entities (

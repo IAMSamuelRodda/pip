@@ -8,7 +8,9 @@
  * - $0 API cost - all processing is local
  */
 
-import { pipeline, type FeatureExtractionPipeline } from "@xenova/transformers";
+// Note: @xenova/transformers commented out - onnxruntime requires glibc (Alpine uses musl)
+// If embeddings are needed, switch to Debian-based Docker image
+// import { pipeline, type FeatureExtractionPipeline } from "@xenova/transformers";
 import Database from "better-sqlite3";
 
 // ============================================================================
@@ -67,14 +69,13 @@ export interface SearchResult {
 
 export class MemoryNativeService {
   private db: Database.Database | null = null;
-  private embedder: FeatureExtractionPipeline | null = null;
-  private embedderLoading: Promise<FeatureExtractionPipeline> | null = null;
   private dbPath: string;
 
-  // BGE-M3 produces 1024-dim embeddings, but we'll use a smaller model for VPS
-  // all-MiniLM-L6-v2 produces 384-dim embeddings and is much lighter
-  private readonly MODEL_NAME = "Xenova/all-MiniLM-L6-v2";
-  private readonly EMBEDDING_DIM = 384;
+  // Embeddings disabled for Alpine glibc compatibility
+  // These would be used if @xenova/transformers was available:
+  // private embedder: FeatureExtractionPipeline | null = null;
+  // private readonly MODEL_NAME = "Xenova/all-MiniLM-L6-v2";
+  // private readonly EMBEDDING_DIM = 384;
 
   constructor(dbPath?: string) {
     this.dbPath = dbPath || process.env.DATABASE_PATH || "./data/pip.db";
@@ -137,54 +138,16 @@ export class MemoryNativeService {
     console.log(`[Memory Native] Embeddings disabled (Alpine/glibc compatibility)`);
   }
 
-  private async loadEmbedder(): Promise<FeatureExtractionPipeline> {
-    if (this.embedder) return this.embedder;
-    if (this.embedderLoading) return this.embedderLoading;
-
-    console.log(`Loading embedding model: ${this.MODEL_NAME}...`);
-
-    this.embedderLoading = pipeline("feature-extraction", this.MODEL_NAME, {
-      quantized: true, // Use quantized model for smaller memory footprint
-    });
-
-    this.embedder = await this.embedderLoading;
-    this.embedderLoading = null;
-
-    console.log(`✓ Embedding model loaded: ${this.MODEL_NAME}`);
-    return this.embedder;
-  }
+  // Embeddings disabled - methods commented out for Alpine glibc compatibility
+  // private async loadEmbedder(): Promise<FeatureExtractionPipeline> { ... }
+  // async generateEmbedding(text: string): Promise<number[]> { ... }
+  // private cosineSimilarity(a: number[], b: number[]): number { ... }
 
   async close(): Promise<void> {
     if (this.db) {
       this.db.close();
       this.db = null;
     }
-  }
-
-  // ============================================================================
-  // Embedding Operations
-  // ============================================================================
-
-  async generateEmbedding(text: string): Promise<number[]> {
-    const embedder = await this.loadEmbedder();
-    const result = await embedder(text, { pooling: "mean", normalize: true });
-    return Array.from(result.data as Float32Array);
-  }
-
-  private cosineSimilarity(a: number[], b: number[]): number {
-    if (a.length !== b.length) return 0;
-
-    let dotProduct = 0;
-    let normA = 0;
-    let normB = 0;
-
-    for (let i = 0; i < a.length; i++) {
-      dotProduct += a[i] * b[i];
-      normA += a[i] * a[i];
-      normB += b[i] * b[i];
-    }
-
-    return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
   }
 
   // ============================================================================

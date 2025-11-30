@@ -3,7 +3,7 @@
 > **Purpose**: Detailed project tracking with milestones, epics, features, and tasks
 > **Lifecycle**: Living (update on task completion, status changes)
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-11-30 (EOD)
 **Current Phase**: Memory Stack + Safety Hardening
 
 ---
@@ -252,7 +252,7 @@ const memory = new Memory({
 
 #### feature_1_4_1: Mem0 Integration
 
-**Status**: ✅ Complete
+**Status**: 🟡 Blocked (Architecture Decision Required)
 
 | Task | Status | Notes |
 |------|--------|-------|
@@ -260,6 +260,7 @@ const memory = new Memory({
 | Configure Memory instance | ✅ Done | In-memory vector + SQLite history |
 | Add memory tools to MCP | ✅ Done | 5 tools: add, search, list, delete, clear_all |
 | User isolation (multi-tenant) | ✅ Done | userId param per memory operation |
+| **Architecture decision** | ⚠️ DECISION NEEDED | See issue_008 in ISSUES.md |
 
 **Memory Tools Implemented**:
 - `add_memory`: Store user preferences, goals, business context
@@ -268,12 +269,30 @@ const memory = new Memory({
 - `delete_memory`: Remove specific memory by ID
 - `clear_all_memories`: Reset all memories (with confirmation)
 
-**Configuration**:
+**Current Configuration** (may change based on decision):
 - Vector store: in-memory (no external DB needed)
 - History: SQLite at `/app/data/pip-memory.db`
 - Embeddings: OpenAI text-embedding-3-small
 - LLM: OpenAI gpt-4o-mini for memory extraction
 - Requires: `OPENAI_API_KEY` environment variable
+
+#### Architecture Research (2025-11-30) - COMPLETE
+
+Deep research into alternative memory architectures. Key findings:
+
+**Option A**: Keep mem0, switch to Claude LLM + Ollama embeddings
+- mem0 TypeScript SDK supports: Anthropic, Ollama, Groq, Google, Mistral
+- Embeddings: OpenAI, Ollama, Google (NOT Anthropic)
+- API cost: ~$0.001/request
+
+**Option B**: MCP-native (Memento-style architecture)
+- Calling LLM (Claude/ChatGPT) does fact extraction
+- MCP server just stores/retrieves structured data
+- Local embeddings via BGE-M3 (@xenova/transformers)
+- API cost: $0
+- ChatGPT memory: WORKS (bypasses Dev Mode limitation)
+
+**Research documented in**: Joplin "Pip Memory Architecture Deep Research (2025-11-30)"
 
 ---
 
@@ -368,6 +387,27 @@ The Thursday demo with dental practice owner has been completed. Demo materials 
 ---
 
 ## Progress Changelog
+
+### 2025-11-30 (EOD) - Memory Architecture Deep Research
+
+**Research Complete**:
+- Investigated alternative LLM/embedder providers for mem0
+- Discovered mem0 supports Claude (LLM) but NOT for embeddings
+- Researched MCP-native memory architecture (Memento-style)
+- Documented findings in Joplin + ISSUES.md
+
+**Key Finding**: MCP-native approach (Option B) would:
+- Eliminate ALL external API costs
+- Enable ChatGPT memory (bypasses Dev Mode limitation)
+- Align with "users bring their own LLM" philosophy
+
+**Decision Required**: issue_008 in ISSUES.md
+- Option A: Keep mem0 + Claude LLM + Ollama embeddings
+- Option B: Implement MCP-native (Memento-style) architecture
+
+**Blocked**: feature_1_4_2 (Memory Injection), feature_1_4_3 (ChatGPT Import), feature_1_4_4 (Memory UI)
+
+---
 
 ### 2025-11-30 - Mem0 Memory Architecture Decision
 

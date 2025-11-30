@@ -31,6 +31,45 @@
 
 ## Open Issues
 
+### Priority Decisions
+
+#### issue_008: Memory Architecture Decision
+- **Status**: ⚠️ Flagged (Decision Required)
+- **Priority**: P1 (HIGH - blocks memory stack completion)
+- **Component**: `packages/mcp-remote-server`
+- **Research Complete**: 2025-11-30
+- **Description**: Choose between two memory architectures for Pip
+- **Options**:
+
+| Option | Description | API Cost | ChatGPT Memory | Complexity |
+|--------|-------------|----------|----------------|------------|
+| **A** | Keep mem0 + Claude LLM + Ollama embeddings | ~$0.001/req | No (Dev Mode blocks) | Low (config change) |
+| **B** | MCP-native (Memento-style) | **$0** | **Yes** | Medium (new system) |
+
+- **Option A Details**:
+  - Modify current mem0 config to use Anthropic LLM + Ollama embeddings
+  - Pros: Quick change, keeps mem0's sophisticated extraction pipeline
+  - Cons: Still requires embedding API, ChatGPT memory still broken
+
+- **Option B Details** (Innovative):
+  - Let calling LLM (Claude.ai/ChatGPT) do fact extraction
+  - MCP server just stores/retrieves structured data
+  - Uses local embeddings (BGE-M3 via @xenova/transformers)
+  - Pros: $0 API cost, ChatGPT memory works, aligns with "bring your own LLM" philosophy
+  - Cons: Need to reimplement deduplication/conflict resolution
+  - Validated by: [Memento MCP Server](https://github.com/iachilles/memento)
+
+- **Decision Criteria**:
+  - [ ] Do we prioritize ChatGPT Plus users having working memory?
+  - [ ] Is $0 API cost worth the implementation effort?
+  - [ ] Does "users bring their own LLM" philosophy extend to memory extraction?
+
+- **Research Reference**:
+  - Joplin: "Pip Memory Architecture Deep Research (2025-11-30)"
+  - Web: [Memento](https://github.com/iachilles/memento), [MCP Architecture](https://modelcontextprotocol.io/docs/learn/architecture)
+
+---
+
 ### Improvements
 
 #### issue_003: Email Verification for Sign-Up

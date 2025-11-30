@@ -3,7 +3,7 @@
 > **Purpose**: Current work, active bugs, and recent changes (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-11-30 (EOD)
 **Current Phase**: Memory Stack + Safety Hardening
 **Version**: 0.2.0
 **Infrastructure**: DigitalOcean VPS (shared with do-vps-prod services)
@@ -67,8 +67,9 @@ Based on consolidated Joplin research, Pip adopts:
 | Configure Memory instance | ✅ Done | In-memory vector + SQLite history |
 | Add memory operations to MCP | ✅ Done | 5 tools in memory category |
 | Update system prompt | ✅ Done | Memory guidelines for Pip |
-| ChatGPT memory import | ⚪ Pending | Parse conversations.json |
-| Memory management UI | ⚪ Pending | PWA interface |
+| **Architecture decision** | ⚠️ DECISION NEEDED | See issue_008 below |
+| ChatGPT memory import | ⚪ Blocked | Waiting on architecture decision |
+| Memory management UI | ⚪ Blocked | Waiting on architecture decision |
 
 **Memory Tools Available**:
 - `add_memory`: Store preferences, goals, context
@@ -77,8 +78,26 @@ Based on consolidated Joplin research, Pip adopts:
 - `delete_memory`: Remove by ID
 - `clear_all_memories`: Reset all (with confirmation)
 
-**Requires**: `OPENAI_API_KEY` env var for embeddings
+**Current**: Requires `OPENAI_API_KEY` env var for embeddings
 **Guide Ready**: docs/CHATGPT-MEMORY-GUIDE.md (export instructions)
+
+#### ⚠️ PRIORITY DECISION: Memory Architecture (issue_008)
+
+**Deep research complete** (2025-11-30). Two viable paths identified:
+
+| Option | Description | API Cost | ChatGPT Memory Works? |
+|--------|-------------|----------|----------------------|
+| **A** | Keep mem0 + switch to Claude LLM + Ollama embeddings | ~$0.001/req | No (Dev Mode blocks) |
+| **B** | MCP-native (like Memento) - calling LLM does extraction | **$0** | **Yes** |
+
+**Option B innovation**: Let Claude.ai/ChatGPT do fact extraction, MCP server just stores. Validated by [Memento](https://github.com/iachilles/memento) architecture.
+
+**Key findings**:
+- mem0 CAN use Claude for LLM (but needs OpenAI/Ollama for embeddings)
+- MCP-native approach eliminates ALL external API dependencies
+- Aligns with "users bring their own LLM" philosophy
+
+**Research doc**: Joplin note "Pip Memory Architecture Deep Research (2025-11-30)"
 
 #### Safety Guardrails (Priority 2)
 | Task | Status | Notes |

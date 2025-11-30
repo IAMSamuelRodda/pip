@@ -58,37 +58,44 @@
 
 ### Bugs
 
-#### issue_010: Mem0 SQLite CANTOPEN in Docker
-- **Status**: 🟡 In Progress (Workaround applied)
-- **Priority**: P2 (Medium - memory works but without persistence)
+#### issue_010: Mem0 SQLite CANTOPEN in Docker (BLOCKING)
+- **Status**: 🔴 Blocked (Option A unusable - switching to Option B)
+- **Priority**: P1 (High - memory features completely broken)
 - **Component**: `packages/mcp-remote-server` (memory-mem0.ts)
 - **Discovered**: 2025-11-30
-- **Description**: Mem0's internal SQLite (for history storage) throws `SQLITE_CANTOPEN: unable to open database file` when running in Docker container, crashing the entire MCP server.
+- **Description**: Mem0's internal SQLite throws `SQLITE_CANTOPEN` regardless of configuration, crashing the MCP server.
 - **Error Details**:
   ```
-  [Memory] Mem0 initialized successfully
+  [Memory] Mem0 initialized successfully (no history persistence)
   <anonymous_script>:0
   [Error: SQLITE_CANTOPEN: unable to open database file
   Emitted 'error' event on Database instance at:
   ] { errno: 14, code: 'SQLITE_CANTOPEN' }
   ```
+- **Attempted Fixes (ALL FAILED)**:
+  1. ❌ Commenting out `historyDbPath` - still crashes
+  2. ❌ Setting `historyDbPath: ":memory:"` - still crashes
+  3. ❌ Pre-creating the .db file - still crashes
+  4. ❌ Verifying container can write files - permissions OK, still crashes
 - **Root Cause Analysis**:
-  - Mem0 uses its own SQLite library (not our better-sqlite3)
-  - The `<anonymous_script>:0` suggests lazy/async SQLite initialization
-  - Error occurs AFTER "initialized successfully" logs
-  - Directory permissions verified OK (container can create files)
-  - Pre-creating the .db file didn't help
-- **Workaround Applied**:
-  - Disabled `historyDbPath` in Mem0 config
-  - **What works**: Memories persist across new chats, browser sessions, devices (stored server-side in RAM)
-  - **What doesn't**: Memories lost on Docker container restart, VPS reboot, or redeploy
-  - Users won't notice during normal use - only operators restarting the server causes data loss
+  - Mem0 uses internal SQLite (not our better-sqlite3)
+  - Error occurs AFTER "initialized successfully" - lazy async init
+  - Mem0 appears to create/use SQLite internally regardless of config
+  - `<anonymous_script>:0` suggests eval'd code or bundled module
+  - **Conclusion**: This is a mem0ai library bug in Docker/Alpine environments
+- **Decision**: Abandon Option A (mem0), implement Option B (native memory)
+- **Option B Benefits**:
+  - Uses our own better-sqlite3 (already working in container)
+  - Full control over implementation
+  - $0 API cost (local embeddings via @xenova/transformers)
+  - Works with ChatGPT (no Dev Mode limitations)
 - **Acceptance Criteria**:
-  - [ ] Investigate mem0ai's SQLite library (sql.js? sqlite3?)
-  - [ ] Try alternative: use Mem0 Cloud API instead of local storage
-  - [ ] Alternative: switch to Option B (native memory with better-sqlite3)
-  - [ ] Long-term: open issue on mem0ai GitHub if library bug
-- **Notes**: May be related to Docker alpine image or Node.js 20 SQLite bindings.
+  - [x] Document issue thoroughly
+  - [ ] Implement Option B native memory with same interface as mem0
+  - [ ] Test native memory via Claude.ai
+  - [ ] Test native memory via ChatGPT
+  - [ ] Open issue on mem0ai GitHub for their awareness
+- **Notes**: Report to https://github.com/mem0ai/mem0/issues when time permits.
 
 ---
 

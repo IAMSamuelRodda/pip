@@ -700,3 +700,114 @@ export async function getMemoryNativeService(): Promise<MemoryNativeService> {
   }
   return memoryNativeInstance;
 }
+
+// ============================================================================
+// Mem0-Compatible Interface (for Option B compatibility)
+// ============================================================================
+
+/**
+ * Add a memory - compatible with mem0 interface
+ * Creates an entity named "user_preferences" and adds the content as an observation
+ */
+export async function addMemory(
+  userId: string,
+  content: string,
+  metadata?: Record<string, unknown>
+): Promise<{ id: string; memory: string }[]> {
+  const service = await getMemoryNativeService();
+
+  // Get or create a "user_preferences" entity for this user
+  let entity = await service.getEntity(userId, "user_preferences");
+  if (!entity) {
+    entity = await service.createEntity(userId, "user_preferences", "person");
+  }
+
+  // Add the memory as an observation
+  const importance = (metadata?.category === "critical" ? "critical" : "normal") as Importance;
+  const observation = await service.addObservation(entity.id, content, importance);
+
+  console.log(`[Memory Native] Added memory for user ${userId}: ${content.substring(0, 50)}...`);
+
+  return [{ id: observation.id, memory: observation.observation }];
+}
+
+/**
+ * Search memories - compatible with mem0 interface
+ */
+export async function searchMemory(
+  userId: string,
+  query: string,
+  limit: number = 5
+): Promise<{ id: string; memory: string; score?: number }[]> {
+  const service = await getMemoryNativeService();
+
+  const results = await service.searchMemory(userId, query, limit);
+
+  console.log(`[Memory Native] Found ${results.length} memories for user ${userId}`);
+
+  return results.map((r) => ({
+    id: r.observation.id,
+    memory: r.observation.observation,
+    score: r.score,
+  }));
+}
+
+/**
+ * Get all memories for a user - compatible with mem0 interface
+ */
+export async function getAllMemories(
+  userId: string
+): Promise<{ id: string; memory: string; createdAt?: string }[]> {
+  const service = await getMemoryNativeService();
+
+  // Get all entities for this user
+  const entity = await service.getEntity(userId, "user_preferences");
+  if (!entity) {
+    return [];
+  }
+
+  // Get entity with all observations
+  const entityWithObs = await service.getEntityById(entity.id);
+  if (!entityWithObs || !("observations" in entityWithObs)) {
+    return [];
+  }
+
+  const memories = (entityWithObs as EntityWithObservations).observations.map((obs) => ({
+    id: obs.id,
+    memory: obs.observation,
+    createdAt: new Date(obs.createdAt).toISOString(),
+  }));
+
+  console.log(`[Memory Native] Retrieved ${memories.length} memories for user ${userId}`);
+
+  return memories;
+}
+
+/**
+ * Delete a specific memory - compatible with mem0 interface
+ */
+export async function deleteMemory(userId: string, memoryId: string): Promise<boolean> {
+  const service = await getMemoryNativeService();
+
+  const result = await service.deleteObservation(memoryId);
+
+  console.log(`[Memory Native] Deleted memory ${memoryId} for user ${userId}: ${result}`);
+
+  return result;
+}
+
+/**
+ * Delete all memories for a user - compatible with mem0 interface
+ */
+export async function deleteAllMemories(userId: string): Promise<boolean> {
+  const service = await getMemoryNativeService();
+
+  try {
+    await service.clearUserMemory(userId);
+    console.log(`[Memory Native] Cleared all memories for user ${userId}`);
+    return true;
+  } catch (error) {
+    console.error(`[Memory Native] Failed to clear memories:`, error);
+    return false;
+  }
+}

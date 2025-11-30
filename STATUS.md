@@ -4,8 +4,8 @@
 > **Lifecycle**: Living (update daily/weekly during active development)
 
 **Last Updated**: 2025-12-01
-**Current Phase**: Milestone 2 Planning Complete
-**Version**: 0.3.3
+**Current Phase**: Milestone 2 Implementation Started
+**Version**: 0.3.4
 
 ---
 
@@ -21,7 +21,8 @@
 | **PWA Frontend** | 🟢 | Live at app.pip.arcforge.au |
 | **Landing Page** | 🟢 | Live at pip.arcforge.au |
 | **Xero Integration** | 🟢 | 10 READ-ONLY tools verified |
-| **Milestone 2** | 🔵 | Blueprint complete, ready to implement |
+| **Git Workflow** | 🟢 | Standard tier (main + dev, direct commits) |
+| **Milestone 2** | 🔵 | Implementation started, 2/3 spikes complete |
 
 **Legend**: 🟢 Good | 🟡 Attention | 🔴 Critical | 🔵 In Progress
 
@@ -33,24 +34,29 @@
 
 ### Just Completed (2025-12-01)
 
-1. **Milestone 2 Planning Session** ✅
-   - Full blueprint generated: `specs/BLUEPRINT-project-milestone2-ux-personality-20251201.yaml`
-   - 6 epics, 15 features, 44 tasks (all complexity ≤3.0 after decomposition)
-   - 3 spikes identified and documented
-   - Translated to PROGRESS.md + ISSUES.md
+1. **Git Workflow Cleanup** ✅
+   - Adopted Standard tier workflow (main + dev, direct commits to dev)
+   - Removed all feature/spike branches (work merged to dev)
+   - Removed stale worktrees (3 removed)
+   - Removed `enforce-dev-pr-source.yml` (not needed for Standard tier)
+   - Kept `enforce-main-pr-source.yml` (main only accepts PRs from dev)
 
-2. **Blueprint Highlights**:
-   - Epic 2.1: Memory Architecture Refactor (align with Anthropic's approach)
-   - Epic 2.2: Chat History (vertical tabs sidebar)
-   - Epic 2.3: Projects Feature (isolated context, multi-Xero org)
-   - Epic 2.4: Per-Chat Document Upload (+ icon)
-   - Epic 2.5: Pip's Voice & Personality (Adelaide / Pippin) **CRITICAL**
-   - Epic 2.6: Testing & Documentation
+2. **Epic 2.1: Memory Architecture Refactor** ✅
+   - Aligned with Anthropic MCP Memory Server patterns (~350 lines)
+   - Removed mem0 and unused dependencies
+   - Simplified memory service implementation
 
-3. **Spikes Required Before Implementation**:
-   - spike_m2_001: Cross-Project Reference Research (2 days)
-   - spike_m2_002: React.js Refactor Assessment (2 days)
-   - spike_m2_003: Character Voice Methodology Research (3 days)
+3. **Spikes Completed**:
+   - ✅ spike_m2_002: React.js Refactor Assessment - **Decision: Keep React**
+     - ChatGPT uses React + Next.js, Claude uses React + Ink
+     - No framework migration needed (3-5 week cost not justified)
+     - File upload recommendation: react-dropzone
+   - ✅ spike_m2_003: Character Voice Methodology Research
+     - Adelaide and Pippin personality profiles created
+     - Voice switching infrastructure designed
+
+4. **Spikes Remaining**:
+   - 🔴 spike_m2_001: Cross-Project Reference Research (2 days)
 
 ### Recommended Sequence
 
@@ -111,6 +117,16 @@
 
 ## Recent Achievements (Last 2 Weeks)
 
+### 2025-12-01
+- **Git Workflow Cleanup**: Adopted Standard tier (main + dev only)
+  - Merged all feature/spike branch work to dev
+  - Removed 5 stale branches, 3 worktrees
+  - Removed enforce-dev-pr-source.yml workflow
+- **Epic 2.1 Complete**: Memory architecture aligned with Anthropic patterns
+- **Spike M2-002 Complete**: React assessment - keep current stack
+- **Spike M2-003 Complete**: Character voice methodology + profiles
+- **Documentation Updated**: CLAUDE.md, CONTRIBUTING.md, DEVELOPMENT.md aligned
+
 ### 2025-11-30 (Evening Session)
 - Landing page deployed at pip.arcforge.au
 - OAuth debounce fix for double-submit prevention
@@ -120,7 +136,6 @@
 - **Claude.ai Xero tools verified working**
 
 ### 2025-11-30 (Morning)
-- Branch cleanup: consolidated 3 feature branches into main
 - Memory A/B architecture implemented (mem0 + native options)
 - VPS Ollama installed and configured
 - Fixed mem0ai TypeScript error (`url` vs `ollamaBaseUrl`)
@@ -156,9 +171,11 @@
 
 ## Next Steps
 
-1. **Onboard beta users** - Share with trusted users for feedback
-2. **Monitor production** - Watch for errors, memory usage
-3. **Full planning session** - Interactive Q&A with agent, new blueprint, refresh PROGRESS.md
+1. **Complete spike_m2_001** - Cross-project reference research (unblocks Epic 2.3)
+2. **Implement Epic 2.2** - Chat History (high user value, no blockers)
+3. **Implement Epic 2.5** - Voice profiles (Adelaide/Pippin) - spike complete
+4. **Onboard beta users** - Share with trusted users for feedback
+5. **Deploy memory refactor to production** - Test on VPS
 
 ---
 

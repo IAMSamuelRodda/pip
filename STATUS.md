@@ -4,8 +4,8 @@
 > **Lifecycle**: Living (update daily/weekly during active development)
 
 **Last Updated**: 2025-11-30
-**Current Phase**: Memory Stack + Safety Hardening
-**Version**: 0.2.0
+**Current Phase**: Memory A/B Testing Setup
+**Version**: 0.3.0
 
 ---
 
@@ -15,11 +15,12 @@
 |--------|--------|-------|
 | **MCP Server** | 🟢 | Live at mcp.pip.arcforge.au |
 | **Claude.ai** | 🟢 | Fully validated |
-| **ChatGPT** | 🟡 | Working, memory disabled for Plus |
-| **Memory Stack** | 🟡 | Core tools done, architecture decision pending |
-| **Safety Guardrails** | 🟢 | Complete (all tasks done) |
+| **ChatGPT** | 🟡 | Working, memory tools need testing |
+| **Memory Stack** | 🔵 | A/B architecture implemented, needs deployment |
+| **Safety Guardrails** | 🟢 | Complete (tiered permissions) |
 | **PWA Frontend** | 🟢 | Live at app.pip.arcforge.au |
 | **Xero Integration** | 🟢 | 10 READ-ONLY tools |
+| **VPS Ollama** | 🟢 | Installed, nomic-embed-text ready |
 
 **Legend**: 🟢 Good | 🟡 Attention | 🔴 Critical | 🔵 In Progress
 
@@ -27,25 +28,114 @@
 
 ## Current Focus
 
-**Objective**: Implement Mem0 memory layer, then harden for write operations.
+**Objective**: Deploy and test memory A/B architecture.
 
-### This Week
+### Just Completed (2025-11-30)
 
-1. **Memory Architecture Decision** (issue_008) - BLOCKING
-   - Option A: Keep mem0 + Claude LLM + Ollama embeddings (~$0.001/req)
-   - Option B: MCP-native Memento-style ($0, ChatGPT memory works)
-   - See ISSUES.md for decision criteria
+1. **Branch Cleanup** ✅
+   - Consolidated all feature branches into main
+   - Deleted: `feature/safety-guardrails`, `feature/memory-mem0-ollama`, `feature/memory-mcp-native`
+   - All code now in single `main` branch
 
-2. **Safety Guardrails** - ✅ COMPLETE (core implementation)
-   - Tiered permission model implemented
-   - Database tables: `user_settings`, `operation_snapshots`
-   - Permission checks enforced at tool execution
-   - Dynamic tool visibility based on permission level
-   - Settings UI pending for future phase
+2. **Memory A/B Architecture** ✅
+   - Option A: `memory-mem0.ts` (mem0 + Claude LLM + Ollama embeddings)
+   - Option B: `memory-native.ts` (MCP-native + local @xenova/transformers)
+   - Router: `memory.ts` (selects via `MEMORY_VARIANT` env var)
 
-### Blocked Items
+3. **VPS Ollama Setup** ✅
+   - Ollama installed as systemd service
+   - `nomic-embed-text` model pulled (274MB, 768 dimensions)
+   - Configured to listen on 0.0.0.0 for Docker access
 
-- Memory injection, ChatGPT import, Memory UI → waiting on architecture decision
+### Pending Deployment
+
+- Rebuild pip-mcp container with memory tools
+- Test memory tools via Claude.ai
+- Test memory tools via ChatGPT Dev Mode
+
+---
+
+## Test Plan
+
+### Pre-Deployment Verification
+
+```bash
+# SSH to VPS
+ssh root@170.64.169.203
+
+# 1. Verify Ollama is running
+systemctl status ollama
+curl http://localhost:11434/api/tags
+# Expected: {"models":[{"name":"nomic-embed-text:latest"...}]}
+
+# 2. Test embedding generation
+curl http://localhost:11434/api/embeddings -d '{"model":"nomic-embed-text","prompt":"test"}'
+# Expected: {"embedding":[...768 floats...]}
+```
+
+### Deployment Steps
+
+```bash
+# On VPS
+cd /opt/pip && git pull origin main && source .env
+
+# Rebuild container
+docker build -t pip-mcp:latest -f packages/mcp-remote-server/Dockerfile .
+
+# Restart with memory config
+docker stop pip-mcp && docker rm pip-mcp
+docker run -d --name pip-mcp --restart unless-stopped \
+  --network droplet_frontend \
+  --add-host=host.docker.internal:host-gateway \
+  -v zero-agent-data:/app/data \
+  -e NODE_ENV=production \
+  -e MCP_PORT=3001 \
+  -e DATABASE_PATH=/app/data/zero-agent.db \
+  -e XERO_CLIENT_ID=$XERO_CLIENT_ID \
+  -e XERO_CLIENT_SECRET=$XERO_CLIENT_SECRET \
+  -e JWT_SECRET=$JWT_SECRET \
+  -e BASE_URL=https://mcp.pip.arcforge.au \
+  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
+  -e OLLAMA_BASE_URL=http://host.docker.internal:11434 \
+  -e MEMORY_VARIANT=mem0 \
+  pip-mcp:latest
+
+# Verify health
+curl https://mcp.pip.arcforge.au/health
+```
+
+### Post-Deployment Tests
+
+| Test | Command/Action | Expected Result |
+|------|----------------|-----------------|
+| **Health check** | `curl https://mcp.pip.arcforge.au/health` | `{"status":"ok"}` |
+| **Container logs** | `docker logs pip-mcp --tail 20` | No errors, memory init logs |
+| **Ollama from container** | `docker exec pip-mcp wget -qO- http://host.docker.internal:11434/api/tags` | Model list JSON |
+
+### Memory Tool Tests (Claude.ai)
+
+1. **Connect to MCP**: Settings → Connectors → mcp.pip.arcforge.au
+2. **Refresh connection** to get new tools
+3. **Verify tools visible**: Should see `memory` category in `get_tools_in_category`
+
+| Test | Prompt | Expected |
+|------|--------|----------|
+| **Add memory** | "Use add_memory to remember I prefer invoices on Mondays" | Confirmation, logs show `[Memory] Added 1 memories` |
+| **Search memory** | "Use search_memory to find my invoice preferences" | Returns the Monday preference |
+| **List memories** | "Use list_memories to show everything you know about me" | Shows all stored memories |
+| **Delete memory** | "Use delete_memory to remove [memory_id]" | Confirmation of deletion |
+
+### Memory Tool Tests (ChatGPT Dev Mode)
+
+1. **Disconnect and reconnect** the Pip connector
+2. **Explicitly request tool usage**: "Use the add_memory tool to..."
+3. **Check if tools appear** in connector settings
+
+| Test | Expected (Option A) | Expected (Option B) |
+|------|---------------------|---------------------|
+| Tool visibility | May be limited | Full visibility |
+| Memory add | May timeout | Should work |
+| Memory search | May timeout | Should work |
 
 ---
 
@@ -54,42 +144,39 @@
 | Service | URL | Health |
 |---------|-----|--------|
 | PWA | https://app.pip.arcforge.au | 🟢 |
-| MCP Server | https://mcp.pip.arcforge.au | 🟢 |
+| MCP Server | https://mcp.pip.arcforge.au | 🟢 (needs redeploy for memory) |
 | Landing Page | https://pip.arcforge.au | ⚪ Pending |
 
 **VPS**: DigitalOcean Sydney (170.64.169.203)
 **Containers**: pip-app (384MB), pip-mcp (256MB)
+**Ollama**: Running as systemd service (~550MB with model loaded)
 
 ---
 
 ## Known Issues
 
-See **ISSUES.md** for full details.
-
-| ID | Priority | Summary |
-|----|----------|---------|
-| issue_008 | P1 | Memory architecture decision (BLOCKING) |
-| issue_004 | P2 | Safety guardrails - settings UI pending |
-| issue_005 | P1 | ChatGPT memory disabled in Dev Mode |
-| issue_000 | P1 | Business context layer completion |
-
-**Counts**: 0 Critical | 1 High (blocking) | 3 Medium | 3 Low
+| ID | Priority | Summary | Status |
+|----|----------|---------|--------|
+| issue_008 | P1 | Memory architecture decision | ✅ Resolved (A/B implemented) |
+| issue_005 | P2 | ChatGPT memory in Dev Mode | Testing needed |
+| issue_004 | P3 | Safety guardrails - settings UI | Deferred |
 
 ---
 
 ## Recent Achievements (Last 2 Weeks)
 
 ### 2025-11-30
-- Mem0 memory tools implemented (5 tools: add, search, list, delete, clear_all)
-- spike_mem0 COMPLETE - discovered official `mem0ai` npm package
-- Memory architecture research complete (Options A vs B documented)
+- Branch cleanup: consolidated 3 feature branches into main
+- Memory A/B architecture implemented (mem0 + native options)
+- VPS Ollama installed and configured
+- Fixed mem0ai TypeScript error (`url` vs `ollamaBaseUrl`)
+- Memory router created for variant selection
 
 ### 2025-11-29
-- Safety architecture designed (`specs/SAFETY-ARCHITECTURE.md`)
-- ChatGPT integration validated (zero code changes needed)
+- Safety architecture implemented (tiered permissions)
+- ChatGPT integration validated
 - Xero tools audit complete (10 tools hardened)
 - Full rebrand: zero-agent → pip
-- OAuth security hardening + sign-up flow
 
 ### 2025-11-28
 - User authentication with invite codes
@@ -100,19 +187,22 @@ See **ISSUES.md** for full details.
 
 ## Next Steps
 
-1. **Decide memory architecture** (issue_008) - this week
-2. **Complete memory stack** based on decision
-3. **Implement safety guardrails** before any write ops
-4. **Create landing page** (pip.arcforge.au)
+1. **Deploy memory-enabled container** to VPS
+2. **Run test plan** above
+3. **If Option A fails with ChatGPT**: Test Option B (`MEMORY_VARIANT=native`)
+4. **Document results** for A/B comparison
 
 ---
 
 ## References
 
-- `PROGRESS.md` - Detailed task tracking (milestones, epics, features)
+- `PROGRESS.md` - Detailed task tracking
 - `ISSUES.md` - Bug and improvement tracking
 - `ARCHITECTURE.md` - System design and ADRs
 - `CHANGELOG.md` - Release history
+- `specs/BLUEPRINT-feature-memory-ab-testing-20251130.yaml` - A/B test spec
+- `specs/PLAN-memory-mem0-ollama.md` - Option A details
+- `specs/PLAN-memory-mcp-native.md` - Option B details
 
 ---
 

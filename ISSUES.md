@@ -4,7 +4,7 @@
 > **Lifecycle**: Living (add when issues arise, remove when resolved)
 > **Resolved Issues**: Move to `CHANGELOG.md` under the appropriate version's "Fixed" section
 
-**Last Updated**: 2025-12-01 (Milestone 2 Planning)
+**Last Updated**: 2025-12-01 (Epic 2.1 + 2.2 deployed)
 
 ---
 
@@ -258,8 +258,9 @@
 *Blueprint: `specs/BLUEPRINT-project-milestone2-ux-personality-20251201.yaml`*
 
 #### issue_011: Memory Architecture Refactor (Epic 2.1)
-- **Status**: 🟡 Partially Complete (analysis done, patterns documented)
-- **Priority**: P1 (High - foundation for all M2 features)
+- **Status**: 🟢 Resolved
+- **Priority**: - (Complete)
+- **Resolved**: 2025-12-01
 - **Component**: `packages/mcp-remote-server` (memory.ts, memory-tools.ts)
 - **Blueprint**: feature_2_1_1 through feature_2_1_5
 - **UX Reference**: `specs/spike-outputs/UX-PATTERNS-CLAUDE-AI-REFERENCE-20251201.md` (Pattern 0.7)
@@ -279,30 +280,31 @@
   - [x] Review Anthropic MCP Memory Server reference implementation
   - [x] Audit current memory-native.ts (renamed to memory.ts)
   - [x] Document Claude.ai Pattern 0.7 (single memory with tracked edits)
-  - [ ] Add `is_user_edit` column to observations
-  - [ ] Create `memory_summaries` table
-  - [ ] Implement Memory Management API
-  - [ ] Build Memory Management UI
-  - [ ] Integration testing on Claude.ai + ChatGPT
+  - [x] Add `is_user_edit` column to observations
+  - [x] Create `memory_summaries` table
+  - [x] Implement Memory Management API
+  - [x] Build Memory Management UI
+  - [x] Integration testing on Claude.ai + ChatGPT
 - **Complexity**: 2.0-2.8/5 (Medium)
-- **Notes**: Architecture validated. Implementation focuses on Claude.ai patterns. See Epic 2.1 in PROGRESS.md for detailed tasks.
+- **Resolution**: All features deployed. Memory Management UI accessible via Settings → Manage memory. See commits `8394d02`, `2566a3d`.
 
 #### issue_012: Chat History (Epic 2.2)
-- **Status**: 🔴 Open
-- **Priority**: P1 (High - expected feature)
-- **Component**: `packages/mcp-remote-server`, `packages/pwa-app`
+- **Status**: 🟢 Resolved
+- **Priority**: - (Complete)
+- **Resolved**: 2025-12-01
+- **Component**: `packages/server`, `packages/pwa-app`, `packages/core`
 - **Blueprint**: feature_2_2_1, feature_2_2_2
 - **Description**: Persistent conversation history with vertical tabs sidebar (standard UX pattern like Claude.ai)
 - **Acceptance Criteria**:
-  - [ ] Extend sessions table (title, preview_text, last_message_at)
-  - [ ] Chat title auto-generation from LLM
-  - [ ] API endpoints: GET /api/chats, GET/:id, DELETE/:id
-  - [ ] Collapsible left sidebar component (responsive)
-  - [ ] Chat list with metadata (title, preview, timestamp)
-  - [ ] New chat (+) and delete actions
-  - [ ] Chat switching with state persistence
+  - [x] Extend sessions table (title, preview_text columns)
+  - [x] Chat title auto-generation from first user message (~50 chars)
+  - [x] API endpoints: GET /api/sessions, GET/:id, PATCH/:id, DELETE/:id
+  - [x] Collapsible left sidebar component (ChatSidebar.tsx)
+  - [x] Chat list with metadata (title, preview, relative timestamp)
+  - [x] New chat (+) and delete actions
+  - [x] Chat switching with state persistence (Zustand store)
 - **Complexity**: 2.5-3.0/5 (Medium-High)
-- **Notes**: Standard feature users expect. Familiar UI pattern.
+- **Resolution**: Deployed with collapsible sidebar following Claude.ai Pattern 0. See commit `9699c96`.
 
 #### issue_013: Projects Feature (Epic 2.3)
 - **Status**: 🔴 Open
@@ -553,6 +555,39 @@ Research/investigation tasks that must complete before dependent implementation 
 ---
 
 ## Technical Debt
+
+#### debt_004: ESLint v9 Flat Config Migration
+- **Status**: 🔴 Open
+- **Priority**: P3 (Low - lint works locally with IDE plugins)
+- **Component**: All packages
+- **Description**: ESLint upgraded to v9 which requires flat config (`eslint.config.js`) instead of `.eslintrc.*`
+- **Current State**: `pnpm lint` fails across all packages with "ESLint couldn't find an eslint.config.(js|mjs|cjs) file"
+- **Acceptance Criteria**:
+  - [ ] Migrate each package to eslint.config.js format
+  - [ ] Verify `pnpm lint` passes across monorepo
+- **Reference**: https://eslint.org/docs/latest/use/configure/migration-guide
+- **Notes**: TypeScript compilation (`pnpm build`) provides primary type safety. Lint is secondary quality gate.
+
+#### debt_003: Legacy "zero-agent" Naming Convention
+- **Status**: 🔴 Open
+- **Priority**: P3 (Low - cosmetic cleanup)
+- **Component**: Multiple (Docker, database, documentation)
+- **Description**: Project was rebranded from "Zero Agent" to "Pip" but legacy naming persists in 20+ files
+- **Files Affected**:
+  - `Dockerfile` - container references, data paths
+  - `docker-compose.yml` - service names, volumes, networks
+  - `.env.example` - environment variables
+  - `packages/mcp-remote-server/Dockerfile` - container references
+  - Database path: `/app/data/zero-agent.db` → should be `/app/data/pip.db`
+  - Various documentation files
+- **Acceptance Criteria**:
+  - [ ] Rename Docker container from `zero-agent` to `pip-server`
+  - [ ] Update database path to `pip.db` (requires data migration)
+  - [ ] Update docker-compose service names
+  - [ ] Update volume names (zero-agent-data → pip-data)
+  - [ ] Update network names (zero-agent-network → pip-network)
+  - [ ] Search and replace in all documentation
+- **Notes**: Low priority - system works fine. Schedule for next cleanup sprint. Database rename requires data migration strategy.
 
 #### debt_001: No Formal Test Coverage
 - **Status**: 🔴 Open

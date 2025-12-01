@@ -121,6 +121,38 @@
   - [ ] Consistent theming across all pages (PWA, MCP login, landing)
 - **Notes**: Low priority - current dark theme is consistent with brand. Implement when user feedback requests it.
 
+#### issue_022: Enhanced "Thinking" Indicator (Claude Code Pattern)
+- **Status**: 🔴 Open
+- **Priority**: P2 (Medium - UX engagement)
+- **Component**: `packages/pwa-app`, `packages/server`
+- **Description**: Current "Checking your data... (Xs)" is too generic. Users want visibility into what Pip is actually doing.
+- **Reference**: Claude Code shows dynamic status updates:
+  - Tool being called: "Bash(git status && git diff)"
+  - Action description: "Updating STATUS.md..."
+  - Thinking indicator: "Thinking..." with duration
+  - Progress steps: Shows sequence of operations
+- **Current State**:
+  - Static "Checking your data..." message
+  - Only shows elapsed time
+  - No visibility into tools being called
+- **Target State**:
+  - Show tool name when Xero API is called (e.g., "Fetching invoices...")
+  - Show operation context (e.g., "Analyzing P&L report...")
+  - Stream status updates from backend
+  - Consider: SSE for real-time status updates
+- **Implementation Options**:
+  - Option A: Server-sent events (SSE) for streaming status
+  - Option B: Polling endpoint for status updates
+  - Option C: WebSocket connection for bidirectional updates
+- **Acceptance Criteria**:
+  - [ ] Design status message schema (tool, action, duration)
+  - [ ] Backend emits status events during processing
+  - [ ] Frontend displays dynamic status messages
+  - [ ] Shows specific tool/operation being performed
+  - [ ] Elapsed time per operation (not just total)
+- **Complexity**: 2.5-3.0/5 (Medium - requires streaming infrastructure)
+- **Notes**: Makes the tool feel more responsive and trustworthy. Users see Pip is "working" not "stuck".
+
 #### issue_021: Verify Response Styles in Chat
 - **Status**: 🔴 Open
 - **Priority**: P2 (Medium - feature validation)

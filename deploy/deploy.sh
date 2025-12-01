@@ -36,10 +36,10 @@ echo "▶️  Starting pip-app..."
 docker run -d --name pip-app \
   --restart unless-stopped \
   --network droplet_frontend \
-  -v zero-agent-data:/app/data \
+  -v pip-data:/app/data \
   -e NODE_ENV=production \
   -e PORT=3000 \
-  -e DATABASE_PATH=/app/data/zero-agent.db \
+  -e DATABASE_PATH=/app/data/pip.db \
   -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
   -e XERO_CLIENT_ID="$XERO_CLIENT_ID" \
   -e XERO_CLIENT_SECRET="$XERO_CLIENT_SECRET" \
@@ -53,10 +53,10 @@ echo "▶️  Starting pip-mcp..."
 docker run -d --name pip-mcp \
   --restart unless-stopped \
   --network droplet_frontend \
-  -v zero-agent-data:/app/data \
+  -v pip-data:/app/data \
   -e NODE_ENV=production \
   -e MCP_PORT=3001 \
-  -e DATABASE_PATH=/app/data/zero-agent.db \
+  -e DATABASE_PATH=/app/data/pip.db \
   -e XERO_CLIENT_ID="$XERO_CLIENT_ID" \
   -e XERO_CLIENT_SECRET="$XERO_CLIENT_SECRET" \
   -e JWT_SECRET="$JWT_SECRET" \

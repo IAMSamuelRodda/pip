@@ -46,7 +46,7 @@ See `ARCHITECTURE.md` for complete details.
 2. **OAuth tokens in SQLite** - stored in `oauth_tokens` table
 3. **Xero OAuth**: 30-min access token expiry, 60-day refresh token validity, requires `offline_access` scope
 4. **HTTPS mandatory** - enforced by Caddy auto-HTTPS
-5. **SQLite database** - at `/app/data/pip.db` in Docker
+5. **SQLite database** - at `/app/data/pip.db` in Docker (volume: `pip-data`)
 
 ---
 

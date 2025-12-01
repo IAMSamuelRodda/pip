@@ -52,19 +52,16 @@ See `CONTRIBUTING.md` for workflow tier definitions
 Before every commit:
 
 ```bash
-# 1. Lint
-pnpm lint
-
-# 2. Run tests
-pnpm test
-
-# 3. Build to verify compilation
+# 1. Build to verify TypeScript compilation (primary quality gate)
 pnpm build
 
-# 4. Review changes
+# 2. Review changes
 git diff --staged
 
-# 5. Verify commit message includes issue reference (if applicable)
+# 3. Verify commit message includes issue reference (if applicable)
+
+# Note: pnpm lint currently fails - see debt_004 (ESLint v9 migration)
+# Note: pnpm test has no tests yet - see debt_001 in ISSUES.md
 ```
 
 ---
@@ -77,8 +74,31 @@ Simple tier uses manual VPS deployment (no automated CI/CD pipelines yet).
 
 ```bash
 # Deploy to production VPS
-ssh root@170.64.169.203 "cd /opt/pip && git pull && docker compose up -d --build"
+ssh root@170.64.169.203
+
+# On VPS:
+cd /opt/pip && git pull
+
+# Rebuild and restart containers
+docker build -t pip-app:latest .
+docker stop pip-app && docker rm pip-app
+docker run -d --name pip-app --restart unless-stopped \
+  --network droplet_frontend -v zero-agent-data:/app/data \
+  -e NODE_ENV=production -e PORT=3000 \
+  -e DATABASE_PATH=/app/data/zero-agent.db \
+  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
+  -e XERO_CLIENT_ID=$XERO_CLIENT_ID \
+  -e XERO_CLIENT_SECRET=$XERO_CLIENT_SECRET \
+  -e BASE_URL=https://app.pip.arcforge.au \
+  pip-app:latest
+
+# For MCP server (if changed):
+docker build -t pip-mcp:latest -f packages/mcp-remote-server/Dockerfile .
+docker stop pip-mcp && docker rm pip-mcp
+docker run -d --name pip-mcp ... pip-mcp:latest
 ```
+
+**Note**: See CLAUDE.md for full deployment commands with all env vars.
 
 ### Future: Automated Workflows
 

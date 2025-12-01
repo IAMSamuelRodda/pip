@@ -3,7 +3,7 @@
 > **Purpose**: Technical reference for system design, database schema, and architectural decisions
 > **Lifecycle**: Living (update as architecture evolves)
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-12-01
 
 ---
 
@@ -112,12 +112,14 @@ The database uses SQLite for simplicity and zero operational cost. Schema define
 
 ### Tables
 
-**sessions**
+**sessions** (Extended for Chat History - Epic 2.2)
 ```sql
 CREATE TABLE sessions (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
   messages TEXT NOT NULL,  -- JSON array of messages
+  title TEXT,              -- Auto-generated from first user message
+  preview_text TEXT,       -- Last message preview for sidebar
   created_at INTEGER NOT NULL,
   updated_at INTEGER NOT NULL,
   expires_at INTEGER
@@ -153,7 +155,76 @@ CREATE TABLE oauth_tokens (
 );
 ```
 
-**extended_memory** (future)
+**memory_entities** (Knowledge Graph - Epic 2.1)
+```sql
+CREATE TABLE memory_entities (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  project_id TEXT,           -- NULL for global memory
+  name TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL,
+  UNIQUE(user_id, project_id, name)
+);
+```
+
+**memory_observations** (Knowledge Graph - Epic 2.1)
+```sql
+CREATE TABLE memory_observations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  entity_id INTEGER NOT NULL REFERENCES memory_entities(id),
+  content TEXT NOT NULL,
+  is_user_edit INTEGER DEFAULT 0,  -- 1 = explicit user edit (Claude.ai Pattern 0.7)
+  created_at INTEGER NOT NULL,
+  UNIQUE(entity_id, content)
+);
+```
+
+**memory_relations** (Knowledge Graph - Epic 2.1)
+```sql
+CREATE TABLE memory_relations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  project_id TEXT,
+  from_entity TEXT NOT NULL,
+  to_entity TEXT NOT NULL,
+  relation_type TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  UNIQUE(user_id, project_id, from_entity, to_entity, relation_type)
+);
+```
+
+**memory_summaries** (Cached LLM summaries - Epic 2.1)
+```sql
+CREATE TABLE memory_summaries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id TEXT NOT NULL,
+  project_id TEXT,
+  summary TEXT NOT NULL,
+  entity_count INTEGER NOT NULL,
+  observation_count INTEGER NOT NULL,
+  generated_at INTEGER NOT NULL,
+  UNIQUE(user_id, project_id)
+);
+```
+
+**user_settings** (Safety & Personality)
+```sql
+CREATE TABLE user_settings (
+  user_id TEXT PRIMARY KEY,
+  permission_level INTEGER DEFAULT 0,  -- 0=read, 1=create, 2=update, 3=delete
+  require_confirmation INTEGER DEFAULT 1,
+  daily_email_summary INTEGER DEFAULT 0,
+  require_2fa INTEGER DEFAULT 0,
+  vacation_mode_until INTEGER,
+  personality TEXT DEFAULT 'adelaide',  -- 'adelaide' or 'pippin'
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+```
+
+**extended_memory** (future - semantic search)
 ```sql
 CREATE TABLE extended_memory (
   id TEXT PRIMARY KEY,
@@ -432,71 +503,72 @@ Provider-agnostic interface in `packages/core/src/llm/`:
 
 ---
 
-### ADR-007: Memory Persistence and Relationship Building
+### ADR-007: Memory Architecture (Revised 2025-12-01)
 **Date**: 2025-11-12
-**Status**: Accepted
+**Status**: Accepted (Revised)
+**Revised**: 2025-12-01 - Removed relationship progression, adopted knowledge graph
 
-**Context**: Agent should build long-term relationships with users, learning preferences, patterns, and context over time. Inspired by star-atlas-agent's progression model (colleague → partner → friend). Need to balance data retention with subscription models.
+**Context**: Agent should remember user preferences, business context, and key details across sessions. Original design included "relationship progression" (colleague → partner → friend) but this was deemed overcomplicated for a bookkeeping tool.
 
-**Decision**: Implement tiered memory persistence system:
-1. **Core Memory** (permanent, free tier): User preferences, critical business context, relationship milestones
-2. **Extended Memory** (paid tier): Detailed conversation history, deep learning patterns, advanced personalization
-3. **Graceful Degradation**: Users who stop paying retain core memory but lose extended features
+**Decision**: Implement knowledge graph memory with user edit tracking (Claude.ai Pattern 0.7):
+1. **Knowledge Graph**: Entities, observations, and relations stored in SQLite
+2. **User Edits**: Explicit edits tracked separately (`is_user_edit` flag)
+3. **Summaries**: LLM-generated summaries cached for quick retrieval
+4. **Management UI**: Users can view/edit memory via Settings → Manage memory
 
 **Storage Strategy:**
-- **Core Memory**: DynamoDB with indefinite retention (user-owned data)
-- **Extended Memory**: S3 + DynamoDB with lifecycle policies
-- **Vector Embeddings**: Store conversation embeddings for semantic search (Amazon OpenSearch or Pinecone)
+- **Memory Graph**: SQLite tables (memory_entities, memory_observations, memory_relations)
+- **User Edits**: Tracked via `is_user_edit` column for "Manage edits" view
+- **Summaries**: Cached in `memory_summaries` table, regenerated when stale
+- **Text Search**: Simple LIKE queries (semantic search deferred for Alpine compatibility)
 
 **Memory Types:**
 ```typescript
-// Core Memory (always retained)
+// Entity (person, business, concept)
 {
-  PK: "USER#<uid>",
-  SK: "MEMORY#CORE",
-  preferences: {
-    xeroOrg: string,
-    reportingPreferences: object,
-    communicationStyle: string,
-    timezone: string
-  },
-  relationshipStage: "colleague" | "partner" | "friend",
-  keyMilestones: Milestone[],
-  criticalContext: string[]
+  id: number,
+  userId: string,
+  projectId: string | null,  // NULL = global
+  name: string,
+  entityType: string,
+  createdAt: number,
+  updatedAt: number
 }
 
-// Extended Memory (subscription tier)
+// Observation (fact about an entity)
 {
-  PK: "USER#<uid>",
-  SK: "MEMORY#CONVERSATION#<timestamp>",
-  conversationSummary: string,
-  embedding: number[],          // For semantic search
-  learnedPatterns: object,
-  emotionalContext: string,
-  ttl: number                   // Expires if subscription lapses
+  id: number,
+  entityId: number,
+  content: string,
+  isUserEdit: boolean,  // Claude.ai Pattern 0.7
+  createdAt: number
+}
+
+// Relation (connection between entities)
+{
+  fromEntity: string,
+  toEntity: string,
+  relationType: string
 }
 ```
 
-**Relationship Progression:**
-- **Colleague** (0-3 months): Professional, task-focused, learning phase
-- **Partner** (3-12 months): Proactive suggestions, understands workflows, anticipates needs
-- **Friend** (12+ months): Deep context, personal touches, trusted advisor
+**Design Decisions (2025-12-01):**
+- ❌ **Removed**: Relationship progression (colleague → partner → friend) - overcomplicated
+- ✅ **Adopted**: Anthropic MCP Memory Server pattern (~350 lines, simple)
+- ✅ **Added**: User edit tracking for Claude.ai-style memory management
+- ✅ **Added**: Memory Management UI in PWA Settings
 
 **Consequences:**
-- ✅ Users retain essential data even without subscription
-- ✅ Creates incentive for paid tier (richer memory)
-- ✅ Builds genuine long-term value
-- ✅ Enables semantic search across conversation history
-- ❌ Complex data lifecycle management
-- ❌ Privacy concerns with long-term data retention
-- ❌ Requires vector database for embeddings
+- ✅ Simple, maintainable memory architecture
+- ✅ Users can view and manage what Pip remembers
+- ✅ Works across Claude.ai, ChatGPT, and PWA
+- ✅ Text-based search works in Alpine Docker
+- ❌ No semantic search (deferred - requires Debian image)
+- ❌ No vector embeddings (deferred)
 
-**Alternatives Considered:**
-- All-or-nothing retention (rejected: poor UX for lapsed users)
-- No memory persistence (rejected: missed opportunity for differentiation)
-- Client-side only storage (rejected: limits cross-device experience)
-
-**Future Spike Required**: Define exact retention policies, GDPR compliance, user data export mechanisms.
+**References:**
+- Claude.ai Pattern 0.7: `specs/spike-outputs/UX-PATTERNS-CLAUDE-AI-REFERENCE-20251201.md`
+- Anthropic MCP Memory Server: ~350 lines, no progression model
 
 ---
 
@@ -603,9 +675,30 @@ Health check verification
 ```
 
 ### API Endpoints
+
+**Core**
 - `GET /health` - Health check
 - `POST /api/chat` - Chat with agent
-- `GET /api/sessions` - List sessions
+
+**Sessions (Chat History - Epic 2.2)**
+- `GET /api/sessions` - List sessions with title/preview
+- `GET /api/sessions/:id` - Get session with messages
+- `PATCH /api/sessions/:id` - Rename session (title)
+- `DELETE /api/sessions/:id` - Delete session
+
+**Memory (Epic 2.1)**
+- `GET /api/memory` - Get memory summary and stats
+- `POST /api/memory/edit` - Add user edit
+- `GET /api/memory/edits` - List user edits
+- `DELETE /api/memory/edits/:entityName/:observation` - Delete specific edit
+- `DELETE /api/memory/edits` - Clear all edits
+
+**Settings**
+- `GET /api/settings` - Get user settings + personality info
+- `PUT /api/settings` - Update settings (permission level, personality)
+- `GET /api/settings/personalities` - List available personalities
+
+**Auth**
 - `GET /auth/xero` - Initiate Xero OAuth
 - `GET /auth/xero/callback` - OAuth callback
 - `GET /auth/status` - Check Xero connection
@@ -812,6 +905,30 @@ Two authentication methods supported:
 
 ## Recent Architecture Changes
 
+### 2025-12-01: Epic 2.1 + 2.2 (Memory UI + Chat History)
+
+**Change:** Added Memory Management UI and Chat History features
+
+**Epic 2.1 - Memory Management:**
+- Knowledge graph schema (entities, observations, relations)
+- User edit tracking (`is_user_edit` flag) for Claude.ai Pattern 0.7
+- Memory summaries table for cached LLM-generated summaries
+- REST API for PWA memory management
+- ManageMemoryModal component in Settings
+
+**Epic 2.2 - Chat History:**
+- Extended sessions table with `title` and `preview_text` columns
+- Chat title auto-generation from first user message (~50 chars)
+- ChatSidebar component (collapsible, Claude.ai Pattern 0)
+- Zustand state management for chat list
+
+**Impact:**
+- New tables: memory_entities, memory_observations, memory_relations, memory_summaries
+- New API endpoints: /api/memory/*, /api/sessions/:id (PATCH)
+- New components: ManageMemoryModal, ChatSidebar
+
+---
+
 ### 2025-11-29: MCP Remote Server with Lazy-Loading
 
 **Change:** Added MCP remote server for Claude.ai/ChatGPT distribution
@@ -875,4 +992,4 @@ Two authentication methods supported:
 
 ---
 
-**Last Updated**: 2025-12-01
+**Last Updated**: 2025-12-01 (Epic 2.1 + 2.2 deployed)

@@ -44,7 +44,7 @@ export function createAuthRoutes(db: DatabaseProvider): Router {
   const XERO_CLIENT_ID = process.env.XERO_CLIENT_ID;
   const XERO_CLIENT_SECRET = process.env.XERO_CLIENT_SECRET;
   const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-  const REDIRECT_URI = `${BASE_URL}/auth/callback`;
+  const REDIRECT_URI = `${BASE_URL}/auth/xero/callback`;
   const FRONTEND_URL = process.env.FRONTEND_URL || BASE_URL;
 
   // Log configuration on startup for debugging
@@ -105,10 +105,10 @@ export function createAuthRoutes(db: DatabaseProvider): Router {
   });
 
   /**
-   * GET /auth/callback
+   * GET /auth/xero/callback
    * Handle OAuth callback from Xero
    */
-  router.get('/callback', async (req, res) => {
+  router.get('/xero/callback', async (req, res) => {
     const { code, state, error } = req.query;
 
     // Helper to show error page instead of blank screen

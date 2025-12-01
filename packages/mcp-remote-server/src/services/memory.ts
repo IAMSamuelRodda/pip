@@ -96,9 +96,9 @@ export class KnowledgeGraphManager {
       } else {
         entityId = crypto.randomUUID();
         this.db.prepare(`
-          INSERT INTO memory_entities (id, user_id, project_id, name, entity_type, created_at)
-          VALUES (?, ?, ?, ?, ?, ?)
-        `).run(entityId, this.userId, this.projectId, entity.name, entity.entityType, now);
+          INSERT INTO memory_entities (id, user_id, project_id, name, entity_type, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(entityId, this.userId, this.projectId, entity.name, entity.entityType, now, now);
       }
 
       // Add observations (skip duplicates)

@@ -163,9 +163,9 @@ export function createMemoryRoutes(): Router {
         // Create entity
         entityId = crypto.randomUUID();
         db.prepare(`
-          INSERT INTO memory_entities (id, user_id, project_id, name, entity_type, created_at)
-          VALUES (?, ?, ?, ?, 'concept', ?)
-        `).run(entityId, userId, projId, entityName, now);
+          INSERT INTO memory_entities (id, user_id, project_id, name, entity_type, created_at, updated_at)
+          VALUES (?, ?, ?, ?, 'concept', ?, ?)
+        `).run(entityId, userId, projId, entityName, now, now);
       }
 
       // Check if observation already exists

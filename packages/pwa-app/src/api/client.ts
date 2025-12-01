@@ -43,12 +43,29 @@ interface DocumentListItem {
   createdAt: number;
 }
 
+type PersonalityId = 'adelaide' | 'pippin';
+
 interface UserSettings {
   permissionLevel: 0 | 1 | 2 | 3;
   requireConfirmation: boolean;
   dailyEmailSummary: boolean;
   require2FA: boolean;
   vacationModeUntil?: number;
+  personality: PersonalityId;
+}
+
+interface PersonalityInfo {
+  name: string;
+  description: string;
+  greeting: string;
+  role: string;
+}
+
+interface PersonalityOption {
+  id: PersonalityId;
+  name: string;
+  description: string;
+  greeting: string;
 }
 
 export const api = {
@@ -158,9 +175,22 @@ export const api = {
   },
 
   /**
+   * Get available personalities
+   */
+  async getPersonalities(): Promise<{ personalities: PersonalityOption[] }> {
+    const response = await fetch(`${API_BASE}/api/settings/personalities`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to get personalities');
+    }
+    return response.json();
+  },
+
+  /**
    * Get user settings
    */
-  async getSettings(): Promise<{ settings: UserSettings }> {
+  async getSettings(): Promise<{ settings: UserSettings; personalityInfo: PersonalityInfo }> {
     const response = await fetch(`${API_BASE}/api/settings`, {
       headers: getAuthHeaders(),
     });
@@ -173,7 +203,7 @@ export const api = {
   /**
    * Update user settings
    */
-  async updateSettings(settings: Partial<UserSettings>): Promise<{ settings: UserSettings }> {
+  async updateSettings(settings: Partial<UserSettings>): Promise<{ settings: UserSettings; personalityInfo: PersonalityInfo }> {
     const response = await fetch(`${API_BASE}/api/settings`, {
       method: 'PUT',
       headers: {
@@ -189,3 +219,5 @@ export const api = {
     return response.json();
   },
 };
+
+export type { PersonalityId, UserSettings, PersonalityInfo, PersonalityOption };

@@ -9,6 +9,7 @@ import ReactMarkdown from 'react-markdown';
 import { useChatStore } from '../store/chatStore';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
+import type { PersonalityInfo } from '../api/client';
 
 interface AuthStatus {
   connected: boolean;
@@ -31,6 +32,7 @@ export function ChatPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [personalityInfo, setPersonalityInfo] = useState<PersonalityInfo | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,6 +67,16 @@ export function ChatPage() {
       setDocuments(result.documents);
     } catch (err) {
       console.error('Failed to load documents:', err);
+    }
+  }, []);
+
+  // Load personality info
+  const loadPersonalityInfo = useCallback(async () => {
+    try {
+      const result = await api.getSettings();
+      setPersonalityInfo(result.personalityInfo);
+    } catch (err) {
+      console.error('Failed to load personality:', err);
     }
   }, []);
 
@@ -135,6 +147,11 @@ export function ChatPage() {
   useEffect(() => {
     loadDocuments();
   }, [loadDocuments]);
+
+  // Load personality info on mount
+  useEffect(() => {
+    loadPersonalityInfo();
+  }, [loadPersonalityInfo]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -273,15 +290,16 @@ export function ChatPage() {
         <div className="max-w-4xl mx-auto px-4 py-6">
           {messages.length === 0 ? (
             <div className="text-center mt-20">
-              <div className="w-20 h-20 bg-arc-bg-tertiary border border-arc-border rounded-2xl flex items-center justify-center mx-auto mb-6">
-                <span className="text-4xl text-arc-accent">P</span>
-              </div>
+              <svg className="w-20 h-20 mx-auto mb-6" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="44" fill="#0f1419" stroke="#7eb88e" strokeWidth="6"/>
+                <path d="M38 70 V30 h14 a10 10 0 0 1 0 20 H38" fill="none" stroke="#7eb88e" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
               <h2 className="text-2xl font-medium text-arc-text-primary mb-2">
-                G'day! I'm Pip
+                {personalityInfo?.greeting || 'Hi there'}
               </h2>
               <p className="text-sm text-arc-text-secondary max-w-md mx-auto mb-8">
-                Your AI bookkeeping assistant. Connect Xero to query your finances,
-                or upload your business plan for personalized advice.
+                {personalityInfo?.role || 'Your bookkeeper'}. Connect Xero to check your finances,
+                or upload your business plan for advice.
               </p>
               <div className="flex flex-wrap justify-center gap-2">
                 {[

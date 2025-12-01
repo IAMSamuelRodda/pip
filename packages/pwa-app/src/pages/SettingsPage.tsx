@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
+import type { PersonalityId, PersonalityOption } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
 type PermissionLevel = 0 | 1 | 2 | 3;
@@ -16,6 +17,7 @@ interface Settings {
   dailyEmailSummary: boolean;
   require2FA: boolean;
   vacationModeUntil?: number;
+  personality: PersonalityId;
 }
 
 const PERMISSION_LEVELS: { level: PermissionLevel; name: string; description: string; color: string }[] = [
@@ -50,14 +52,16 @@ export function SettingsPage() {
   const { user, logout } = useAuthStore();
 
   const [settings, setSettings] = useState<Settings | null>(null);
+  const [personalities, setPersonalities] = useState<PersonalityOption[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Load settings on mount
+  // Load settings and personalities on mount
   useEffect(() => {
     loadSettings();
+    loadPersonalities();
   }, []);
 
   const loadSettings = async () => {
@@ -70,6 +74,15 @@ export function SettingsPage() {
       setError(err instanceof Error ? err.message : 'Failed to load settings');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadPersonalities = async () => {
+    try {
+      const result = await api.getPersonalities();
+      setPersonalities(result.personalities);
+    } catch (err) {
+      console.error('Failed to load personalities:', err);
     }
   };
 
@@ -94,6 +107,24 @@ export function SettingsPage() {
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update settings');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const updatePersonality = async (personality: PersonalityId) => {
+    if (!settings || settings.personality === personality) return;
+
+    try {
+      setIsSaving(true);
+      setError(null);
+      setSuccess(null);
+      const result = await api.updateSettings({ personality });
+      setSettings(result.settings);
+      setSuccess(`Switched to ${result.personalityInfo.name}`);
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to update personality');
     } finally {
       setIsSaving(false);
     }
@@ -228,6 +259,57 @@ export function SettingsPage() {
                   </p>
                 </div>
               )}
+            </section>
+
+            {/* Personality Section */}
+            <section>
+              <h2 className="text-lg font-medium text-arc-text-primary mb-2">Personality</h2>
+              <p className="text-sm text-arc-text-secondary mb-6">
+                Choose how Pip communicates with you. This changes tone and style, not capabilities.
+              </p>
+
+              <div className="space-y-3">
+                {personalities.map((p) => {
+                  const isSelected = settings.personality === p.id;
+
+                  return (
+                    <button
+                      key={p.id}
+                      onClick={() => updatePersonality(p.id)}
+                      disabled={isSaving}
+                      className={`w-full text-left p-4 rounded-xl border transition-all ${
+                        isSelected
+                          ? 'bg-arc-accent/10 border-arc-accent'
+                          : 'bg-arc-bg-tertiary border-arc-border hover:border-arc-accent/50'
+                      } ${isSaving ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-3">
+                          <span className={`font-medium ${isSelected ? 'text-arc-accent' : 'text-arc-text-primary'}`}>
+                            {p.name}
+                          </span>
+                          {isSelected && (
+                            <span className="text-xs bg-arc-accent text-arc-bg-primary px-2 py-0.5 rounded">
+                              Active
+                            </span>
+                          )}
+                        </div>
+                        <div className={`w-4 h-4 rounded-full border-2 ${
+                          isSelected ? 'border-arc-accent bg-arc-accent' : 'border-arc-border'
+                        }`}>
+                          {isSelected && (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <span className="text-arc-bg-primary text-xs">&#10003;</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <p className="text-sm text-arc-text-secondary">{p.description}</p>
+                      <p className="text-xs text-arc-text-dim mt-2 italic">&ldquo;{p.greeting}&rdquo;</p>
+                    </button>
+                  );
+                })}
+              </div>
             </section>
 
             {/* Info Section */}

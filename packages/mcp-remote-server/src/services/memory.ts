@@ -419,6 +419,90 @@ export class KnowledgeGraphManager {
 
     return result.count;
   }
+
+  // --------------------------------------------------------------------------
+  // Summary Operations (for "Manage memory" UI)
+  // --------------------------------------------------------------------------
+
+  /**
+   * Save a prose summary of the memory graph
+   */
+  saveSummary(summary: string): void {
+    const now = Date.now();
+    const graph = this.readGraph();
+    const entityCount = graph.entities.length;
+    const observationCount = graph.entities.reduce((sum, e) => sum + e.observations.length, 0);
+
+    // Upsert: update if exists, insert if not
+    const existing = this.db.prepare(`
+      SELECT id FROM memory_summaries
+      WHERE user_id = ? ${this.projectId ? 'AND project_id = ?' : 'AND project_id IS NULL'}
+    `).get(...(this.projectId ? [this.userId, this.projectId] : [this.userId])) as { id: string } | undefined;
+
+    if (existing) {
+      this.db.prepare(`
+        UPDATE memory_summaries
+        SET summary = ?, generated_at = ?, entity_count = ?, observation_count = ?
+        WHERE id = ?
+      `).run(summary, now, entityCount, observationCount, existing.id);
+    } else {
+      this.db.prepare(`
+        INSERT INTO memory_summaries (id, user_id, project_id, summary, generated_at, entity_count, observation_count)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(crypto.randomUUID(), this.userId, this.projectId, summary, now, entityCount, observationCount);
+    }
+  }
+
+  /**
+   * Get the cached prose summary
+   */
+  getSummary(): { summary: string; generatedAt: number; entityCount: number; observationCount: number } | null {
+    const row = this.db.prepare(`
+      SELECT summary, generated_at, entity_count, observation_count
+      FROM memory_summaries
+      WHERE user_id = ? ${this.projectId ? 'AND project_id = ?' : 'AND project_id IS NULL'}
+    `).get(...(this.projectId ? [this.userId, this.projectId] : [this.userId])) as {
+      summary: string;
+      generated_at: number;
+      entity_count: number;
+      observation_count: number;
+    } | undefined;
+
+    if (!row) return null;
+
+    return {
+      summary: row.summary,
+      generatedAt: row.generated_at,
+      entityCount: row.entity_count,
+      observationCount: row.observation_count,
+    };
+  }
+
+  /**
+   * Check if summary needs regeneration (stale if graph changed since last generation)
+   */
+  isSummaryStale(): boolean {
+    const cached = this.getSummary();
+    if (!cached) return true;
+
+    const graph = this.readGraph();
+    const currentEntityCount = graph.entities.length;
+    const currentObsCount = graph.entities.reduce((sum, e) => sum + e.observations.length, 0);
+
+    return cached.entityCount !== currentEntityCount || cached.observationCount !== currentObsCount;
+  }
+
+  /**
+   * Delete the cached summary
+   */
+  deleteSummary(): boolean {
+    const result = this.db.prepare(`
+      DELETE FROM memory_summaries
+      WHERE user_id = ? ${this.projectId ? 'AND project_id = ?' : 'AND project_id IS NULL'}
+    `).run(...(this.projectId ? [this.userId, this.projectId] : [this.userId]));
+
+    return result.changes > 0;
+  }
 }
 
 // ============================================================================

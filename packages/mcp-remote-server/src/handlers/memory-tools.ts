@@ -202,6 +202,34 @@ Use when you need complete context about known entities.`,
       required: ["names"],
     },
   },
+  {
+    category: "memory",
+    name: "get_memory_summary",
+    description: `Get a prose summary of what Pip remembers about the user.
+Returns cached summary if available, or indicates if regeneration is needed.
+Use when user asks "what do you remember about me?" or opens memory settings.`,
+    inputSchema: {
+      type: "object" as const,
+      properties: {},
+    },
+  },
+  {
+    category: "memory",
+    name: "save_memory_summary",
+    description: `Save a prose summary of the user's memory graph.
+Call this after generating a summary from read_graph to cache it for the UI.
+The summary should be a readable narrative about the user/business.`,
+    inputSchema: {
+      type: "object" as const,
+      properties: {
+        summary: {
+          type: "string",
+          description: "Prose summary of the memory graph (2-5 paragraphs)",
+        },
+      },
+      required: ["summary"],
+    },
+  },
 ];
 
 // ============================================================================
@@ -433,6 +461,64 @@ export function executeMemoryTool(
         }
         return {
           content: [{ type: "text", text: formatGraph(graph) }],
+        };
+      }
+
+      case "get_memory_summary": {
+        const cached = manager.getSummary();
+        const isStale = manager.isSummaryStale();
+        const userEditCount = manager.getUserEditCount();
+
+        if (!cached) {
+          const graph = manager.readGraph();
+          if (graph.entities.length === 0) {
+            return {
+              content: [{
+                type: "text",
+                text: "No memories stored yet. I haven't learned anything about you.",
+              }],
+            };
+          }
+          return {
+            content: [{
+              type: "text",
+              text: `**Summary not yet generated.**\n\nI have ${graph.entities.length} entities with ${graph.entities.reduce((s, e) => s + e.observations.length, 0)} observations stored.\n\nTo generate a summary, call \`read_graph\` to see the full memory, then call \`save_memory_summary\` with a prose summary.`,
+            }],
+          };
+        }
+
+        const staleNote = isStale
+          ? "\n\n_Note: Memory has changed since this summary was generated. Consider regenerating._"
+          : "";
+        const editNote = userEditCount > 0
+          ? `\n\n_${userEditCount} user edit(s) tracked._`
+          : "";
+
+        return {
+          content: [{
+            type: "text",
+            text: `**Memory Summary**\n\n${cached.summary}${editNote}${staleNote}\n\n_Last updated: ${new Date(cached.generatedAt).toLocaleString()}_`,
+          }],
+        };
+      }
+
+      case "save_memory_summary": {
+        const { summary } = args as { summary: string };
+        if (!summary || summary.trim().length < 10) {
+          return {
+            content: [{
+              type: "text",
+              text: "Error: Summary must be at least 10 characters.",
+            }],
+            isError: true,
+          };
+        }
+        manager.saveSummary(summary.trim());
+        return {
+          content: [{
+            type: "text",
+            text: "Memory summary saved successfully.",
+          }],
         };
       }
 

@@ -443,14 +443,19 @@ Key gap is **Claude.ai UI/UX patterns** - single memory with tracked user edits.
 - `memory-tools.ts`: `add_observations` tool accepts `isUserEdit` param
 
 #### feature_2_1_3: Memory Summary Generation
-**Status**: ⚪ Not Started
-**Complexity**: 2.5/5 | **Est**: 3 days
+**Status**: ✅ Complete (MCP tools)
+**Complexity**: 2.5/5 | **Actual**: <1 day
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_1_3_1: LLM prompt for summary generation | ⚪ | 2.3 | Prose narrative from knowledge graph |
-| task_2_1_3_2: Summary regeneration endpoint | ⚪ | 2.0 | POST /api/memory/regenerate |
-| task_2_1_3_3: Scheduled regeneration (optional) | ⚪ | 2.5 | Nightly job or on-demand |
+| task_2_1_3_1: LLM prompt for summary generation | ✅ | 2.3 | Via `save_memory_summary` tool |
+| task_2_1_3_2: Summary storage and retrieval | ✅ | 2.0 | `get_memory_summary` tool |
+| task_2_1_3_3: Staleness detection | ✅ | 1.5 | Auto-detects when graph changes |
+
+**Implementation**:
+- `memory.ts`: `saveSummary()`, `getSummary()`, `isSummaryStale()`, `deleteSummary()`
+- `memory-tools.ts`: `get_memory_summary`, `save_memory_summary` MCP tools
+- LLM generates summary from `read_graph`, then calls `save_memory_summary` to cache
 
 #### feature_2_1_4: Memory Management API
 **Status**: ⚪ Not Started

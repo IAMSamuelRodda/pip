@@ -4,8 +4,8 @@
 > **Lifecycle**: Living (update daily/weekly during active development)
 
 **Last Updated**: 2025-12-01
-**Current Phase**: Milestone 2 Implementation Started
-**Version**: 0.3.4
+**Current Phase**: Milestone 2 Implementation (Epic 2.1 + 2.2 Complete)
+**Version**: 0.4.0-dev
 
 ---
 
@@ -22,7 +22,7 @@
 | **Landing Page** | 🟢 | Live at pip.arcforge.au |
 | **Xero Integration** | 🟢 | 10 READ-ONLY tools verified |
 | **Git Workflow** | 🟢 | Simple tier (main only, direct commits) |
-| **Milestone 2** | 🔵 | Implementation started, 2/3 spikes complete |
+| **Milestone 2** | 🟢 | Epic 2.1 (Memory UI) + 2.2 (Chat History) deployed |
 
 **Legend**: 🟢 Good | 🟡 Attention | 🔴 Critical | 🔵 In Progress
 
@@ -34,51 +34,38 @@
 
 ### Just Completed (2025-12-01)
 
-1. **spike_m2_004: Multi-Model LLM Architecture** ✅ (completed in 1 day)
-   - LiteLLM proxy deployed on VPS (port 4000, 5 models)
-   - Tailscale + Ollama connectivity verified (238ms warm latency)
-   - Architecture Decision Document written
-   - PWA model selector mockup designed
-   - Cost/performance matrix for 8+ models
-   - Outputs: `specs/spike-outputs/ADR-MULTI-MODEL-ARCHITECTURE-20251201.md`
+1. **Epic 2.1: Memory Management** ✅ DEPLOYED
+   - User edit tracking schema (is_user_edit column, memory_summaries table)
+   - Memory summary generation tools (get/save_memory_summary)
+   - REST API for PWA (GET /api/memory, POST /api/memory/edit, etc.)
+   - ManageMemoryModal component (Settings → Manage memory)
+   - Commits: `8394d02`, `2566a3d`
 
-2. **Claude.ai UX Patterns Documented** ✅
-   - 8 patterns captured for PWA redesign reference
-   - Collapsible sidebar, contextual settings, quick toggles
-   - Memory management UI with user edit tracking (Pattern 0.7)
-   - Full settings page structure
-   - Output: `specs/spike-outputs/UX-PATTERNS-CLAUDE-AI-REFERENCE-20251201.md`
+2. **Epic 2.2: Chat History** ✅ DEPLOYED
+   - Extended sessions schema (title, preview_text columns)
+   - Chat title auto-generation from first user message (~50 chars)
+   - API endpoints (GET/PATCH/DELETE /api/sessions/:id)
+   - ChatSidebar component (collapsible, Claude.ai Pattern 0)
+   - Zustand state management for chat list
+   - Commit: `9699c96`
 
-3. **Epic 2.1 Memory Architecture Updated** ✅
-   - Current `memory.ts` (~394 lines) validated as aligned with Anthropic
-   - Gap identified: Claude.ai UI/UX patterns (Pattern 0.7)
-   - Added 4 new features: User Edit Tracking, Summary Generation, API, UI
-   - issue_018 merged into Epic 2.1 (feature_2_1_2 through feature_2_1_5)
-
-4. **spike_m2_001 Blueprint Created** ✅
-   - Cross-project reference research blueprint generated
-   - Research questions defined (Claude Code, VS Code, Notion patterns)
-   - 3 deliverables: research report, API design, POC
-   - Blueprint: `specs/BLUEPRINT-spike-cross-project-reference-20251201.yaml`
-
-5. **Spikes Status** (ALL COMPLETE):
-   - ✅ spike_m2_001: Cross-Project Reference - **Query-time project parameter pattern**
-   - ✅ spike_m2_002: React.js Refactor Assessment - **Keep React + react-dropzone**
+3. **All Milestone 2 Spikes COMPLETE**:
+   - ✅ spike_m2_001: Cross-Project Reference - Query-time project parameter pattern
+   - ✅ spike_m2_002: React.js Refactor Assessment - Keep React + react-dropzone
    - ✅ spike_m2_003: Character Voice Methodology - Adelaide/Pippin profiles
    - ✅ spike_m2_004: Multi-Model Architecture - LiteLLM + Tailscale + Ollama
 
-6. **Issues Updated**:
-   - issue_011: Memory Architecture → 🟡 Partially Complete (analysis done)
-   - issue_017: Ollama Model Warm-Up Strategy (14s cold start) - unchanged
-   - issue_018: Memory Management UI → 🟢 Merged into Epic 2.1
+4. **Tech Debt Documented**:
+   - debt_003: Legacy "zero-agent" naming convention (P3)
+   - debt_004: ESLint v9 flat config migration (P3)
 
-### Recommended Sequence
+### Remaining Work (Milestone 2)
 
-1. **Epic 2.1** (Memory Refactor) - Foundation for all features
-2. **Epic 2.2** (Chat History) - High user value, low risk
+1. ~~**Epic 2.1** (Memory Refactor)~~ ✅ Complete
+2. ~~**Epic 2.2** (Chat History)~~ ✅ Complete
 3. **Epic 2.3** (Projects) - Complex, needs careful implementation
-4. **Epic 2.5** (Voice) - CRITICAL for retention, run spikes early
-5. **Epic 2.4** (Document Upload) - Medium priority, spike dependent
+4. **Epic 2.5** (Voice) - CRITICAL for retention, profiles ready
+5. **Epic 2.4** (Document Upload) - Medium priority, spike complete
 6. **Epic 2.6** (Testing) - Continuous throughout milestone
 
 ### Language Rules (User-Facing Content)
@@ -186,63 +173,41 @@
 
 ## Next Steps
 
-1. **Complete spike_m2_001** - Cross-project reference research (unblocks Epic 2.3)
-2. **Implement Epic 2.2** - Chat History (high user value, no blockers)
-3. **Implement Epic 2.5** - Voice profiles (Adelaide/Pippin) - spike complete
+1. **Implement Epic 2.5** - Voice profiles (Adelaide/Pippin) - spike complete, profiles ready
+2. **Implement Epic 2.3** - Projects feature (isolated context per project/client)
+3. **Implement Epic 2.4** - Per-chat document upload (spike complete)
 4. **Onboard beta users** - Share with trusted users for feedback
-5. **Deploy memory refactor to production** - Test on VPS
+5. **Test deployed features** - Verify Memory UI + Chat History on production
 
 ---
 
-## Feature Backlog (2025-11-30 Night)
+## Feature Backlog (Updated 2025-12-01)
 
-*Captured for tomorrow's planning session.*
+### Completed ✅
 
-### 1. Automatic Memory Management
-- Memory should "just work" like Anthropic's MCP Memory Server
-- Seamless - no explicit management needed by user
-- LLM extracts facts automatically, server stores them
-- Currently requires explicit `add_memory` calls - should be automatic
+1. ~~**Automatic Memory Management**~~ → Epic 2.1 deployed
+   - ManageMemoryModal in Settings → Manage memory
+   - User edit tracking, summary generation
 
-### 2. Chat History (like Claude.ai)
-- Persistent conversation history across sessions
-- Sidebar showing past chats
-- Ability to continue previous conversations
-- Currently: No chat history in MCP mode
+2. ~~**Chat History**~~ → Epic 2.2 deployed
+   - Collapsible sidebar with chat list
+   - Title auto-generation, relative timestamps
 
-### 3. Projects Feature (Isolated Context)
-- Like Claude.ai's Projects
-- Separate knowledge bases per project/client
-- Isolated memory and context per project
-- Use case: Different Xero orgs, different business contexts
+### Remaining
 
-### 4. Per-Chat Document Upload
-- Plus icon (+) in chat to add documents to THIS conversation
-- Replace current global context upload
-- More intuitive UX - documents relevant to current chat
-- Global preferences/context: defer and test later
+3. **Projects Feature (Isolated Context)** → Epic 2.3
+   - Separate knowledge bases per project/client
+   - Multi-Xero org support
+   - Cross-project reference capability (spike complete)
 
-### 5. Pip's Voice/Personality
-Two character options (switchable in settings):
+4. **Per-Chat Document Upload** → Epic 2.4
+   - Plus icon (+) in chat (spike complete: use react-dropzone)
+   - Document preview below chat input
 
-**Option A: Adelaide Bookkeeper**
-- Smart young woman from Adelaide
-- Knows the books, keeps it simple
-- Professional but approachable
-- Target avatar: Sam (our customer persona)
-
-**Option B: Pip from LOTR**
-- Fun, endearing character inspired by Pippin
-- Somehow great at bookkeeping (unexplained)
-- Playful but competent
-- More personality-driven
-
-**UX**: Toggle in settings or via chat command
-
-### 6. Deferred Investigations
-- Global preferences vs specific options (test both)
-- Claude.ai-style custom instructions
-- Whether generic or domain-specific settings work better
+5. **Pip's Voice/Personality** → Epic 2.5
+   - Adelaide Bookkeeper profile ready
+   - Pippin (LOTR-inspired) profile ready
+   - Need: Integration into agent orchestrator
 
 ---
 

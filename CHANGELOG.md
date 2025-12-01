@@ -10,6 +10,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Epic 2.1: Memory Management UI** (2025-12-01)
+  - ManageMemoryModal component (Settings → Manage memory)
+  - User edit tracking (is_user_edit column in observations)
+  - Memory summaries table for cached LLM-generated summaries
+  - REST API: GET /api/memory, POST /api/memory/edit, GET/DELETE /api/memory/edits
+  - Inline input: "Tell Pip what to remember or forget..."
+- **Epic 2.2: Chat History** (2025-12-01)
+  - ChatSidebar component (collapsible, Claude.ai Pattern 0)
+  - Sessions schema extended (title, preview_text columns)
+  - Chat title auto-generation from first user message (~50 chars)
+  - API endpoints: GET/PATCH/DELETE /api/sessions/:id
+  - Zustand state management for chat list
+  - Relative timestamps ("2m ago", "1h ago", etc.)
 - **Landing page**: pip.arcforge.au with demo chat UI, features, and pricing sections
 - **Personality system**: Adelaide and Pippin character profiles with switchable voices
 - **Character voice infrastructure**: `buildPersonalityPrompt()` for system prompt injection

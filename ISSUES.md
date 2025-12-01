@@ -121,6 +121,19 @@
   - [ ] Consistent theming across all pages (PWA, MCP login, landing)
 - **Notes**: Low priority - current dark theme is consistent with brand. Implement when user feedback requests it.
 
+#### issue_021: Verify Response Styles in Chat
+- **Status**: 🔴 Open
+- **Priority**: P2 (Medium - feature validation)
+- **Component**: `packages/agent-core`, `packages/pwa-app`
+- **Description**: Test that Response Styles actually modify Pip's chat responses as intended.
+- **Test Plan**:
+  - [ ] Set style to "Formal" → Ask a question → Verify professional tone, no contractions
+  - [ ] Set style to "Concise" → Ask same question → Verify shorter, bullet-point response
+  - [ ] Set style to "Explanatory" → Ask same question → Verify detailed reasoning
+  - [ ] Set style to "Learning" → Ask same question → Verify educational tone, defines terms
+  - [ ] Set style back to "Normal" → Verify default balanced response
+- **Notes**: UI dropdown deployed and working (verified 2025-12-02). Need manual testing of actual response behavior.
+
 #### issue_019: Safety Settings UI - Explanation Box Placement
 - **Status**: 🔴 Open
 - **Priority**: P2 (Medium - UX clarity)

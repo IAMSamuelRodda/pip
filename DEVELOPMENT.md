@@ -70,35 +70,25 @@ git diff --staged
 
 ### Current State: Manual Deployment
 
-Simple tier uses manual VPS deployment (no automated CI/CD pipelines yet).
+Simple tier uses manual VPS deployment via deploy script.
 
 ```bash
-# Deploy to production VPS
+# Deploy to production VPS (recommended)
+ssh root@170.64.169.203 "cd /opt/pip && ./deploy/deploy.sh"
+
+# Or manually:
 ssh root@170.64.169.203
-
-# On VPS:
 cd /opt/pip && git pull
-
-# Rebuild and restart containers
-docker build -t pip-app:latest .
-docker stop pip-app && docker rm pip-app
-docker run -d --name pip-app --restart unless-stopped \
-  --network droplet_frontend -v zero-agent-data:/app/data \
-  -e NODE_ENV=production -e PORT=3000 \
-  -e DATABASE_PATH=/app/data/zero-agent.db \
-  -e ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY \
-  -e XERO_CLIENT_ID=$XERO_CLIENT_ID \
-  -e XERO_CLIENT_SECRET=$XERO_CLIENT_SECRET \
-  -e BASE_URL=https://app.pip.arcforge.au \
-  pip-app:latest
-
-# For MCP server (if changed):
-docker build -t pip-mcp:latest -f packages/mcp-remote-server/Dockerfile .
-docker stop pip-mcp && docker rm pip-mcp
-docker run -d --name pip-mcp ... pip-mcp:latest
+./deploy/deploy.sh
 ```
 
-**Note**: See CLAUDE.md for full deployment commands with all env vars.
+The deploy script (`deploy/deploy.sh`):
+1. Sources `.env` for secrets
+2. Pulls latest code
+3. Rebuilds ALL containers
+4. Runs health checks
+
+**Backups**: Daily at 3am UTC to `/opt/backups/pip/` (14-day retention)
 
 ### Future: Automated Workflows
 
@@ -180,6 +170,51 @@ docker build --platform linux/amd64 -t pip-app .
 # Ensure XERO_REDIRECT_URI matches your callback URL
 # Check service worker isn't intercepting /auth/callback
 ```
+
+---
+
+## Database Migrations
+
+### Migration Checklist
+
+**Before any database migration:**
+
+1. **Take manual backup FIRST**
+   ```bash
+   ssh root@170.64.169.203
+   /opt/backups/backup-pip.sh  # Creates timestamped backup
+   ```
+
+2. **Verify user counts**
+   ```bash
+   sqlite3 /var/lib/docker/volumes/pip-data/_data/pip.db 'SELECT COUNT(*) FROM users;'
+   ```
+
+3. **Run migration** (e.g., schema changes, naming changes)
+
+4. **Verify user counts match** after migration
+
+5. **Test login** with a real account before deleting old resources
+
+6. **Only then** remove old volumes/databases
+
+### Lessons Learned (2025-12-01)
+
+**Incident**: User account lost during zero-agent → pip naming migration
+
+**What went wrong:**
+- Migration script ran correctly
+- Old volume deleted without verifying user data migrated
+- Backup script was using old container name (no recent backups)
+
+**Preventive measures added:**
+- Updated backup script to use `pip` naming
+- Extended backup retention: 7 → 14 days
+- Added this checklist to documentation
+
+**Recovery options (when data is lost):**
+- Check `/opt/backups/pip/` for recent backups
+- User must re-register with invite code if no backup exists
 
 ---
 

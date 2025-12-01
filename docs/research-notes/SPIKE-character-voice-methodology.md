@@ -1,9 +1,10 @@
 # Spike: Character Voice Methodology Research
 
 **Spike ID**: spike_m2_003
-**Duration**: 3 days (time-boxed)
-**Status**: In Progress
+**Duration**: 1 day (estimated 3 days)
+**Status**: ✅ Complete
 **Created**: 2025-12-01
+**Completed**: 2025-12-01
 
 ---
 
@@ -388,8 +389,10 @@ ADD COLUMN personality TEXT DEFAULT 'adelaide';
 - [x] Voice profile schema definition
 - [x] Adelaide Bookkeeper profile draft
 - [x] Pippin (LOTR) profile draft
-- [ ] Test prompts with Claude (verify consistency)
-- [ ] Refine based on testing
+- [x] TypeScript implementation (`packages/core/src/personalities/`)
+- [x] buildPersonalityPrompt() function for system prompt injection
+- [ ] Test prompts with Claude (verify consistency) - deferred to implementation
+- [ ] Refine based on testing - deferred to implementation
 
 ---
 

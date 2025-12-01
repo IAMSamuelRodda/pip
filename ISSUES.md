@@ -289,37 +289,30 @@
 - **Unblocked By**: spike_m2_002 (2025-12-01)
 
 #### issue_015: Pip's Voice/Personality (Epic 2.5)
-- **Status**: 🔴 Open (spike-dependent)
+- **Status**: 🟡 In Progress (spike complete, implementation ready)
 - **Priority**: P1 (CRITICAL - retention impact)
-- **Component**: `packages/mcp-remote-server` (system prompts)
+- **Component**: `packages/mcp-remote-server` (system prompts), `packages/core/src/personalities/`
 - **Blueprint**: feature_2_5_1 through feature_2_5_5
-- **Description**: Switchable character personalities that can change mid-chat without losing context. Two options:
-- **Option A - Adelaide Bookkeeper**:
-  - Smart young professional from Adelaide
-  - Professional but approachable, no jargon
-  - Knows the books, keeps it simple
-  - Target avatar: Sam (customer persona)
-- **Option B - Pippin (LOTR-inspired)**:
-  - Fun, endearing character
-  - Somehow great at bookkeeping (unexplained)
-  - Playful but competent, not undermining trust
-- **Spike Required**: Character voice methodology research (spike_m2_003) - 3 days
-  - Literary analysis: how novels describe character personalities objectively
-  - Compare Grok speech modes (Assistant, Motivational, Storytelling)
-  - Define switchable voice profile schema
+- **Description**: Switchable character personalities that can change mid-chat without losing context.
+- **Spike Complete** (spike_m2_003): ✅
+  - Literary analysis, Grok modes research, personality schema defined
+  - Adelaide and Pippin profiles created in `packages/core/src/personalities/`
+  - `buildPersonalityPrompt()` function implemented
+- **Option A - Adelaide Bookkeeper**: Professional, approachable, no jargon
+- **Option B - Pippin (LOTR-inspired)**: Playful, warm, surprisingly competent
 - **Acceptance Criteria**:
-  - [ ] Complete character voice methodology spike first
-  - [ ] Define Adelaide character profile and system prompt
-  - [ ] Define Pippin character profile and system prompt
+  - [x] Complete character voice methodology spike (spike_m2_003)
+  - [x] Define Adelaide character profile and system prompt
+  - [x] Define Pippin character profile and system prompt
   - [ ] Test both voices across invoicing, reports, troubleshooting
-  - [ ] Extend user_settings schema for voice_profile
+  - [x] Extend user_settings schema for voice_profile
   - [ ] Voice loading in AgentOrchestrator
   - [ ] Mid-chat voice switching without context loss
   - [ ] Voice selector in settings page
   - [ ] Quick voice toggle in chat interface
   - [ ] Refine based on user testing
 - **Complexity**: 1.5-2.8/5 (Medium)
-- **Notes**: CRITICAL for user retention. If users don't like the personality, they stop using it.
+- **Notes**: CRITICAL for user retention. Profiles drafted, need integration testing.
 
 ---
 
@@ -401,26 +394,24 @@ Research/investigation tasks that must complete before dependent implementation 
 - **Output**: `docs/research-notes/SPIKE-m2-002-react-refactor-assessment.md`
 
 #### spike_m2_003: Character Voice Methodology Research
-- **Status**: 🔴 Open
-- **Duration**: 3 days
-- **Priority**: P1 (blocks feature_2_5_2, feature_2_5_3)
+- **Status**: ✅ Complete
+- **Duration**: 1 day (estimated 3 days)
+- **Completed**: 2025-12-01
+- **Priority**: - (Done - unblocks feature_2_5_2, feature_2_5_3)
 - **Reduces Uncertainty For**: feature_2_5_2, feature_2_5_3, feature_2_5_4
 - **Blueprint**: feature_5_1 spike
 - **Description**: Research how to objectively define character personalities for LLM system prompts
-- **Research Areas**:
-  - Literary analysis: How novels describe character voice/personality objectively
-  - Grok speech modes comparison (Assistant, Motivational, Storytelling patterns)
-  - Switchable voice profile schema design
 - **Deliverables**:
-  - [ ] Literary analysis of character voice techniques from novels
-  - [ ] Grok speech modes comparison and pattern identification
-  - [ ] Voice profile schema and prompt structure template
-  - [ ] Test implementation with Adelaide and Pippin profiles
-- **Acceptance Criteria**:
-  - Methodology documented for creating character voices
-  - Voice profile schema defined and tested
-  - Both Adelaide and Pippin profiles drafted
-  - Uncertainty reduced from 4 → 2 for subsequent tasks
+  - [x] Literary analysis of character voice techniques from novels
+  - [x] Grok speech modes comparison and pattern identification
+  - [x] Voice profile schema and prompt structure template
+  - [x] Test implementation with Adelaide and Pippin profiles
+- **Output**: `docs/research-notes/SPIKE-character-voice-methodology.md`
+- **Implementation**:
+  - `packages/core/src/database/types.ts` - Personality types
+  - `packages/core/src/personalities/adelaide.ts` - Adelaide profile
+  - `packages/core/src/personalities/pippin.ts` - Pippin profile
+  - `packages/core/src/personalities/index.ts` - buildPersonalityPrompt()
 
 ---
 

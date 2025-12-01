@@ -11,11 +11,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Landing page**: pip.arcforge.au with demo chat UI, features, and pricing sections
+- **Personality system**: Adelaide and Pippin character profiles with switchable voices
+- **Character voice infrastructure**: `buildPersonalityPrompt()` for system prompt injection
 - **Native memory implementation**: Option B with text-based search (replaced mem0)
 - **Memory tools**: 5 MCP tools (add_memory, search_memory, list_memories, delete_memory, delete_all_memories)
 - **ChatGPT support**: Full connector integration with meta-tool pattern
 - **ChatGPT memory guide**: docs/CHATGPT-MEMORY-GUIDE.md (export/import instructions)
 - **Repository renamed**: `pip` → `pip-by-arc-forge` (GitHub + local)
+
+### Changed
+- **Git workflow simplified**: Moved to Simple tier (main only, direct commits)
+  - Removed dev branch (merged to main)
+  - Removed enforce-main-pr-source.yml workflow (not needed for Simple tier)
+  - Updated all documentation for Simple tier
 
 ### Fixed
 - **issue_010: Mem0 SQLite crash**: Switched to native memory (mem0ai has internal SQLite bug in Docker/Alpine)

@@ -55,19 +55,22 @@ See `ARCHITECTURE.md` for complete details.
 **Work on `main`. Commit directly.** Simple tier for fast prototyping.
 
 ```bash
-# Start work
-git pull origin main
-
 # Development
-pnpm install && pnpm dev
+pnpm install
+pnpm dev
 
-# Deploy to VPS
-ssh root@170.64.169.203 "cd /opt/pip && git pull && docker compose up -d --build"
+# Build (pre-commit check)
+pnpm build
 
-# Check health
+# Deploy to VPS (systematic - rebuilds ALL containers)
+ssh root@170.64.169.203 "cd /opt/pip && ./deploy/deploy.sh"
+
+# Quick health check
 curl https://app.pip.arcforge.au/health
 curl https://mcp.pip.arcforge.au/health
 ```
+
+**Containers**: `pip-app` (main server + PWA), `pip-mcp` (MCP server)
 
 ---
 

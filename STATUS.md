@@ -3,8 +3,8 @@
 > **Purpose**: Current state snapshot (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-12-01
-**Current Phase**: Milestone 2 Implementation (Epic 2.1 + 2.2 Complete)
+**Last Updated**: 2025-12-02
+**Current Phase**: Milestone 2 Implementation (Epic 2.1 + 2.2 Complete, Response Styles next)
 **Version**: 0.4.0-dev
 
 ---
@@ -67,10 +67,11 @@
 
 1. ~~**Epic 2.1** (Memory Refactor)~~ ✅ Complete
 2. ~~**Epic 2.2** (Chat History)~~ ✅ Complete
-3. **Epic 2.3** (Projects) - Complex, needs careful implementation
-4. **Epic 2.5** (Voice) - CRITICAL for retention, profiles ready
+3. **Response Styles** (issue_020) - P1, replaces Epic 2.5 (simpler, user-controlled)
+4. **Epic 2.3** (Projects) - Complex, needs careful implementation
 5. **Epic 2.4** (Document Upload) - Medium priority, spike complete
-6. **Epic 2.6** (Testing) - Continuous throughout milestone
+6. ~~**Epic 2.5** (Personality)~~ 🔵 Deferred - replaced by Response Styles
+7. **Epic 2.6** (Testing) - Continuous throughout milestone
 
 ### Language Rules (User-Facing Content)
 - ❌ NEVER use "AI" (overused marketing hype)
@@ -191,11 +192,11 @@
 
 ## Next Steps
 
-1. **Implement Epic 2.5** - Voice profiles (Adelaide/Pippin) - spike complete, profiles ready
+1. **Implement Response Styles** (issue_020) - Claude.ai pattern, replaces Personality feature
 2. **Implement Epic 2.3** - Projects feature (isolated context per project/client)
 3. **Implement Epic 2.4** - Per-chat document upload (spike complete)
-4. **Onboard beta users** - Share with trusted users for feedback
-5. **Test deployed features** - Verify Memory UI + Chat History on production
+4. **Fix issue_019** - Safety Settings UI placement
+5. **Onboard beta users** - Share with trusted users for feedback
 
 ---
 
@@ -222,10 +223,15 @@
    - Plus icon (+) in chat (spike complete: use react-dropzone)
    - Document preview below chat input
 
-5. **Pip's Voice/Personality** → Epic 2.5
-   - Adelaide Bookkeeper profile ready
-   - Pippin (LOTR-inspired) profile ready
-   - Need: Integration into agent orchestrator
+5. **Response Styles** → issue_020 (replaces Epic 2.5)
+   - Claude.ai pattern: Normal, Formal, Concise, Explanatory, Learning
+   - Settings dropdown for style selection
+   - Simpler than Personality - user-controlled, not AI character
+
+6. **Pip's Personality** → Epic 2.5 (DEFERRED)
+   - Adelaide/Pippin profiles preserved for future use
+   - Decision: "Personality" too assumptive for business tool
+   - May become premium feature layered on top of Styles
 
 ---
 

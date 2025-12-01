@@ -367,8 +367,8 @@
 - **Unblocked By**: spike_m2_002 (2025-12-01)
 
 #### issue_015: Pip's Voice/Personality (Epic 2.5)
-- **Status**: 🟡 In Progress (spike complete, implementation ready)
-- **Priority**: P1 (CRITICAL - retention impact)
+- **Status**: 🔵 Deferred (replaced by issue_020)
+- **Priority**: P3 (Future - not MVP critical)
 - **Component**: `packages/mcp-remote-server` (system prompts), `packages/core/src/personalities/`
 - **Blueprint**: feature_2_5_1 through feature_2_5_5
 - **Description**: Switchable character personalities that can change mid-chat without losing context.
@@ -378,19 +378,42 @@
   - `buildPersonalityPrompt()` function implemented
 - **Option A - Adelaide Bookkeeper**: Professional, approachable, no jargon
 - **Option B - Pippin (LOTR-inspired)**: Playful, warm, surprisingly competent
+- **Deferred Reason** (2025-12-02):
+  - "Personality" terminology is assumptive - implies the tool has its own character
+  - Could scare off business users who want a reliable assistant, not an employee to understand
+  - Better approach: Start with neutral "Styles" (issue_020), personality can layer on top later
+- **Preserved Assets**:
+  - `packages/core/src/personalities/adelaide.ts` - Profile for future use
+  - `packages/core/src/personalities/pippin.ts` - Profile for future use
+  - `buildPersonalityPrompt()` infrastructure ready
+- **Notes**: Not deleted - deferred to post-Styles implementation. Could become premium feature.
+
+#### issue_020: Response Styles (Claude.ai Pattern)
+- **Status**: 🔴 Open
+- **Priority**: P1 (HIGH - replaces Epic 2.5)
+- **Component**: `packages/pwa-app`, `packages/server`, `packages/mcp-remote-server`
+- **Description**: Implement response style selector modeled after Claude.ai's style system (Formal, Explanatory, Concise, Learning, Normal).
+- **Rationale**:
+  - "Styles" puts control in user's hands (vs "Personality" which implies AI character)
+  - More neutral/professional for business tool
+  - Could integrate with memory in future (remember style preferences)
+  - Direct user request - standard UX pattern from Claude.ai
+- **Reference**: Claude.ai Settings → Response Styles dropdown
+- **Styles to Implement**:
+  - **Normal** (default): Balanced, natural responses
+  - **Formal**: Professional tone, complete sentences
+  - **Concise**: Brief, to-the-point answers
+  - **Explanatory**: Detailed with context and reasoning
+  - **Learning**: Educational, explains concepts
 - **Acceptance Criteria**:
-  - [x] Complete character voice methodology spike (spike_m2_003)
-  - [x] Define Adelaide character profile and system prompt
-  - [x] Define Pippin character profile and system prompt
-  - [ ] Test both voices across invoicing, reports, troubleshooting
-  - [x] Extend user_settings schema for voice_profile
-  - [ ] Voice loading in AgentOrchestrator
-  - [ ] Mid-chat voice switching without context loss
-  - [ ] Voice selector in settings page
-  - [ ] Quick voice toggle in chat interface
-  - [ ] Refine based on user testing
-- **Complexity**: 1.5-2.8/5 (Medium)
-- **Notes**: CRITICAL for user retention. Profiles drafted, need integration testing.
+  - [ ] Add `response_style` column to user_settings table
+  - [ ] Create style definitions (system prompt modifiers)
+  - [ ] Style selector in Settings page (dropdown matching Claude.ai UI)
+  - [ ] Apply style to system prompt in agent orchestrator
+  - [ ] Persist style preference per user
+  - [ ] Optional: Quick style toggle in chat header
+- **Complexity**: 2.0/5 (Low-Medium - simpler than full personality system)
+- **Notes**: Replaces Epic 2.5 as primary "voice" feature. Personality could layer on top later.
 
 ---
 

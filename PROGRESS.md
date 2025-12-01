@@ -666,7 +666,86 @@ The Thursday demo with dental practice owner has been completed. Demo materials 
 
 ---
 
+## Spike: Multi-Model LLM Architecture (spike_m2_004)
+
+**Status**: 🔴 Not Started
+**Blueprint**: `specs/archive/BLUEPRINT-spike-multi-model-architecture-20251201.yaml`
+**Time-box**: 3-5 days
+**Reduces Uncertainty For**: Future multi-model support implementation
+
+### Context
+
+Current state:
+- PWA + MCP hardcoded to Anthropic Claude
+- User has local GPU with Ollama capability
+- Headscale (self-hosted Tailscale) running on VPS
+
+Goal: Research optimal architecture for:
+1. Multi-model PWA (dropdown selector like ChatGPT/Claude)
+2. LiteLLM proxy for unified API
+3. Tailscale networking for secure Ollama access
+4. Model-agnostic MCP design (called from multiple platforms)
+
+### Deliverables
+
+| Deliverable | Est | Status | Notes |
+|-------------|-----|--------|-------|
+| Architecture Decision Document | 1.5d | ⚪ | ADR: LiteLLM strategy, Tailscale pattern, PWA integration |
+| LiteLLM Configuration POC | 1.5d | ⚪ | Anthropic + OpenAI + Ollama routing, Docker setup |
+| Tailscale + Ollama Connectivity Test | 1.0d | ⚪ | Latency measurements, offline handling |
+| PWA Model Selector Mockup | 0.5d | ⚪ | UI/UX design, state management approach |
+| Cost/Performance Comparison Matrix | 0.5d | ⚪ | 5+ models, function calling support |
+
+### Research Questions
+
+**LiteLLM Integration**:
+- [ ] Routing and fallback patterns
+- [ ] Streaming response handling
+- [ ] Cost tracking/observability
+- [ ] Provider-specific features (function calling, tools)
+
+**Tailscale + Ollama**:
+- [ ] Direct Ollama vs LiteLLM proxy exposure
+- [ ] Latency implications of tunneling
+- [ ] Server discovery/registration
+- [ ] Offline graceful degradation
+
+**PWA Model Selector**:
+- [ ] Static vs dynamic model discovery
+- [ ] Model-specific capabilities display
+- [ ] Mid-conversation switching UX
+- [ ] User preference persistence
+
+**MCP Model Source**:
+- [ ] Model-agnostic tool design
+- [ ] Platform differences (Claude.ai vs ChatGPT vs PWA)
+- [ ] Prompt engineering considerations
+
+### Acceptance Criteria
+
+- [ ] All research questions answered with evidence
+- [ ] LiteLLM routing to 3+ models working
+- [ ] Ollama accessible via Tailscale with latency <5s
+- [ ] Architecture decision document covers all 5 areas
+- [ ] Uncertainty reduced to UA ≤2 for implementation
+
+---
+
 ## Progress Changelog
+
+### 2025-12-01 - spike_m2_004: Multi-Model Architecture Spike Created
+
+**Spike Created**:
+- Blueprint generated for multi-model LLM architecture research
+- Time-boxed to 3-5 days
+- Focus: LiteLLM, Tailscale+Ollama, PWA model selector, MCP model-agnostic design
+- 5 deliverables defined with clear acceptance criteria
+
+**Key Research Areas**:
+- LiteLLM proxy configuration and routing
+- Secure Ollama access via Tailscale
+- Dynamic model switching in PWA
+- Model-agnostic MCP server design
 
 ### 2025-12-01 - spike_m2_002: React Refactor Assessment Complete
 

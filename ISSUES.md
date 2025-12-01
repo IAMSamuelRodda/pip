@@ -408,6 +408,29 @@ Research/investigation tasks that must complete before dependent implementation 
 - **File Upload Recommendation**: react-dropzone for + icon UX
 - **Output**: `docs/research-notes/SPIKE-m2-002-react-refactor-assessment.md`
 
+#### spike_m2_004: Multi-Model LLM Architecture Research
+- **Status**: 🔴 Open
+- **Duration**: 3-5 days
+- **Priority**: P1 (foundation for multi-model support)
+- **Reduces Uncertainty For**: Future multi-model support implementation
+- **Blueprint**: `specs/archive/BLUEPRINT-spike-multi-model-architecture-20251201.yaml`
+- **Description**: Research optimal architecture for LiteLLM proxy, Tailscale+Ollama connectivity, PWA model selector, and model-agnostic MCP design.
+- **Deliverables**:
+  - [ ] Architecture Decision Document (LiteLLM strategy, Tailscale pattern, PWA integration)
+  - [ ] LiteLLM Configuration POC (Anthropic + OpenAI + Ollama routing)
+  - [ ] Tailscale + Ollama Connectivity Test (latency measurements, offline handling)
+  - [ ] PWA Model Selector Mockup (UI/UX design, state management)
+  - [ ] Cost/Performance Comparison Matrix (5+ models, function calling support)
+- **Acceptance Criteria**:
+  - All research questions answered with evidence
+  - LiteLLM routing to 3+ models working
+  - Ollama accessible via Tailscale with latency <5s
+  - Uncertainty reduced to UA ≤2 for implementation
+- **Risks**:
+  - Tailscale latency may be prohibitive for real-time chat
+  - LiteLLM may not support all provider-specific features
+  - Local GPU machine offline = degraded experience
+
 #### spike_m2_003: Character Voice Methodology Research
 - **Status**: ✅ Complete
 - **Duration**: 1 day (estimated 3 days)

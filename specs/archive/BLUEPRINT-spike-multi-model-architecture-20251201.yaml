@@ -1,0 +1,162 @@
+blueprint_type: spike
+created: 2025-12-01
+spike_name: "Multi-Model LLM Architecture Research"
+time_box_days: 3-5
+reduces_uncertainty_for: "future multi-model support implementation"
+tracking_method: document
+
+context:
+  current_state: |
+    - Pip is a PWA + MCP server for Xero bookkeeping
+    - PWA frontend at app.pip.arcforge.au
+    - MCP server at mcp.pip.arcforge.au
+    - Currently hardcoded to Anthropic Claude
+    - User has local GPU with Ollama capability
+    - User has Headscale (self-hosted Tailscale) on VPS
+
+  goal: |
+    Research the best architecture for:
+    1. Multi-model support in the PWA (dropdown model selector like ChatGPT/Claude)
+    2. LiteLLM proxy for unified API access
+    3. Tailscale networking for secure Ollama access
+    4. Understanding how MCP server interactions work (model comes from host platform)
+
+research_questions:
+  litellm_integration:
+    - "How does LiteLLM handle model routing and fallbacks?"
+    - "What's the API structure for provider abstraction?"
+    - "How does LiteLLM handle streaming responses?"
+    - "What's the cost tracking/observability story?"
+    - "How does it handle provider-specific features (function calling, tools)?"
+
+  tailscale_ollama:
+    - "What's the best way to expose local Ollama via Tailscale?"
+    - "Should Ollama be exposed directly or via LiteLLM proxy?"
+    - "What are the latency implications of Tailscale tunneling?"
+    - "How to handle Ollama server discovery/registration?"
+    - "What happens when local machine is offline?"
+
+  pwa_model_selector:
+    - "How should the PWA model selector integrate with LiteLLM?"
+    - "Should model list be static or dynamically discovered?"
+    - "How to handle model-specific capabilities (context window, pricing)?"
+    - "What's the UX for switching models mid-conversation?"
+    - "How to persist user's model preference?"
+
+  mcp_model_source:
+    - "What happens when MCP is called from Claude.ai vs PWA?"
+    - "Does the MCP server care about the calling model?"
+    - "How to handle model-specific prompt engineering in MCP tools?"
+    - "Should MCP tools be model-agnostic or model-aware?"
+
+  cost_performance:
+    - "What are the token/cost implications of different models?"
+    - "How to implement cost tracking per conversation?"
+    - "What's the performance delta between cloud and local models?"
+    - "Which models support function calling (required for MCP)?"
+
+deliverables:
+  - name: "Architecture Decision Document"
+    description: |
+      Comprehensive ADR covering:
+      - Chosen LiteLLM deployment strategy (sidecar vs standalone)
+      - Tailscale + Ollama connectivity pattern
+      - PWA model selector implementation approach
+      - MCP model-agnostic design principles
+      - Cost tracking strategy
+      - Fallback/error handling patterns
+    estimated_days: 1.5
+
+  - name: "LiteLLM Configuration POC"
+    description: |
+      Working LiteLLM proxy instance with:
+      - Anthropic Claude configuration (existing)
+      - OpenAI configuration (comparison baseline)
+      - Ollama configuration (local model via Tailscale)
+      - Provider fallback rules
+      - Cost tracking enabled
+      - Docker-compose setup for VPS deployment
+    estimated_days: 1.5
+
+  - name: "Tailscale + Ollama Connectivity Test"
+    description: |
+      Validated setup demonstrating:
+      - Ollama running on local GPU machine
+      - Tailscale connectivity from VPS to local machine
+      - LiteLLM proxy successfully routing to Ollama via Tailscale
+      - Latency measurements (baseline vs tunneled)
+      - Offline handling (graceful degradation)
+      - Security verification (no public exposure)
+    estimated_days: 1.0
+
+  - name: "PWA Model Selector Mockup/Design"
+    description: |
+      UI/UX design including:
+      - Model dropdown component mockup (Figma or code prototype)
+      - Model metadata display (context window, cost, speed)
+      - Conversation-level model persistence
+      - Mid-conversation model switching behavior
+      - Integration points with existing chat interface
+      - State management approach (Redux/Context)
+    estimated_days: 0.5
+
+  - name: "Cost/Performance Comparison Matrix"
+    description: |
+      Spreadsheet or Markdown table with:
+      - Model comparison (Claude 3.5 Sonnet, GPT-4, Llama 3, etc.)
+      - Token costs (input/output)
+      - Context window limits
+      - Function calling support (critical for MCP)
+      - Average response latency
+      - Quality assessment for bookkeeping tasks
+      - Recommendations by use case
+    estimated_days: 0.5
+
+acceptance_criteria:
+  - "All research questions answered with evidence (not speculation)"
+  - "LiteLLM proxy running and routing to 3+ models"
+  - "Ollama accessible via Tailscale with measured latency"
+  - "Architecture decision document covers all 5 key areas"
+  - "Cost/performance matrix includes 5+ models"
+  - "PWA integration approach clearly defined"
+  - "Uncertainty reduced to UA ≤2 for implementation tasks"
+  - "Technical feasibility validated with working POCs"
+
+risks_and_constraints:
+  technical_risks:
+    - "Ollama via Tailscale latency may be prohibitive for real-time chat"
+    - "LiteLLM may not support all provider-specific features"
+    - "Model switching mid-conversation may break context"
+    - "Local GPU machine offline = degraded experience"
+
+  architectural_constraints:
+    - "MCP server must remain model-agnostic (called from multiple platforms)"
+    - "PWA must work with or without local Ollama"
+    - "Cost tracking adds complexity to every request"
+    - "Provider fallbacks must be transparent to user"
+
+  resource_constraints:
+    - "Time-boxed to 3-5 days (avoid rabbit holes)"
+    - "Focus on Pip use case (bookkeeping), not generic LLM proxy"
+    - "Prioritize POCs over comprehensive documentation"
+
+success_metrics:
+  - "Can deploy LiteLLM to VPS with Docker in <30 minutes"
+  - "Ollama requests via Tailscale complete in <5 seconds"
+  - "Architecture document provides clear implementation path"
+  - "Mockup demonstrates model switching UX"
+  - "Cost matrix identifies 2+ viable alternative models to Claude"
+
+out_of_scope:
+  - "Full implementation of model selector UI"
+  - "Production deployment of LiteLLM proxy"
+  - "Fine-tuning or custom model training"
+  - "Comprehensive testing of all LiteLLM providers"
+  - "User authentication/authorization for model access"
+  - "Detailed cost optimization algorithms"
+
+next_steps_after_spike:
+  - "Create feature blueprint for multi-model support implementation"
+  - "Estimate implementation effort based on POC complexity"
+  - "Decide on phased rollout (cloud models first, then local)"
+  - "Define model selection criteria for production"

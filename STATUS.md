@@ -113,6 +113,7 @@
 
 | ID | Priority | Summary | Status |
 |----|----------|---------|--------|
+| issue_019 | P2 | Safety Settings UI - explanation box placement | 🔴 Open |
 | issue_010 | - | Mem0 SQLite crash in Docker | ✅ Resolved (switched to native) |
 | issue_008 | - | Memory architecture decision | ✅ Resolved (Option B deployed) |
 | issue_005 | - | ChatGPT memory in Dev Mode | ✅ Resolved (native memory works) |
@@ -122,7 +123,20 @@
 
 ## Recent Achievements (Last 2 Weeks)
 
-### 2025-12-01
+### 2025-12-01 (Evening Session)
+- **Memory API Fixes**: Fixed SQL schema mismatches preventing memory saves
+  - Column `observation` not `content`
+  - Added `is_user_edit` and `updated_at` migrations
+  - Memory UI now fully functional
+- **Naming Migration Complete**: zero-agent → pip fully resolved
+  - Updated all Dockerfiles, code defaults, and READMEs
+  - Deploy script now sources `.env` for secrets
+  - Backup script updated to use `pip` naming (14-day retention)
+- **Login/Signup Icons**: Changed from rounded square to circular design
+- **Migration Checklist Added**: DEVELOPMENT.md now includes lessons learned
+- **New Issue**: issue_019 - Safety Settings UI placement
+
+### 2025-12-01 (Morning Session)
 - **Git Workflow Simplified**: Moved to Simple tier (main only)
   - Merged dev to main, deleted dev branch
   - Removed 5 stale branches, 3 worktrees

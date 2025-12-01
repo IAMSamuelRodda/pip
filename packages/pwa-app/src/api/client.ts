@@ -220,4 +220,102 @@ export const api = {
   },
 };
 
-export type { PersonalityId, UserSettings, PersonalityInfo, PersonalityOption };
+// Memory types
+interface MemoryStatus {
+  summary: string | null;
+  summaryGeneratedAt: number | null;
+  isStale: boolean;
+  editCount: number;
+  entityCount: number;
+  observationCount: number;
+}
+
+interface MemoryEdit {
+  entityName: string;
+  observation: string;
+  createdAt: number;
+}
+
+export const memoryApi = {
+  /**
+   * Get memory summary and stats
+   */
+  async getMemory(projectId?: string): Promise<MemoryStatus> {
+    const params = projectId ? `?projectId=${encodeURIComponent(projectId)}` : '';
+    const response = await fetch(`${API_BASE}/api/memory${params}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to get memory');
+    }
+    return response.json();
+  },
+
+  /**
+   * Add a user edit (explicit memory request)
+   */
+  async addEdit(entityName: string, content: string, projectId?: string): Promise<{ success: boolean }> {
+    const response = await fetch(`${API_BASE}/api/memory/edit`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify({ entityName, content, projectId }),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Failed to add edit' }));
+      throw new Error(error.error || 'Failed to add memory edit');
+    }
+    return response.json();
+  },
+
+  /**
+   * List all user edits
+   */
+  async getEdits(projectId?: string): Promise<{ edits: MemoryEdit[] }> {
+    const params = projectId ? `?projectId=${encodeURIComponent(projectId)}` : '';
+    const response = await fetch(`${API_BASE}/api/memory/edits${params}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to get memory edits');
+    }
+    return response.json();
+  },
+
+  /**
+   * Delete a specific user edit
+   */
+  async deleteEdit(entityName: string, observation: string, projectId?: string): Promise<{ success: boolean }> {
+    const params = projectId ? `?projectId=${encodeURIComponent(projectId)}` : '';
+    const response = await fetch(
+      `${API_BASE}/api/memory/edits/${encodeURIComponent(entityName)}/${encodeURIComponent(observation)}${params}`,
+      {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      }
+    );
+    if (!response.ok) {
+      throw new Error('Failed to delete edit');
+    }
+    return response.json();
+  },
+
+  /**
+   * Clear all user edits
+   */
+  async clearEdits(projectId?: string): Promise<{ success: boolean; deleted: number }> {
+    const params = projectId ? `?projectId=${encodeURIComponent(projectId)}` : '';
+    const response = await fetch(`${API_BASE}/api/memory/edits${params}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to clear edits');
+    }
+    return response.json();
+  },
+};
+
+export type { PersonalityId, UserSettings, PersonalityInfo, PersonalityOption, MemoryStatus, MemoryEdit };

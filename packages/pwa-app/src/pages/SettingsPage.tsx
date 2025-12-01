@@ -5,9 +5,10 @@
 
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../api/client';
-import type { PersonalityId, PersonalityOption } from '../api/client';
+import { api, memoryApi } from '../api/client';
+import type { PersonalityId, PersonalityOption, MemoryStatus } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { ManageMemoryModal } from '../components/ManageMemoryModal';
 
 type PermissionLevel = 0 | 1 | 2 | 3;
 
@@ -58,11 +59,25 @@ export function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Load settings and personalities on mount
+  // Memory state
+  const [memory, setMemory] = useState<MemoryStatus | null>(null);
+  const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
+
+  // Load settings, personalities, and memory on mount
   useEffect(() => {
     loadSettings();
     loadPersonalities();
+    loadMemory();
   }, []);
+
+  const loadMemory = async () => {
+    try {
+      const result = await memoryApi.getMemory();
+      setMemory(result);
+    } catch (err) {
+      console.error('Failed to load memory:', err);
+    }
+  };
 
   const loadSettings = async () => {
     try {
@@ -312,6 +327,32 @@ export function SettingsPage() {
               </div>
             </section>
 
+            {/* Memory Section */}
+            <section>
+              <h2 className="text-lg font-medium text-arc-text-primary mb-2">Memory</h2>
+              <p className="text-sm text-arc-text-secondary mb-6">
+                Pip learns about you and your preferences from your conversations.
+              </p>
+
+              <button
+                onClick={() => setIsMemoryModalOpen(true)}
+                className="w-full text-left p-4 rounded-xl bg-arc-bg-tertiary border border-arc-border hover:border-arc-accent/50 transition-all"
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <span className="font-medium text-arc-text-primary">Manage memory</span>
+                    <p className="text-sm text-arc-text-secondary mt-1">
+                      {memory?.entityCount
+                        ? `${memory.entityCount} memories stored`
+                        : 'No memories yet'}
+                      {memory?.editCount ? ` · ${memory.editCount} edits` : ''}
+                    </p>
+                  </div>
+                  <span className="text-arc-text-secondary">&rarr;</span>
+                </div>
+              </button>
+            </section>
+
             {/* Info Section */}
             <section className="bg-arc-bg-tertiary border border-arc-border rounded-xl p-6">
               <h3 className="text-sm font-medium text-arc-text-primary mb-3">Why Safety Settings?</h3>
@@ -338,6 +379,15 @@ export function SettingsPage() {
           </p>
         </div>
       </footer>
+
+      {/* Memory Modal */}
+      <ManageMemoryModal
+        isOpen={isMemoryModalOpen}
+        onClose={() => {
+          setIsMemoryModalOpen(false);
+          loadMemory(); // Reload memory stats when modal closes
+        }}
+      />
     </div>
   );
 }

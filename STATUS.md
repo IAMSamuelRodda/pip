@@ -61,11 +61,11 @@
    - 3 deliverables: research report, API design, POC
    - Blueprint: `specs/BLUEPRINT-spike-cross-project-reference-20251201.yaml`
 
-5. **Spikes Status**:
+5. **Spikes Status** (ALL COMPLETE):
+   - ✅ spike_m2_001: Cross-Project Reference - **Query-time project parameter pattern**
    - ✅ spike_m2_002: React.js Refactor Assessment - **Keep React + react-dropzone**
    - ✅ spike_m2_003: Character Voice Methodology - Adelaide/Pippin profiles
    - ✅ spike_m2_004: Multi-Model Architecture - LiteLLM + Tailscale + Ollama
-   - 🔴 spike_m2_001: Cross-Project Reference Research (2 days) - **BLUEPRINT READY**
 
 6. **Issues Updated**:
    - issue_011: Memory Architecture → 🟡 Partially Complete (analysis done)

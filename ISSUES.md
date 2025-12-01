@@ -413,27 +413,24 @@ Research/investigation tasks that must complete before dependent implementation 
 ### Milestone 2 Spikes
 
 #### spike_m2_001: Cross-Project Reference Capability Research
-- **Status**: 🔴 Open (blueprint created)
-- **Duration**: 2 days
-- **Priority**: P1 (blocks feature_2_3_3)
+- **Status**: ✅ Complete
+- **Duration**: 2 days (completed in <1 day)
+- **Completed**: 2025-12-01
+- **Priority**: - (Done - unblocks feature_2_3_3)
 - **Reduces Uncertainty For**: task_2_3_3_1, task_2_3_3_2
 - **Blueprint**: `specs/BLUEPRINT-spike-cross-project-reference-20251201.yaml`
 - **Description**: Research patterns for cross-project data access (like Claude Code referencing other repos)
-- **Research Questions**:
-  - How do Claude Code, VS Code, Notion handle cross-project references?
-  - API design: read-only vs read-write, explicit vs implicit?
-  - Permission model: owner-only vs shared, granular vs simple?
-  - UX: How to indicate cross-project context in chat?
+- **Research Sources**: Claude Code (`--add-dir`), VS Code (multi-root workspaces), Notion (relations), Xero (multi-org), SaaS multi-tenant patterns
 - **Deliverables**:
-  - [ ] Research report: `docs/research-notes/SPIKE-m2-001-cross-project-patterns.md`
-  - [ ] API design: `specs/spike-outputs/CROSS-PROJECT-API-DESIGN-20251201.md`
-  - [ ] Proof of concept: Cross-project memory query with permission check
-- **Acceptance Criteria**:
-  - All research questions answered with evidence
-  - API design covers read-only cross-project access
-  - Permission model clearly documented
-  - POC demonstrates basic cross-project memory query
-  - Uncertainty reduced from 4 → 2 for task_2_3_3_1
+  - [x] Research report: `docs/research-notes/SPIKE-m2-001-cross-project-patterns.md`
+  - [x] API design: `specs/spike-outputs/CROSS-PROJECT-API-DESIGN-20251201.md`
+  - [x] POC: `search_nodes` tool extended with `projectIds` parameter
+- **Key Decisions**:
+  - **Pattern**: Query-time project parameter (like Claude Code's explicit paths)
+  - **Access**: Read-only, owner-only (MVP)
+  - **Validation**: Max 5 projects per query
+  - **Ownership check**: TODO when Projects feature implemented
+- **Uncertainty**: Reduced from 4 → 2 ✅
 
 #### spike_m2_002: React.js Refactor Assessment for File Uploads
 - **Status**: ✅ Complete

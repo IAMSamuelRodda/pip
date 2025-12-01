@@ -531,15 +531,20 @@ Key gap is **Claude.ai UI/UX patterns** - single memory with tracked user edits.
 | task_2_3_2_3: Update XeroClient | ⚪ | 2.5 | Get tokens by project_id |
 
 #### feature_2_3_3: Cross-Project Reference Capability
-**Status**: ⚠️ SPIKE REQUIRED
+**Status**: 🟡 Spike Complete (ready to implement)
 **Complexity**: 2.5/5 | **Est**: 3 days
 
 | Task | Status | Complexity | Notes |
 |------|--------|------------|-------|
-| task_2_3_3_1: Design cross-project API | ⚪ | 2.8 | **needs_spike** (uncertainty: 4) |
-| task_2_3_3_2: Implement access controls | ⚪ | 2.5 | Read-only cross-project access |
+| task_2_3_3_1: Design cross-project API | ✅ | 2.8 | Query-time `projectIds` parameter |
+| task_2_3_3_2: Implement access controls | 🟡 | 2.5 | POC done, ownership validation TODO |
 
-**Spike**: spike_m2_001 (Cross-Project Reference Research) - 2 days
+**Spike**: spike_m2_001 ✅ COMPLETE (2025-12-01)
+**Outputs**:
+- Research: `docs/research-notes/SPIKE-m2-001-cross-project-patterns.md`
+- API Design: `specs/spike-outputs/CROSS-PROJECT-API-DESIGN-20251201.md`
+- POC: `search_nodes` tool with `projectIds` param in `memory-tools.ts`
+**Pattern**: Query-time project parameter (like Claude Code's `--add-dir`)
 
 #### feature_2_3_4: Projects UI - Switcher & Management
 **Complexity**: 2.3/5 | **Est**: 4 days

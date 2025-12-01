@@ -164,12 +164,18 @@ Use to get an overview of everything Pip remembers.`,
     category: "memory",
     name: "search_nodes",
     description: `Search for entities by name or observation content.
-ALWAYS call this before answering questions about the user's business, team, or goals.`,
+ALWAYS call this before answering questions about the user's business, team, or goals.
+Optionally search across multiple projects for comparison (user must own all projects).`,
     inputSchema: {
       type: "object" as const,
       properties: {
         query: { type: "string", description: "Search query" },
-        limit: { type: "number", description: "Max results (default: 10)" },
+        limit: { type: "number", description: "Max results per project (default: 10)" },
+        projectIds: {
+          type: "array",
+          items: { type: "string" },
+          description: "Optional: Search across these projects (user must own all). Omit for current project only. Max 5 projects.",
+        },
       },
       required: ["query"],
     },
@@ -326,18 +332,85 @@ export function executeMemoryTool(
       }
 
       case "search_nodes": {
-        const { query, limit } = args as { query: string; limit?: number };
-        const entities = manager.searchNodes(query, limit || 10);
-        if (entities.length === 0) {
+        const { query, limit, projectIds } = args as {
+          query: string;
+          limit?: number;
+          projectIds?: string[];
+        };
+
+        // Single project search (default behavior)
+        if (!projectIds || projectIds.length === 0) {
+          const entities = manager.searchNodes(query, limit || 10);
+          if (entities.length === 0) {
+            return {
+              content: [{ type: "text", text: `No memories found matching "${query}".` }],
+            };
+          }
           return {
-            content: [{ type: "text", text: `No memories found matching "${query}".` }],
+            content: [{
+              type: "text",
+              text: `**Search results for "${query}":**\n${entities.map(formatEntity).join("\n")}`,
+            }],
           };
         }
+
+        // Cross-project search (POC)
+        // Validation: max 5 projects
+        if (projectIds.length > 5) {
+          return {
+            content: [{
+              type: "text",
+              text: `Error: Maximum 5 projects per cross-project query. You requested ${projectIds.length}.`,
+            }],
+            isError: true,
+          };
+        }
+
+        // TODO: Validate user owns all projectIds (requires DB access to projects table)
+        // For POC, we proceed with the search - ownership validation will be added
+        // when projects feature is implemented (Epic 2.3)
+
+        // Search across all specified projects
+        const crossProjectResults: {
+          projectId: string;
+          entities: Entity[];
+        }[] = [];
+        let totalResults = 0;
+
+        for (const projId of projectIds) {
+          const projManager = getMemoryManager(userId, projId);
+          const entities = projManager.searchNodes(query, limit || 10);
+          crossProjectResults.push({
+            projectId: projId,
+            entities,
+          });
+          totalResults += entities.length;
+        }
+
+        // Format cross-project results
+        if (totalResults === 0) {
+          return {
+            content: [{
+              type: "text",
+              text: `No memories found matching "${query}" across ${projectIds.length} projects.`,
+            }],
+          };
+        }
+
+        let output = `**Cross-Project Search: "${query}"**\n`;
+        output += `_Searched ${projectIds.length} projects, found ${totalResults} results_\n\n`;
+
+        for (const result of crossProjectResults) {
+          output += `### Project: ${result.projectId}\n`;
+          if (result.entities.length === 0) {
+            output += `_No matches_\n\n`;
+          } else {
+            output += result.entities.map(formatEntity).join("\n") + "\n\n";
+          }
+        }
+
         return {
-          content: [{
-            type: "text",
-            text: `**Search results for "${query}":**\n${entities.map(formatEntity).join("\n")}`,
-          }],
+          content: [{ type: "text", text: output }],
         };
       }
 

@@ -52,6 +52,7 @@ interface ChatState {
   newChat: () => void;
   deleteChat: (sessionId: string) => Promise<void>;
   renameChat: (sessionId: string, title: string) => Promise<void>;
+  bookmarkChat: (sessionId: string) => Promise<void>;
   clearMessages: () => void;
   clearError: () => void;
   setError: (error: string) => void;
@@ -187,6 +188,16 @@ export const useChatStore = create<ChatState>()(
       get().loadChatList();
     } catch (error) {
       set({ error: error instanceof Error ? error.message : 'Failed to rename chat' });
+    }
+  },
+
+  bookmarkChat: async (sessionId: string) => {
+    try {
+      await api.bookmarkChat(sessionId);
+      // Refresh chat list to update bookmark status
+      get().loadChatList();
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Failed to bookmark chat' });
     }
   },
 

@@ -470,7 +470,7 @@ export function ChatInputArea({
                   ? 'text-arc-accent bg-arc-accent/10'
                   : 'text-arc-text-secondary hover:text-arc-text-primary hover:bg-arc-bg-secondary'
               }`}
-              title={`Memory ${memoryEnabled ? 'enabled' : 'disabled'} - Uses stored knowledge about you`}
+              title={memoryEnabled ? 'Memory on' : 'Memory off'}
             >
               <BrainIcon />
             </button>

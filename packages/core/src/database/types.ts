@@ -26,6 +26,7 @@ export interface Session {
   // Chat history fields (added for Epic 2.2)
   title?: string; // Auto-generated from first message
   previewText?: string; // Last message preview for sidebar
+  isBookmarked?: boolean; // User can bookmark important chats
 }
 
 /**

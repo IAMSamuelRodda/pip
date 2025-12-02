@@ -133,6 +133,7 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
     newChat,
     deleteChat,
     renameChat,
+    bookmarkChat,
   } = useChatStore();
 
   const currentProject = useCurrentProject();
@@ -161,12 +162,10 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
     return chatList.slice(0, 5);
   }, [chatList]);
 
-  // Get bookmarked chats (TODO: implement proper bookmarking)
-  // For now, this will be empty - placeholder for future implementation
+  // Get bookmarked chats
   const bookmarkedChats = useMemo(() => {
-    // In the future, filter by chat.isBookmarked
-    return [];
-  }, []);
+    return chatList.filter(chat => chat.isBookmarked);
+  }, [chatList]);
 
   // Handle chat click
   const handleChatClick = async (chatSessionId: string) => {
@@ -193,10 +192,10 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
     setMenuOpenFor(null);
   };
 
-  // Handle bookmark chat (TODO: implement)
-  const handleBookmarkChat = (e: React.MouseEvent, _chatSessionId: string) => {
+  // Handle bookmark chat
+  const handleBookmarkChat = async (e: React.MouseEvent, chatSessionId: string) => {
     e.stopPropagation();
-    // TODO: Implement bookmarking
+    await bookmarkChat(chatSessionId);
     setMenuOpenFor(null);
   };
 
@@ -375,18 +374,50 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
               </div>
             ) : (
               <div className="px-2 py-1 space-y-0.5">
-                {bookmarkedChats.map((chat: { sessionId: string; title: string; updatedAt: number }) => (
-                  <button
-                    key={chat.sessionId}
-                    onClick={() => handleChatClick(chat.sessionId)}
-                    className={`w-full text-left px-2 py-1.5 rounded text-sm transition-colors truncate ${
-                      chat.sessionId === sessionId
-                        ? 'bg-arc-accent/20 text-arc-accent'
-                        : 'text-arc-text-primary hover:bg-arc-bg-tertiary'
-                    }`}
-                  >
-                    {chat.title}
-                  </button>
+                {bookmarkedChats.map((chat) => (
+                  <div key={chat.sessionId} className="relative group/chat">
+                    <button
+                      onClick={() => handleChatClick(chat.sessionId)}
+                      className={`w-full text-left px-2 py-1.5 rounded transition-colors ${
+                        chat.sessionId === sessionId
+                          ? 'bg-arc-accent/20 text-arc-accent'
+                          : 'hover:bg-arc-bg-tertiary text-arc-text-primary'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm truncate flex-1">{chat.title}</span>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setMenuOpenFor(menuOpenFor === `bm-${chat.sessionId}` ? null : `bm-${chat.sessionId}`);
+                          }}
+                          className="p-0.5 rounded opacity-0 group-hover/chat:opacity-100 hover:bg-arc-bg-secondary text-arc-text-dim hover:text-arc-text-primary transition-all"
+                        >
+                          <MoreIcon />
+                        </button>
+                      </div>
+                    </button>
+
+                    {/* Context Menu for bookmarked chat */}
+                    {menuOpenFor === `bm-${chat.sessionId}` && (
+                      <div className="absolute right-0 top-full mt-1 bg-arc-bg-tertiary border border-arc-border rounded-lg shadow-lg z-50 py-1 min-w-36">
+                        <button
+                          onClick={(e) => handleBookmarkChat(e, chat.sessionId)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-arc-text-primary hover:bg-arc-bg-secondary transition-colors"
+                        >
+                          <StarIcon />
+                          Unbookmark
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteChat(e, chat.sessionId)}
+                          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-arc-bg-secondary transition-colors"
+                        >
+                          <TrashIcon />
+                          Delete
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}
@@ -472,7 +503,7 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
                               className="w-full flex items-center gap-2 px-3 py-2 text-sm text-arc-text-primary hover:bg-arc-bg-secondary transition-colors"
                             >
                               <StarIcon />
-                              Bookmark
+                              {chat.isBookmarked ? 'Unbookmark' : 'Bookmark'}
                             </button>
                             <button
                               onClick={(e) => handleStartRename(e, chat.sessionId, chat.title)}

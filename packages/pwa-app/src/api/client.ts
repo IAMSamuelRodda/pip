@@ -30,6 +30,7 @@ interface ChatSummary {
   messageCount: number;
   createdAt: number;
   updatedAt: number;
+  isBookmarked: boolean;
 }
 
 interface ChatSession {
@@ -328,6 +329,20 @@ export const api = {
     });
     if (!response.ok) {
       throw new Error('Failed to delete chat');
+    }
+    return response.json();
+  },
+
+  /**
+   * Toggle bookmark status for a chat
+   */
+  async bookmarkChat(sessionId: string): Promise<{ sessionId: string; isBookmarked: boolean }> {
+    const response = await fetch(`${API_BASE}/api/sessions/${sessionId}/bookmark`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to bookmark chat');
     }
     return response.json();
   },

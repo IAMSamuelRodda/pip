@@ -98,6 +98,7 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
             messageCount: s.messages.length,
             createdAt: s.createdAt,
             updatedAt: s.updatedAt,
+            isBookmarked: s.isBookmarked || false,
           };
         }),
       });
@@ -160,6 +161,34 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
       res.json({
         sessionId: updated.sessionId,
         title: updated.title,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  /**
+   * POST /api/sessions/:id/bookmark
+   * Toggle bookmark status for a session
+   */
+  router.post('/:id/bookmark', async (req, res, next) => {
+    try {
+      const userId = req.userId!;
+      const { id: sessionId } = req.params;
+
+      const session = await db.getSession(userId, sessionId);
+      if (!session) {
+        res.status(404).json({ error: 'Session not found' });
+        return;
+      }
+
+      const updated = await db.updateSession(userId, sessionId, {
+        isBookmarked: !session.isBookmarked,
+      });
+
+      res.json({
+        sessionId: updated.sessionId,
+        isBookmarked: updated.isBookmarked,
       });
     } catch (error) {
       next(error);

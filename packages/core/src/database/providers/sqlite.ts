@@ -119,6 +119,16 @@ export class SQLiteProvider implements DatabaseProvider {
     } catch {
       // Column already exists, ignore
     }
+    try {
+      this.db.exec(`ALTER TABLE sessions ADD COLUMN is_bookmarked INTEGER DEFAULT 0`);
+    } catch {
+      // Column already exists, ignore
+    }
+    try {
+      this.db.exec(`ALTER TABLE sessions ADD COLUMN project_id TEXT`);
+    } catch {
+      // Column already exists, ignore
+    }
 
     // Core Memory table
     this.db.exec(`
@@ -429,6 +439,7 @@ export class SQLiteProvider implements DatabaseProvider {
         expiresAt: row.expires_at,
         title: row.title || undefined,
         previewText: row.preview_text || undefined,
+        isBookmarked: row.is_bookmarked === 1,
       };
     } catch (error) {
       throw new DatabaseError(
@@ -460,7 +471,7 @@ export class SQLiteProvider implements DatabaseProvider {
 
       const stmt = this.db.prepare(`
         UPDATE sessions
-        SET messages = ?, agent_context = ?, updated_at = ?, expires_at = ?, title = ?, preview_text = ?, project_id = ?
+        SET messages = ?, agent_context = ?, updated_at = ?, expires_at = ?, title = ?, preview_text = ?, project_id = ?, is_bookmarked = ?
         WHERE user_id = ? AND session_id = ?
       `);
 
@@ -472,6 +483,7 @@ export class SQLiteProvider implements DatabaseProvider {
         updated.title || null,
         updated.previewText || null,
         updated.projectId || null,
+        updated.isBookmarked ? 1 : 0,
         userId,
         sessionId
       );
@@ -549,6 +561,7 @@ export class SQLiteProvider implements DatabaseProvider {
         expiresAt: row.expires_at,
         title: row.title || undefined,
         previewText: row.preview_text || undefined,
+        isBookmarked: row.is_bookmarked === 1,
       }));
     } catch (error) {
       throw new DatabaseError(

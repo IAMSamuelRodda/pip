@@ -73,6 +73,8 @@ docker run -d --name pip-mcp \
   -e XERO_CLIENT_SECRET="$XERO_CLIENT_SECRET" \
   -e JWT_SECRET="$JWT_SECRET" \
   -e BASE_URL=https://mcp.pip.arcforge.au \
+  -e MCP_OAUTH_CLIENT_ID="${MCP_OAUTH_CLIENT_ID:-pip-mcp-client}" \
+  -e MCP_OAUTH_CLIENT_SECRET="$MCP_OAUTH_CLIENT_SECRET" \
   pip-mcp:latest
 
 echo ""

@@ -322,6 +322,18 @@
 - **Replaces**: Current safety level dropdown (issue_004 enhancement)
 - **Reference**: Claude.ai connector tool permissions UI (screenshot provided)
 
+#### issue_031: Memory Query Schema Mismatch
+- **Status**: 🟢 Resolved
+- **Priority**: - (Complete)
+- **Component**: `packages/mcp-remote-server/src/services/memory.ts`
+- **Created**: 2025-12-02
+- **Resolved**: 2025-12-02
+- **Description**: Memory read operations failing with "no such column: o.content"
+- **Root Cause**: Code referenced `o.content` but schema uses `observation` column
+- **Resolution**: Changed all `o.content` → `o.observation` in SQL queries
+- **Commit**: `af62747`
+- **Discovered via**: Claude.ai MCP connector testing
+
 #### issue_029: MCP Auth Flow - Missing OAuth Env Vars
 - **Status**: 🟢 Resolved
 - **Priority**: - (Complete)

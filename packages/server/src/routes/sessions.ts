@@ -57,14 +57,19 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
   /**
    * GET /api/sessions
    * List all sessions for a user (chat history)
+   * Query params:
+   *   - limit: max sessions to return (default 50)
+   *   - projectId: filter by project (optional)
    */
   router.get('/', async (req, res, next) => {
     try {
       const userId = req.userId!;
       const limit = parseInt(req.query.limit as string) || 50;
+      const projectId = req.query.projectId as string | undefined;
 
       const sessions = await db.listSessions({
         userId,
+        projectId,
         limit,
         sortOrder: 'desc',
       });
@@ -81,6 +86,7 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
 
           return {
             sessionId: s.sessionId,
+            projectId: s.projectId,
             title,
             previewText,
             messageCount: s.messages.length,
@@ -115,6 +121,7 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
 
       res.json({
         sessionId: session.sessionId,
+        projectId: session.projectId,
         title,
         messages: session.messages,
         createdAt: session.createdAt,

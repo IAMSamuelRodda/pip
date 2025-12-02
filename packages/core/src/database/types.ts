@@ -17,6 +17,7 @@ import type { Message } from "../llm/types.js";
 export interface Session {
   sessionId: string;
   userId: string;
+  projectId?: string; // Optional: isolate session to specific project
   messages: Message[];
   agentContext: Record<string, any>;
   createdAt: number; // Unix timestamp
@@ -109,6 +110,22 @@ export interface User {
   createdAt: number;
   updatedAt: number;
   lastLoginAt?: number;
+}
+
+/**
+ * Project
+ * Isolated context container - separate memory, sessions, and Xero org per project
+ */
+export interface Project {
+  id: string;
+  userId: string;
+  name: string;
+  description?: string;
+  color?: string; // For UI badge (hex color)
+  xeroTenantId?: string; // Optional: dedicated Xero org for this project
+  isDefault?: boolean; // One project can be marked as default
+  createdAt: number;
+  updatedAt: number;
 }
 
 /**
@@ -301,6 +318,7 @@ export interface OperationSnapshot {
 export interface SessionFilter {
   userId: string;
   sessionId?: string;
+  projectId?: string; // Filter by project (Epic 2.3)
   limit?: number;
   sortOrder?: "asc" | "desc";
 }
@@ -404,6 +422,14 @@ export interface DatabaseProvider {
   // Safety settings operations
   getUserSettings(userId: string): Promise<UserSettings | null>;
   upsertUserSettings(settings: Partial<UserSettings> & { userId: string }): Promise<UserSettings>;
+
+  // Project operations
+  createProject(project: Omit<Project, "id" | "createdAt" | "updatedAt">): Promise<Project>;
+  getProject(userId: string, projectId: string): Promise<Project | null>;
+  listProjects(userId: string): Promise<Project[]>;
+  updateProject(userId: string, projectId: string, updates: Partial<Project>): Promise<Project>;
+  deleteProject(userId: string, projectId: string): Promise<void>;
+  getDefaultProject(userId: string): Promise<Project | null>;
 
   // Operation snapshot operations (audit trail)
   createOperationSnapshot(snapshot: Omit<OperationSnapshot, "id" | "createdAt">): Promise<OperationSnapshot>;

@@ -12,6 +12,7 @@ import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
 import type { PersonalityInfo } from '../api/client';
 import { ChatSidebar } from '../components/ChatSidebar';
+import { ProjectSwitcher } from '../components/ProjectSwitcher';
 
 interface AuthStatus {
   connected: boolean;
@@ -180,17 +181,23 @@ export function ChatPage() {
         {/* Header */}
         <header className="bg-arc-bg-secondary border-b border-arc-border">
           <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <svg className="w-8 h-8" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="44" fill="#0f1419" stroke="#7eb88e" strokeWidth="6"/>
-                <path d="M38 70 V30 h14 a10 10 0 0 1 0 20 H38" fill="none" stroke="#7eb88e" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <div>
-                <h1 className="text-lg font-semibold text-arc-text-primary">
-                  {currentTitle || 'Pip'}
-                </h1>
-                {!currentTitle && <span className="text-xs text-arc-text-dim">by Arc Forge</span>}
+            <div className="flex items-center gap-4">
+              {/* Logo */}
+              <div className="flex items-center gap-3">
+                <svg className="w-8 h-8" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="44" fill="#0f1419" stroke="#7eb88e" strokeWidth="6"/>
+                  <path d="M38 70 V30 h14 a10 10 0 0 1 0 20 H38" fill="none" stroke="#7eb88e" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <div>
+                  <h1 className="text-lg font-semibold text-arc-text-primary">
+                    {currentTitle || 'Pip'}
+                  </h1>
+                  {!currentTitle && <span className="text-xs text-arc-text-dim">by Arc Forge</span>}
+                </div>
               </div>
+
+              {/* Project Switcher */}
+              <ProjectSwitcher />
             </div>
           <div className="flex items-center gap-4">
             <button

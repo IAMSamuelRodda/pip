@@ -30,6 +30,7 @@ import { createHealthRoutes } from './routes/health.js';
 import { createDocumentRoutes } from './routes/documents.js';
 import { createSettingsRoutes } from './routes/settings.js';
 import { createMemoryRoutes } from './routes/memory.js';
+import { createProjectRoutes } from './routes/projects.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requireAuth } from './middleware/auth.js';
 
@@ -97,6 +98,7 @@ async function createApp(db: DatabaseProvider): Promise<express.Application> {
   app.use('/api/documents', requireAuth, createDocumentRoutes(db));
   app.use('/api/settings', createSettingsRoutes(db));
   app.use('/api/memory', createMemoryRoutes());
+  app.use('/api/projects', requireAuth, createProjectRoutes(db));
 
   // Auth routes (public)
   app.use('/auth', createUserAuthRoutes(db)); // signup, login, me
@@ -147,6 +149,7 @@ async function start(): Promise<void> {
       console.log(`\n📍 Endpoints:`);
       console.log(`   Chat:      POST http://localhost:${PORT}/api/chat`);
       console.log(`   Sessions:  GET  http://localhost:${PORT}/api/sessions`);
+      console.log(`   Projects:  GET  http://localhost:${PORT}/api/projects`);
       console.log(`   Documents: POST http://localhost:${PORT}/api/documents/upload`);
       console.log(`   Auth:      GET  http://localhost:${PORT}/auth/xero`);
       console.log(`   Health:    GET  http://localhost:${PORT}/health`);

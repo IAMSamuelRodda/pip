@@ -27,6 +27,7 @@ import type {
   PermissionLevel,
   PersonalityId,
   ResponseStyleId,
+  Project,
 } from "../types.js";
 import {
   ConnectionError,
@@ -305,6 +306,59 @@ export class SQLiteProvider implements DatabaseProvider {
       CREATE INDEX IF NOT EXISTS idx_relations_from ON memory_relations(from_entity_id);
       CREATE INDEX IF NOT EXISTS idx_relations_to ON memory_relations(to_entity_id);
     `);
+
+    // Projects table (Epic 2.3)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS projects (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT,
+        color TEXT,
+        xero_tenant_id TEXT,
+        is_default INTEGER DEFAULT 0,
+        created_at INTEGER NOT NULL,
+        updated_at INTEGER NOT NULL
+      );
+      CREATE INDEX IF NOT EXISTS idx_projects_user ON projects(user_id);
+      CREATE INDEX IF NOT EXISTS idx_projects_default ON projects(user_id, is_default);
+    `);
+
+    // Migration: Add project_id column to sessions if it doesn't exist
+    try {
+      this.db.exec(`ALTER TABLE sessions ADD COLUMN project_id TEXT`);
+    } catch {
+      // Column already exists, ignore
+    }
+
+    // Create index for project_id on sessions
+    try {
+      this.db.exec(`CREATE INDEX idx_sessions_project ON sessions(user_id, project_id)`);
+    } catch {
+      // Index already exists, ignore
+    }
+
+    // Operation snapshots table (if not exists)
+    this.db.exec(`
+      CREATE TABLE IF NOT EXISTS operation_snapshots (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        operation_type TEXT NOT NULL,
+        permission_level INTEGER NOT NULL,
+        entity_type TEXT NOT NULL,
+        entity_id TEXT,
+        before_state TEXT,
+        after_state TEXT,
+        requested_by TEXT NOT NULL,
+        status TEXT NOT NULL,
+        error_message TEXT,
+        created_at INTEGER NOT NULL,
+        confirmed_at INTEGER,
+        executed_at INTEGER
+      );
+      CREATE INDEX IF NOT EXISTS idx_snapshots_user ON operation_snapshots(user_id);
+      CREATE INDEX IF NOT EXISTS idx_snapshots_status ON operation_snapshots(user_id, status);
+    `);
   }
 
   // ============================================================================
@@ -325,13 +379,14 @@ export class SQLiteProvider implements DatabaseProvider {
 
     try {
       const stmt = this.db.prepare(`
-        INSERT INTO sessions (session_id, user_id, messages, agent_context, created_at, updated_at, expires_at, title, preview_text)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO sessions (session_id, user_id, project_id, messages, agent_context, created_at, updated_at, expires_at, title, preview_text)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       stmt.run(
         fullSession.sessionId,
         fullSession.userId,
+        fullSession.projectId || null,
         JSON.stringify(fullSession.messages),
         JSON.stringify(fullSession.agentContext),
         fullSession.createdAt,
@@ -366,6 +421,7 @@ export class SQLiteProvider implements DatabaseProvider {
       return {
         sessionId: row.session_id,
         userId: row.user_id,
+        projectId: row.project_id || undefined,
         messages: JSON.parse(row.messages),
         agentContext: JSON.parse(row.agent_context),
         createdAt: row.created_at,
@@ -404,7 +460,7 @@ export class SQLiteProvider implements DatabaseProvider {
 
       const stmt = this.db.prepare(`
         UPDATE sessions
-        SET messages = ?, agent_context = ?, updated_at = ?, expires_at = ?, title = ?, preview_text = ?
+        SET messages = ?, agent_context = ?, updated_at = ?, expires_at = ?, title = ?, preview_text = ?, project_id = ?
         WHERE user_id = ? AND session_id = ?
       `);
 
@@ -415,6 +471,7 @@ export class SQLiteProvider implements DatabaseProvider {
         updated.expiresAt,
         updated.title || null,
         updated.previewText || null,
+        updated.projectId || null,
         userId,
         sessionId
       );
@@ -460,6 +517,16 @@ export class SQLiteProvider implements DatabaseProvider {
         params.push(filter.sessionId);
       }
 
+      // Filter by project (null means unassigned/default project)
+      if (filter.projectId !== undefined) {
+        if (filter.projectId === null) {
+          query += ` AND project_id IS NULL`;
+        } else {
+          query += ` AND project_id = ?`;
+          params.push(filter.projectId);
+        }
+      }
+
       // Sort by updated_at for chat history (most recently active first)
       query += ` ORDER BY updated_at ${filter.sortOrder === "asc" ? "ASC" : "DESC"}`;
 
@@ -474,6 +541,7 @@ export class SQLiteProvider implements DatabaseProvider {
       return rows.map((row) => ({
         sessionId: row.session_id,
         userId: row.user_id,
+        projectId: row.project_id || undefined,
         messages: JSON.parse(row.messages),
         agentContext: JSON.parse(row.agent_context),
         createdAt: row.created_at,
@@ -1446,6 +1514,234 @@ export class SQLiteProvider implements DatabaseProvider {
     } catch (error) {
       throw new DatabaseError(
         `Failed to upsert user settings for: ${settings.userId}`,
+        this.name,
+        error as Error
+      );
+    }
+  }
+
+  // ============================================================================
+  // Project Operations (Epic 2.3)
+  // ============================================================================
+
+  async createProject(
+    project: Omit<Project, "id" | "createdAt" | "updatedAt">
+  ): Promise<Project> {
+    if (!this.db) throw new DatabaseError("Database not connected", this.name);
+
+    try {
+      const id = crypto.randomUUID();
+      const now = Date.now();
+
+      const fullProject: Project = {
+        id,
+        ...project,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      // If this is the default project, unset any existing default for this user
+      if (fullProject.isDefault) {
+        this.db.prepare(`UPDATE projects SET is_default = 0 WHERE user_id = ?`).run(fullProject.userId);
+      }
+
+      const stmt = this.db.prepare(`
+        INSERT INTO projects (id, user_id, name, description, color, xero_tenant_id, is_default, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      stmt.run(
+        fullProject.id,
+        fullProject.userId,
+        fullProject.name,
+        fullProject.description || null,
+        fullProject.color || null,
+        fullProject.xeroTenantId || null,
+        fullProject.isDefault ? 1 : 0,
+        fullProject.createdAt,
+        fullProject.updatedAt
+      );
+
+      return fullProject;
+    } catch (error) {
+      throw new DatabaseError(
+        `Failed to create project: ${project.name}`,
+        this.name,
+        error as Error
+      );
+    }
+  }
+
+  async getProject(userId: string, projectId: string): Promise<Project | null> {
+    if (!this.db) throw new DatabaseError("Database not connected", this.name);
+
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM projects WHERE user_id = ? AND id = ?
+      `);
+
+      const row = stmt.get(userId, projectId) as any;
+
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        userId: row.user_id,
+        name: row.name,
+        description: row.description || undefined,
+        color: row.color || undefined,
+        xeroTenantId: row.xero_tenant_id || undefined,
+        isDefault: row.is_default === 1,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    } catch (error) {
+      throw new DatabaseError(
+        `Failed to get project: ${projectId}`,
+        this.name,
+        error as Error
+      );
+    }
+  }
+
+  async listProjects(userId: string): Promise<Project[]> {
+    if (!this.db) throw new DatabaseError("Database not connected", this.name);
+
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM projects WHERE user_id = ? ORDER BY is_default DESC, created_at ASC
+      `);
+
+      const rows = stmt.all(userId) as any[];
+
+      return rows.map((row) => ({
+        id: row.id,
+        userId: row.user_id,
+        name: row.name,
+        description: row.description || undefined,
+        color: row.color || undefined,
+        xeroTenantId: row.xero_tenant_id || undefined,
+        isDefault: row.is_default === 1,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    } catch (error) {
+      throw new DatabaseError(
+        `Failed to list projects for user: ${userId}`,
+        this.name,
+        error as Error
+      );
+    }
+  }
+
+  async updateProject(
+    userId: string,
+    projectId: string,
+    updates: Partial<Project>
+  ): Promise<Project> {
+    if (!this.db) throw new DatabaseError("Database not connected", this.name);
+
+    try {
+      const existing = await this.getProject(userId, projectId);
+      if (!existing) {
+        throw new RecordNotFoundError(this.name, "Project", projectId);
+      }
+
+      const updated: Project = {
+        ...existing,
+        ...updates,
+        updatedAt: Date.now(),
+      };
+
+      // If setting as default, unset any existing default for this user
+      if (updated.isDefault && !existing.isDefault) {
+        this.db.prepare(`UPDATE projects SET is_default = 0 WHERE user_id = ?`).run(userId);
+      }
+
+      const stmt = this.db.prepare(`
+        UPDATE projects
+        SET name = ?, description = ?, color = ?, xero_tenant_id = ?, is_default = ?, updated_at = ?
+        WHERE user_id = ? AND id = ?
+      `);
+
+      stmt.run(
+        updated.name,
+        updated.description || null,
+        updated.color || null,
+        updated.xeroTenantId || null,
+        updated.isDefault ? 1 : 0,
+        updated.updatedAt,
+        userId,
+        projectId
+      );
+
+      return updated;
+    } catch (error) {
+      if (error instanceof RecordNotFoundError) throw error;
+      throw new DatabaseError(
+        `Failed to update project: ${projectId}`,
+        this.name,
+        error as Error
+      );
+    }
+  }
+
+  async deleteProject(userId: string, projectId: string): Promise<void> {
+    if (!this.db) throw new DatabaseError("Database not connected", this.name);
+
+    try {
+      // Don't allow deleting the default project if it's the only one
+      const projects = await this.listProjects(userId);
+      const project = projects.find((p) => p.id === projectId);
+
+      if (project?.isDefault && projects.length > 1) {
+        // Set another project as default before deleting
+        const nextDefault = projects.find((p) => p.id !== projectId);
+        if (nextDefault) {
+          await this.updateProject(userId, nextDefault.id, { isDefault: true });
+        }
+      }
+
+      const stmt = this.db.prepare(`
+        DELETE FROM projects WHERE user_id = ? AND id = ?
+      `);
+
+      stmt.run(userId, projectId);
+    } catch (error) {
+      throw new DatabaseError(
+        `Failed to delete project: ${projectId}`,
+        this.name,
+        error as Error
+      );
+    }
+  }
+
+  async getDefaultProject(userId: string): Promise<Project | null> {
+    if (!this.db) throw new DatabaseError("Database not connected", this.name);
+
+    try {
+      const stmt = this.db.prepare(`
+        SELECT * FROM projects WHERE user_id = ? AND is_default = 1
+      `);
+
+      const row = stmt.get(userId) as any;
+
+      if (!row) return null;
+
+      return {
+        id: row.id,
+        userId: row.user_id,
+        name: row.name,
+        description: row.description || undefined,
+        color: row.color || undefined,
+        xeroTenantId: row.xero_tenant_id || undefined,
+        isDefault: row.is_default === 1,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      };
+    } catch (error) {
+      throw new DatabaseError(
+        `Failed to get default project for user: ${userId}`,
         this.name,
         error as Error
       );

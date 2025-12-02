@@ -886,4 +886,32 @@ export class DynamoDBProvider implements DatabaseProvider {
   async listOperationSnapshots(_userId: string, _options?: any): Promise<any[]> {
     throw new Error("Operation snapshot not implemented in DynamoDB provider. Use SQLite.");
   }
+
+  // ============================================================================
+  // Project Operations (Not implemented - use SQLite for now)
+  // ============================================================================
+
+  async createProject(_project: any): Promise<any> {
+    throw new Error("Project operations not implemented in DynamoDB provider. Use SQLite.");
+  }
+
+  async getProject(_userId: string, _projectId: string): Promise<any> {
+    throw new Error("Project operations not implemented in DynamoDB provider. Use SQLite.");
+  }
+
+  async listProjects(_userId: string): Promise<any[]> {
+    throw new Error("Project operations not implemented in DynamoDB provider. Use SQLite.");
+  }
+
+  async updateProject(_userId: string, _projectId: string, _updates: any): Promise<any> {
+    throw new Error("Project operations not implemented in DynamoDB provider. Use SQLite.");
+  }
+
+  async deleteProject(_userId: string, _projectId: string): Promise<void> {
+    throw new Error("Project operations not implemented in DynamoDB provider. Use SQLite.");
+  }
+
+  async getDefaultProject(_userId: string): Promise<any> {
+    throw new Error("Project operations not implemented in DynamoDB provider. Use SQLite.");
+  }
 }

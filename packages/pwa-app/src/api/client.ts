@@ -428,4 +428,140 @@ export const memoryApi = {
   },
 };
 
-export type { ResponseStyleId, ResponseStyleOption, StyleInfo, PersonalityId, UserSettings, PersonalityInfo, PersonalityOption, MemoryStatus, MemoryEdit, ChatSummary, ChatSession };
+// Project types (Epic 2.3)
+interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  xeroTenantId?: string;
+  isDefault: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+interface CreateProjectInput {
+  name: string;
+  description?: string;
+  color?: string;
+  xeroTenantId?: string;
+  isDefault?: boolean;
+}
+
+interface UpdateProjectInput {
+  name?: string;
+  description?: string;
+  color?: string;
+  xeroTenantId?: string;
+  isDefault?: boolean;
+}
+
+export const projectApi = {
+  /**
+   * List all projects
+   */
+  async listProjects(): Promise<{ projects: Project[] }> {
+    const response = await fetch(`${API_BASE}/api/projects`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to list projects');
+    }
+    return response.json();
+  },
+
+  /**
+   * Get available project colors
+   */
+  async getColors(): Promise<{ colors: string[] }> {
+    const response = await fetch(`${API_BASE}/api/projects/colors`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to get colors');
+    }
+    return response.json();
+  },
+
+  /**
+   * Create a new project
+   */
+  async createProject(input: CreateProjectInput): Promise<Project> {
+    const response = await fetch(`${API_BASE}/api/projects`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(input),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Create failed' }));
+      throw new Error(error.error || 'Failed to create project');
+    }
+    return response.json();
+  },
+
+  /**
+   * Get a project by ID
+   */
+  async getProject(projectId: string): Promise<Project> {
+    const response = await fetch(`${API_BASE}/api/projects/${projectId}`, {
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to get project');
+    }
+    return response.json();
+  },
+
+  /**
+   * Update a project
+   */
+  async updateProject(projectId: string, input: UpdateProjectInput): Promise<Project> {
+    const response = await fetch(`${API_BASE}/api/projects/${projectId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
+      body: JSON.stringify(input),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Update failed' }));
+      throw new Error(error.error || 'Failed to update project');
+    }
+    return response.json();
+  },
+
+  /**
+   * Delete a project
+   */
+  async deleteProject(projectId: string): Promise<{ success: boolean }> {
+    const response = await fetch(`${API_BASE}/api/projects/${projectId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Delete failed' }));
+      throw new Error(error.error || 'Failed to delete project');
+    }
+    return response.json();
+  },
+
+  /**
+   * Set a project as default
+   */
+  async setDefaultProject(projectId: string): Promise<{ id: string; isDefault: boolean }> {
+    const response = await fetch(`${API_BASE}/api/projects/${projectId}/set-default`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to set default project');
+    }
+    return response.json();
+  },
+};
+
+export type { ResponseStyleId, ResponseStyleOption, StyleInfo, PersonalityId, UserSettings, PersonalityInfo, PersonalityOption, MemoryStatus, MemoryEdit, ChatSummary, ChatSession, Project, CreateProjectInput, UpdateProjectInput };

@@ -35,7 +35,13 @@
 
 ### Just Completed (2025-12-02)
 
-1. **Epic 2.3: Projects Feature** ✅ COMPLETE
+1. **issue_032: Memory Context Injection** ✅ COMPLETE
+   - Agent now auto-injects knowledge graph into system prompt
+   - Added `read_memory` and `search_memory` tools for explicit queries
+   - "What do you know about me?" now returns stored facts
+   - Commits: `97dd50e`, `a5b606e`
+
+2. **Epic 2.3: Projects Feature** ✅ COMPLETE
    - SQLite schema: `projects` table with CRUD operations
    - REST API: `/api/projects/*` endpoints (create, read, update, delete, set-default)
    - Session filtering by `projectId` added to `/api/sessions`
@@ -152,6 +158,7 @@
 | issue_019 | P2 | Safety Settings UI - explanation box placement | 🔴 Open |
 | issue_021 | P2 | Verify Response Styles in chat | 🔴 Open |
 | issue_024 | P3 | DESIGN.md visual reference workflow | 🔴 Open (future) |
+| issue_032 | - | Memory context injection | ✅ Resolved (deployed) |
 | issue_010 | - | Mem0 SQLite crash in Docker | ✅ Resolved (switched to native) |
 | issue_008 | - | Memory architecture decision | ✅ Resolved (Option B deployed) |
 
@@ -227,10 +234,10 @@
 
 ## Next Steps
 
-1. **Deploy Response Styles** - Build and deploy to production
-2. **Implement Epic 2.3** - Projects feature (isolated context per project/client)
-3. **Implement Epic 2.4** - Per-chat document upload (spike complete)
-4. **Fix issue_019** - Safety Settings UI placement
+1. **Implement Epic 2.4** - Per-chat document upload (spike complete)
+2. **Fix issue_023** - Empty chat delete + memory retrieval edge cases
+3. **Fix issue_019** - Safety Settings UI placement
+4. **Verify issue_021** - Test Response Styles in actual chat
 5. **Onboard beta users** - Share with trusted users for feedback
 
 ---

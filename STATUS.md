@@ -4,7 +4,7 @@
 > **Lifecycle**: Living (update daily/weekly during active development)
 
 **Last Updated**: 2025-12-02
-**Current Phase**: Milestone 2 Implementation (Epic 2.1 + 2.2 Complete, Response Styles next)
+**Current Phase**: Milestone 2 Implementation (Epic 2.1-2.3 in progress)
 **Version**: 0.4.0-dev
 
 ---
@@ -22,7 +22,8 @@
 | **Landing Page** | 🟢 | Live at pip.arcforge.au |
 | **Xero Integration** | 🟢 | 10 READ-ONLY tools verified |
 | **Git Workflow** | 🟢 | Simple tier (main only, direct commits) |
-| **Milestone 2** | 🟢 | Epic 2.1 (Memory UI) + 2.2 (Chat History) deployed |
+| **Milestone 2** | 🔵 | Epic 2.1-2.2 complete, Epic 2.3 (Projects) in progress |
+| **Projects Feature** | 🔵 | Backend + UI deployed, memory scoping pending |
 
 **Legend**: 🟢 Good | 🟡 Attention | 🔴 Critical | 🔵 In Progress
 
@@ -32,7 +33,29 @@
 
 **Objective**: Implement Milestone 2 - User Experience & Personality (v0.4.0)
 
-### Just Completed (2025-12-01)
+### Just Completed (2025-12-02)
+
+1. **Epic 2.3: Projects Feature** 🔵 IN PROGRESS
+   - SQLite schema: `projects` table with CRUD operations
+   - REST API: `/api/projects/*` endpoints (create, read, update, delete, set-default)
+   - Session filtering by `projectId` added to `/api/sessions`
+   - ProjectSwitcher component in header (dropdown with create form)
+   - Zustand store with localStorage persistence for current project
+   - Commits: `609c952`, `dba5499`
+   - **Remaining**: Memory service project scoping, project settings page
+
+2. **UI/UX Design Philosophy** ✅ DOCUMENTED
+   - Created `docs/UI-UX-DESIGN-PHILOSOPHY.md` with detailed guidelines
+   - Added CLAUDE.md reference: "One word default, two reluctantly, never three"
+   - Simplified ProjectSwitcher empty state (removed verbose copy)
+   - Commits: `99353b5`
+
+3. **Edge Cases Discovered** (issue_023)
+   - Empty chat delete fails → works after message added
+   - Memory not retrieved in new chats (needs investigation)
+   - Documented in ISSUES.md for P1 investigation
+
+### Previously Completed (2025-12-01)
 
 1. **Epic 2.1: Memory Management** ✅ DEPLOYED
    - User edit tracking schema (is_user_edit column, memory_summaries table)
@@ -68,10 +91,15 @@
 1. ~~**Epic 2.1** (Memory Refactor)~~ ✅ Complete
 2. ~~**Epic 2.2** (Chat History)~~ ✅ Complete
 3. ~~**Response Styles** (issue_020)~~ ✅ Complete (2025-12-02)
-4. **Epic 2.3** (Projects) - Complex, needs careful implementation
+4. **Epic 2.3** (Projects) 🔵 IN PROGRESS
+   - ✅ Projects schema + CRUD API
+   - ✅ ProjectSwitcher UI component
+   - ⬜ Memory service project scoping
+   - ⬜ Project settings page (full CRUD UI)
 5. **Epic 2.4** (Document Upload) - Medium priority, spike complete
 6. ~~**Epic 2.5** (Personality)~~ 🔵 Deferred - replaced by Response Styles
 7. **Epic 2.6** (Testing) - Continuous throughout milestone
+8. **issue_023** (P1) - Empty chat delete + memory retrieval bugs
 
 ### Language Rules (User-Facing Content)
 - ❌ NEVER use "AI" (overused marketing hype)
@@ -114,11 +142,12 @@
 
 | ID | Priority | Summary | Status |
 |----|----------|---------|--------|
+| issue_023 | P1 | Empty chat delete + memory retrieval bugs | 🔴 Open |
 | issue_019 | P2 | Safety Settings UI - explanation box placement | 🔴 Open |
+| issue_021 | P2 | Verify Response Styles in chat | 🔴 Open |
+| issue_024 | P3 | DESIGN.md visual reference workflow | 🔴 Open (future) |
 | issue_010 | - | Mem0 SQLite crash in Docker | ✅ Resolved (switched to native) |
 | issue_008 | - | Memory architecture decision | ✅ Resolved (Option B deployed) |
-| issue_005 | - | ChatGPT memory in Dev Mode | ✅ Resolved (native memory works) |
-| issue_004 | - | Safety guardrails | ✅ Complete |
 
 ---
 

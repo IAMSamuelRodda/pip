@@ -44,10 +44,12 @@ docker rm pip-app pip-mcp 2>/dev/null || true
 echo ""
 
 # Start pip-app
+# Note: Ollama accessed via Tailscale (100.64.0.2) - ensure VPS Tailscale routes are forwarded
 echo "▶️  Starting pip-app..."
 docker run -d --name pip-app \
   --restart unless-stopped \
   --network droplet_frontend \
+  --add-host=host.docker.internal:host-gateway \
   -v pip-data:/app/data \
   -e NODE_ENV=production \
   -e PORT=3000 \
@@ -58,6 +60,8 @@ docker run -d --name pip-app \
   -e BASE_URL=https://app.pip.arcforge.au \
   -e FRONTEND_URL=https://app.pip.arcforge.au \
   -e JWT_SECRET="$JWT_SECRET" \
+  -e OLLAMA_ENDPOINT="${OLLAMA_ENDPOINT:-http://100.64.0.2:11434}" \
+  -e OLLAMA_MODEL="${OLLAMA_MODEL:-llama3:8b}" \
   pip-app:latest
 
 # Start pip-mcp

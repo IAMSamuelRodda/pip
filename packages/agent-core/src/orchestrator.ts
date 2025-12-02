@@ -66,15 +66,17 @@ export class AgentOrchestrator {
       this.llmProvider = await createLLMProviderFromEnv();
       console.log(`✓ LLM Provider initialized: ${this.llmProvider.name}`);
 
-      // Initialize Ollama provider (optional - may fail if Ollama not available)
+      // Initialize Ollama provider (optional - routes via Tailscale to local GPU)
+      // OLLAMA_ENDPOINT should be set to Tailscale IP (e.g., http://100.64.0.2:11434)
+      const ollamaEndpoint = process.env.OLLAMA_ENDPOINT || 'http://localhost:11434';
       try {
         this.ollamaProvider = await createLLMProvider({
           provider: 'ollama',
-          auth: { method: 'local', credentials: {} },
+          auth: { method: 'local', credentials: { endpoint: ollamaEndpoint } },
         });
-        console.log(`✓ Ollama Provider initialized`);
+        console.log(`✓ Ollama Provider initialized (${ollamaEndpoint})`);
       } catch (error) {
-        console.log(`ℹ Ollama not available (optional): ${error instanceof Error ? error.message : 'Unknown error'}`);
+        console.log(`ℹ Ollama not available at ${ollamaEndpoint}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
 
       // Initialize Xero client and tools

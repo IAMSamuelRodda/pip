@@ -61,7 +61,7 @@ docker run -d --name pip-app \
   -e FRONTEND_URL=https://app.pip.arcforge.au \
   -e JWT_SECRET="$JWT_SECRET" \
   -e OLLAMA_ENDPOINT="${OLLAMA_ENDPOINT:-http://100.64.0.2:11434}" \
-  -e OLLAMA_MODEL="${OLLAMA_MODEL:-llama3:8b}" \
+  -e OLLAMA_MODEL="${OLLAMA_MODEL:-deepseek-coder:33b}" \
   pip-app:latest
 
 # Start pip-mcp

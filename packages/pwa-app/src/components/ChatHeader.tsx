@@ -47,32 +47,28 @@ export function ChatHeader({
   onAddToProject,
   onDelete,
 }: ChatHeaderProps) {
+  // Only show header with dropdown when there's an active chat
+  if (!hasMessages || !sessionId) {
+    return null;
+  }
+
   return (
     <header className="sticky top-0 z-10 bg-arc-bg-primary">
       <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-center">
-        {hasMessages && sessionId ? (
-          // Active chat: Title dropdown with actions
-          <div className="flex items-center gap-2">
-            <PipLogo />
-            <ChatActionsMenu
-              sessionId={sessionId}
-              title={title}
-              isBookmarked={isBookmarked}
-              onBookmark={onBookmark}
-              onRename={onRename}
-              onAddToProject={onAddToProject}
-              onDelete={onDelete}
-              variant="dropdown"
-              menuPosition="bottom-left"
-            />
-          </div>
-        ) : (
-          // Empty state: Just logo and "Pip"
-          <div className="flex items-center gap-2">
-            <PipLogo />
-            <span className="text-base font-medium text-arc-text-primary">Pip</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <PipLogo />
+          <ChatActionsMenu
+            sessionId={sessionId}
+            title={title}
+            isBookmarked={isBookmarked}
+            onBookmark={onBookmark}
+            onRename={onRename}
+            onAddToProject={onAddToProject}
+            onDelete={onDelete}
+            variant="dropdown"
+            menuPosition="bottom-left"
+          />
+        </div>
       </div>
     </header>
   );

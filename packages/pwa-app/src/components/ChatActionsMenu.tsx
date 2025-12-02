@@ -10,7 +10,7 @@ import { useState, useRef, useEffect } from 'react';
 // Icons
 // ============================================================================
 
-const StarIcon = ({ filled = false }: { filled?: boolean }) => (
+const BookmarkIcon = ({ filled = false }: { filled?: boolean }) => (
   <svg className="h-4 w-4" fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
   </svg>
@@ -204,14 +204,14 @@ export function ChatActionsMenu({
       {/* Dropdown Menu */}
       {isOpen && (
         <div
-          className={`absolute ${menuPositionClasses[menuPosition]} bg-arc-bg-tertiary border border-arc-border rounded-lg shadow-lg z-50 py-1 min-w-40`}
+          className={`absolute ${menuPositionClasses[menuPosition]} bg-arc-bg-tertiary border border-arc-border rounded-lg shadow-lg z-50 py-1 min-w-44`}
         >
           <button
             onClick={handleBookmark}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-arc-text-primary hover:bg-arc-bg-secondary transition-colors"
           >
-            <StarIcon filled={isBookmarked} />
-            {isBookmarked ? 'Unstar' : 'Star'}
+            <BookmarkIcon filled={isBookmarked} />
+            {isBookmarked ? 'Unbookmark' : 'Bookmark'}
           </button>
           <button
             onClick={handleStartRename}

@@ -154,6 +154,7 @@
 
 | ID | Priority | Summary | Status |
 |----|----------|---------|--------|
+| issue_033 | P0 | Chat Input Area Redesign (Claude.ai Pattern) | 🟡 In Progress |
 | issue_023 | P1 | Empty chat delete + memory retrieval bugs | 🔴 Open |
 | issue_021 | P2 | Verify Response Styles in chat | 🔴 Open |
 | issue_019 | - | Safety Settings UI - explanation box placement | ✅ Resolved |
@@ -234,11 +235,12 @@
 
 ## Next Steps
 
-1. **Implement Epic 2.4** - Per-chat document upload (spike complete)
+1. **issue_033: Chat Input Area Redesign** - P0 TOP PRIORITY
+   - `+` attachment button, `≡` tools menu, quick toggles
+   - Consolidates Epic 2.4 + issue_028 + UX patterns
 2. **Fix issue_023** - Empty chat delete + memory retrieval edge cases
-3. **Fix issue_019** - Safety Settings UI placement
-4. **Verify issue_021** - Test Response Styles in actual chat
-5. **Onboard beta users** - Share with trusted users for feedback
+3. **Verify issue_021** - Test Response Styles in actual chat
+4. **Onboard beta users** - Share with trusted users for feedback
 
 ---
 

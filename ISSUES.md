@@ -323,8 +323,8 @@
 - **Reference**: Claude.ai connector tool permissions UI (screenshot provided)
 
 #### issue_033: Chat Input Area Redesign (Claude.ai Pattern)
-- **Status**: 🔴 Open
-- **Priority**: P1 (High - core UX upgrade)
+- **Status**: 🟡 In Progress
+- **Priority**: P0 (Critical - top priority UX upgrade)
 - **Component**: `packages/pwa-app` (ChatPage.tsx, new components)
 - **Created**: 2025-12-02
 - **Description**: Redesign chat input area to match Claude.ai pattern with contextual icons and menus

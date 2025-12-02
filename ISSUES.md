@@ -322,6 +322,62 @@
 - **Replaces**: Current safety level dropdown (issue_004 enhancement)
 - **Reference**: Claude.ai connector tool permissions UI (screenshot provided)
 
+#### issue_033: Chat Input Area Redesign (Claude.ai Pattern)
+- **Status**: 🔴 Open
+- **Priority**: P1 (High - core UX upgrade)
+- **Component**: `packages/pwa-app` (ChatPage.tsx, new components)
+- **Created**: 2025-12-02
+- **Description**: Redesign chat input area to match Claude.ai pattern with contextual icons and menus
+- **Current State**:
+  - Basic text input with Send button
+  - Settings accessed via header link
+  - No attachment support
+  - No quick toggles
+- **Target Pattern** (Claude.ai):
+  ```
+  ┌─────────────────────────────────────────────────────────────┐
+  │ Attachments (if any):                                       │
+  │ ┌─────────┐  ┌─────────┐                                    │
+  │ │[×] file │  │[×] file │                                    │
+  │ └─────────┘  └─────────┘                                    │
+  ├─────────────────────────────────────────────────────────────┤
+  │  [+]  [≡]  [⟲]   > Type message...    [Model ▼]  [Send]    │
+  │   │    │    │                              │                │
+  │   │    │    │                              └── Model picker │
+  │   │    │    └── Quick toggle (Extended Thinking/Memory)     │
+  │   │    └── Search and tools menu                            │
+  │   └── Attachments menu                                      │
+  └─────────────────────────────────────────────────────────────┘
+  ```
+- **Components to Build**:
+  1. **AttachmentButton** (`+` icon) - File picker, drag-drop via react-dropzone
+  2. **ToolsMenu** (`≡` icon) - Dropdown with:
+     - Use style → (submenu)
+     - Extended thinking toggle
+     - Web search toggle (future)
+     - Connector toggles (Xero, etc.)
+     - Add/Manage connectors links
+  3. **QuickToggle** - Icon button with on/off visual state
+  4. **AttachmentPreview** - File cards below input with [×] dismiss
+  5. **ModelSelector** - Dropdown for model selection (per spike_m2_004)
+- **Acceptance Criteria**:
+  - [ ] `+` attachment button with menu (Upload file, Use project, etc.)
+  - [ ] `≡` tools menu with feature toggles and connectors
+  - [ ] Attachment preview area with hover-dismiss
+  - [ ] Quick toggle buttons (configurable per feature)
+  - [ ] Model selector dropdown (right side)
+  - [ ] Tooltips on all icon buttons
+  - [ ] Move settings access from header to tools menu
+- **Consolidates**:
+  - Epic 2.4 (Per-Chat Document Upload) - issue_014
+  - issue_028 (Connectors Menu) - partial
+  - Pattern 1-6 from UX-PATTERNS-CLAUDE-AI-REFERENCE-20251201.md
+- **Future Additions** (spike required):
+  - Voice input icon (Whisper STT)
+  - Voice output toggle (Chatterbox TTS)
+- **Complexity**: 3.5/5 (Medium-High - multiple components)
+- **Reference**: `specs/spike-outputs/UX-PATTERNS-CLAUDE-AI-REFERENCE-20251201.md`
+
 #### issue_031: Memory Query Schema Mismatch
 - **Status**: 🟢 Resolved
 - **Priority**: - (Complete)
@@ -817,6 +873,32 @@ Research/investigation tasks that must complete before dependent implementation 
   - MCP server is already model-agnostic, no changes needed
   - Recommendations: Claude Sonnet 4 (primary), Haiku (fast), GPT-4o (fallback), Ollama (offline)
 - **Follow-up**: issue_017 - Ollama Model Warm-Up Strategy
+
+#### spike_m2_005: Voice Input/Output Research (STT/TTS)
+- **Status**: 🔴 Not Started
+- **Duration**: 2-3 days (time-boxed)
+- **Priority**: P3 (Future - nice-to-have)
+- **Reduces Uncertainty For**: issue_033 (voice input icon)
+- **Description**: Research speech-to-text and text-to-speech options for voice interaction
+- **Research Areas**:
+  - **STT Options**:
+    - Whisper (OpenAI) - local vs API
+    - Whisper.cpp - CPU-optimized local inference
+    - Browser Web Speech API - zero dependency
+  - **TTS Options**:
+    - Chatterbox (resemble-ai) - open source, natural voice
+    - ElevenLabs API - high quality, paid
+    - Browser Speech Synthesis API - zero dependency
+  - **Integration Questions**:
+    - Real-time vs batch transcription?
+    - VPS processing vs client-side?
+    - Latency requirements for conversational UX?
+- **Deliverables**:
+  - [ ] STT comparison matrix (quality, latency, cost, local vs cloud)
+  - [ ] TTS comparison matrix (naturalness, latency, cost)
+  - [ ] Recommended architecture (where processing happens)
+  - [ ] POC: Whisper + Chatterbox integration
+- **Blocks**: Voice features in issue_033
 
 #### spike_m2_003: Character Voice Methodology Research
 - **Status**: ✅ Complete

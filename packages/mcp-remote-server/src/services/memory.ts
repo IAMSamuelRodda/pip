@@ -46,8 +46,8 @@ interface DbRelation {
   id: string;
   user_id: string;
   project_id: string | null;
-  from_entity: string;
-  to_entity: string;
+  from_entity_id: string;
+  to_entity_id: string;
   relation_type: string;
   created_at: number;
 }
@@ -124,13 +124,13 @@ export class KnowledgeGraphManager {
     for (const rel of relations) {
       const existing = this.db.prepare(`
         SELECT id FROM memory_relations
-        WHERE user_id = ? AND LOWER(from_entity) = LOWER(?) AND LOWER(to_entity) = LOWER(?)
+        WHERE user_id = ? AND LOWER(from_entity_id) = LOWER(?) AND LOWER(to_entity_id) = LOWER(?)
         AND LOWER(relation_type) = LOWER(?) ${this.scopeClause()}
       `).get(...this.scopeParams([this.userId, rel.from, rel.to, rel.relationType]));
 
       if (!existing) {
         this.db.prepare(`
-          INSERT INTO memory_relations (id, user_id, project_id, from_entity, to_entity, relation_type, created_at)
+          INSERT INTO memory_relations (id, user_id, project_id, from_entity_id, to_entity_id, relation_type, created_at)
           VALUES (?, ?, ?, ?, ?, ?, ?)
         `).run(crypto.randomUUID(), this.userId, this.projectId, rel.from, rel.to, rel.relationType, now);
         created.push(rel);
@@ -182,7 +182,7 @@ export class KnowledgeGraphManager {
         // Cascade: delete relations involving this entity
         this.db.prepare(`
           DELETE FROM memory_relations
-          WHERE user_id = ? AND (LOWER(from_entity) = LOWER(?) OR LOWER(to_entity) = LOWER(?)) ${this.scopeClause()}
+          WHERE user_id = ? AND (LOWER(from_entity_id) = LOWER(?) OR LOWER(to_entity_id) = LOWER(?)) ${this.scopeClause()}
         `).run(...this.scopeParams([this.userId, name, name]));
         deleted.push(name);
       }
@@ -216,7 +216,7 @@ export class KnowledgeGraphManager {
     for (const rel of relations) {
       const result = this.db.prepare(`
         DELETE FROM memory_relations
-        WHERE user_id = ? AND LOWER(from_entity) = LOWER(?) AND LOWER(to_entity) = LOWER(?)
+        WHERE user_id = ? AND LOWER(from_entity_id) = LOWER(?) AND LOWER(to_entity_id) = LOWER(?)
         AND LOWER(relation_type) = LOWER(?) ${this.scopeClause()}
       `).run(...this.scopeParams([this.userId, rel.from, rel.to, rel.relationType]));
       if (result.changes > 0) deleted.push(rel);
@@ -248,8 +248,8 @@ export class KnowledgeGraphManager {
     `).all(...this.scopeParams([this.userId])) as DbRelation[];
 
     const relations: Relation[] = relationRows.map(r => ({
-      from: r.from_entity,
-      to: r.to_entity,
+      from: r.from_entity_id,
+      to: r.to_entity_id,
       relationType: r.relation_type,
     }));
 
@@ -317,14 +317,14 @@ export class KnowledgeGraphManager {
 
         const rels = this.db.prepare(`
           SELECT * FROM memory_relations
-          WHERE user_id = ? AND (LOWER(from_entity) = LOWER(?) OR LOWER(to_entity) = LOWER(?)) ${this.scopeClause()}
+          WHERE user_id = ? AND (LOWER(from_entity_id) = LOWER(?) OR LOWER(to_entity_id) = LOWER(?)) ${this.scopeClause()}
         `).all(...this.scopeParams([this.userId, name, name])) as DbRelation[];
 
         for (const rel of rels) {
-          const key = `${rel.from_entity}|${rel.relation_type}|${rel.to_entity}`;
+          const key = `${rel.from_entity_id}|${rel.relation_type}|${rel.to_entity_id}`;
           if (!relSet.has(key)) {
             relSet.add(key);
-            relations.push({ from: rel.from_entity, to: rel.to_entity, relationType: rel.relation_type });
+            relations.push({ from: rel.from_entity_id, to: rel.to_entity_id, relationType: rel.relation_type });
           }
         }
       }
@@ -547,8 +547,8 @@ export function initializeMemoryDb(dbPath?: string): Database.Database {
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
       project_id TEXT,
-      from_entity TEXT NOT NULL,
-      to_entity TEXT NOT NULL,
+      from_entity_id TEXT NOT NULL,
+      to_entity_id TEXT NOT NULL,
       relation_type TEXT NOT NULL,
       created_at INTEGER NOT NULL
     );

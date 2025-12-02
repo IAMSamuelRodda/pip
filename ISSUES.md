@@ -417,26 +417,6 @@
   - [ ] Set style back to "Normal" → Verify default balanced response
 - **Notes**: UI dropdown deployed and working (verified 2025-12-02). Need manual testing of actual response behavior.
 
-#### issue_019: Safety Settings UI - Explanation Box Placement
-- **Status**: 🔴 Open
-- **Priority**: P2 (Medium - UX clarity)
-- **Component**: `packages/pwa-app` (Settings page)
-- **Description**: The "Why Safety Settings?" explanation box is visually disconnected from the safety settings it explains, and its styling makes it look like an interactive element (button/card).
-- **Current State**:
-  - Explanation box appears after Personality and Memory sections
-  - Uses card-like styling that suggests clickability
-  - Visually separated from the Safety Settings it references
-- **Target State**:
-  - Explanation should be visually paired with Safety Settings (adjacent or inline)
-  - Should NOT look interactive - use muted/helper text styling
-  - Consider: inline helper text, collapsible details, or subtle info block
-- **Acceptance Criteria**:
-  - [ ] Move explanation closer to Safety Settings section
-  - [ ] Remove button/card-like appearance
-  - [ ] Use helper text styling (smaller, muted color)
-  - [ ] Ensure it doesn't look clickable
-- **Screenshot**: Settings page showing disconnected explanation box
-
 #### issue_003: Email Verification for Sign-Up
 - **Status**: 🔴 Open
 - **Priority**: P3 (Low - deferred)

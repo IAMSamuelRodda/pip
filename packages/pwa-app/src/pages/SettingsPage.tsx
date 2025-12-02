@@ -280,6 +280,12 @@ export function SettingsPage() {
                   </p>
                 </div>
               )}
+
+              {/* Why Safety Settings - inline helper text */}
+              <p className="mt-6 text-xs text-arc-text-dim leading-relaxed">
+                Xero has no user-accessible restore — deleted or voided data is permanently lost.
+                Start with read-only and upgrade only when needed.
+              </p>
             </section>
 
             {/* Response Style Section */}
@@ -371,21 +377,6 @@ export function SettingsPage() {
               </p>
 
               {expandedSection === 'projects' && <ProjectsSettingsPanel />}
-            </section>
-
-            {/* Info Section */}
-            <section className="bg-arc-bg-tertiary border border-arc-border rounded-xl p-6">
-              <h3 className="text-sm font-medium text-arc-text-primary mb-3">Why Safety Settings?</h3>
-              <div className="space-y-2 text-sm text-arc-text-secondary">
-                <p>
-                  Xero has <strong className="text-arc-accent">no user-accessible restore</strong>.
-                  Deleted or voided data is permanently lost.
-                </p>
-                <p>
-                  These settings ensure Pip can only perform actions you&apos;ve explicitly authorized.
-                  Start with read-only and upgrade only when needed.
-                </p>
-              </div>
             </section>
           </div>
         ) : null}

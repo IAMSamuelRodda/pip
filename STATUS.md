@@ -155,8 +155,8 @@
 | ID | Priority | Summary | Status |
 |----|----------|---------|--------|
 | issue_023 | P1 | Empty chat delete + memory retrieval bugs | 🔴 Open |
-| issue_019 | P2 | Safety Settings UI - explanation box placement | 🔴 Open |
 | issue_021 | P2 | Verify Response Styles in chat | 🔴 Open |
+| issue_019 | - | Safety Settings UI - explanation box placement | ✅ Resolved |
 | issue_024 | P3 | DESIGN.md visual reference workflow | 🔴 Open (future) |
 | issue_032 | - | Memory context injection | ✅ Resolved (deployed) |
 | issue_010 | - | Mem0 SQLite crash in Docker | ✅ Resolved (switched to native) |

@@ -57,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - "What do you know about me?" now returns actual stored facts
   - `packages/agent-core/src/orchestrator.ts` - getMemoryContext() queries knowledge graph
   - `packages/agent-core/src/tools/memory-tools.ts` - New memory tools
+- **issue_019: Safety Settings explanation placement** (2025-12-02)
+  - Moved explanation from bottom of page to directly under Safety Settings
+  - Changed from card styling to inline helper text (smaller, muted)
+  - No longer looks clickable
 - **Memory modal loading forever**: Added memory API routes to main server (was only in MCP server)
 - **"no such column: project_id" error**: Added schema migration for memory tables on startup
 - **"no such column: content" error**: SQL queries used `content` but schema has `observation`

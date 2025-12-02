@@ -230,7 +230,7 @@ export class KnowledgeGraphManager {
 
   readGraph(): KnowledgeGraph {
     const entityRows = this.db.prepare(`
-      SELECT e.*, GROUP_CONCAT(o.content, '||') as observations
+      SELECT e.*, GROUP_CONCAT(o.observation, '||') as observations
       FROM memory_entities e
       LEFT JOIN memory_observations o ON e.id = o.entity_id
       WHERE e.user_id = ? ${this.scopeClause()}
@@ -261,7 +261,7 @@ export class KnowledgeGraphManager {
     const words = q.split(/\s+/).filter(w => w.length > 2);
 
     const rows = this.db.prepare(`
-      SELECT e.*, GROUP_CONCAT(o.content, '||') as observations
+      SELECT e.*, GROUP_CONCAT(o.observation, '||') as observations
       FROM memory_entities e
       LEFT JOIN memory_observations o ON e.id = o.entity_id
       WHERE e.user_id = ? ${this.scopeClause()}
@@ -301,7 +301,7 @@ export class KnowledgeGraphManager {
 
     for (const name of names) {
       const row = this.db.prepare(`
-        SELECT e.*, GROUP_CONCAT(o.content, '||') as observations
+        SELECT e.*, GROUP_CONCAT(o.observation, '||') as observations
         FROM memory_entities e
         LEFT JOIN memory_observations o ON e.id = o.entity_id
         WHERE e.user_id = ? AND LOWER(e.name) = LOWER(?) ${this.scopeClause()}
@@ -341,7 +341,7 @@ export class KnowledgeGraphManager {
    */
   getUserEdits(): { entityName: string; observation: string; createdAt: number }[] {
     const rows = this.db.prepare(`
-      SELECT e.name as entity_name, o.content, o.created_at
+      SELECT e.name as entity_name, o.observation, o.created_at
       FROM memory_observations o
       JOIN memory_entities e ON o.entity_id = e.id
       WHERE e.user_id = ? AND o.is_user_edit = 1 ${this.scopeClause()}

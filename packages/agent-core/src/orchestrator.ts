@@ -6,6 +6,7 @@
 
 import {
   createLLMProviderFromEnv,
+  createLLMProvider,
   createDatabaseProviderFromEnv,
   type LLMProvider,
   type DatabaseProvider,
@@ -27,6 +28,7 @@ export class AgentOrchestrator {
   private sessionManager: SessionManager | null = null;
   private memoryManager: MemoryManager | null = null;
   private llmProvider: LLMProvider | null = null;
+  private ollamaProvider: LLMProvider | null = null;
   private dbProvider: DatabaseProvider | null = null;
   private xeroClient: XeroClient | null = null;
   private xeroTools: Tool[] = [];
@@ -60,9 +62,20 @@ export class AgentOrchestrator {
       this.sessionManager = new SessionManager(this.dbProvider);
       this.memoryManager = new MemoryManager(this.dbProvider);
 
-      // Initialize LLM provider
+      // Initialize LLM providers (Anthropic as default, Ollama as optional)
       this.llmProvider = await createLLMProviderFromEnv();
       console.log(`✓ LLM Provider initialized: ${this.llmProvider.name}`);
+
+      // Initialize Ollama provider (optional - may fail if Ollama not available)
+      try {
+        this.ollamaProvider = await createLLMProvider({
+          provider: 'ollama',
+          auth: { method: 'local', credentials: {} },
+        });
+        console.log(`✓ Ollama Provider initialized`);
+      } catch (error) {
+        console.log(`ℹ Ollama not available (optional): ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
 
       // Initialize Xero client and tools
       const xeroClientId = process.env.XERO_CLIENT_ID;
@@ -100,6 +113,19 @@ export class AgentOrchestrator {
     if (!this.sessionManager || !this.memoryManager) {
       throw new Error('Managers not initialized');
     }
+  }
+
+  /**
+   * Get the appropriate LLM provider based on model selection
+   */
+  private getProvider(model?: string): LLMProvider {
+    if (model === 'ollama-local') {
+      if (!this.ollamaProvider || !this.ollamaProvider.isReady()) {
+        throw new Error('Ollama is not available. Make sure Ollama is running locally.');
+      }
+      return this.ollamaProvider;
+    }
+    return this.llmProvider!;
   }
 
   /**
@@ -148,10 +174,15 @@ export class AgentOrchestrator {
         },
       }));
 
-      // 8. Invoke LLM provider to generate response with tools
-      let llmResponse = await this.llmProvider!.chat(conversationHistory, {
-        tools: anthropicTools.length > 0 ? anthropicTools : undefined,
-        model: model || undefined,
+      // 8. Get the appropriate provider for the selected model
+      const provider = this.getProvider(model);
+
+      // 9. Invoke LLM provider to generate response with tools
+      // Note: Ollama doesn't support tools, so only pass them for Anthropic
+      const useTools = model !== 'ollama-local' && anthropicTools.length > 0;
+      let llmResponse = await provider.chat(conversationHistory, {
+        tools: useTools ? anthropicTools : undefined,
+        model: model === 'ollama-local' ? undefined : model, // Ollama uses its default model
       });
 
       // 9. Check if LLM wants to use a tool
@@ -179,8 +210,8 @@ export class AgentOrchestrator {
             },
           ];
 
-          llmResponse = await this.llmProvider!.chat(followUpConversation, {
-            model: model || undefined,
+          llmResponse = await provider.chat(followUpConversation, {
+            model: model === 'ollama-local' ? undefined : model,
           });
         }
       }

@@ -274,7 +274,7 @@ export function ChatPage() {
               </p>
 
               {/* Centered input - Claude.ai pattern with suggestions inside */}
-              <div className="max-w-lg mx-auto">
+              <div className="max-w-4xl mx-auto w-full px-4">
                 <ChatInputArea
                   value={input}
                   onChange={setInput}

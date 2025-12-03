@@ -53,8 +53,13 @@
 
 3. **VPS Infrastructure** ✅ FIXED
    - Added 4GB swap (prevents OOM during Docker builds)
-   - Fixed DNS resolution (Tailscale was overriding resolv.conf)
+   - Fixed DNS resolution (configured systemd-resolved with DNSStubListener=no)
    - Stopped unused containers (n8n, vaultwarden) to free 1.3GB RAM
+
+4. **Local Model Identity** ✅ FIXED
+   - Added model name to system prompt for local LLMs
+   - DeepSeek/Qwen models now correctly identify themselves
+   - Added debug logging for model selection verification
 
 ### Previously Completed (2025-12-02)
 

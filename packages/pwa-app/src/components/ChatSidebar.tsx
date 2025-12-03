@@ -36,10 +36,10 @@ const PipLogo = () => (
   </svg>
 );
 
-// Compose/Edit icon (pencil in square - Claude pattern)
-const ComposeIcon = () => (
+// Plus icon for New Chat button
+const PlusIcon = () => (
   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
   </svg>
 );
 
@@ -206,7 +206,7 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
           )}
         </div>
 
-        {/* New Chat Button - Claude pattern: brand icon + text, subtle row hover */}
+        {/* New Chat Button - Green box around icon, normal text */}
         <div className="px-2 pb-2">
           <button
             onClick={handleNewChat}
@@ -215,10 +215,10 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
             }`}
             title="New chat"
           >
-            <span className="text-arc-accent">
-              <ComposeIcon />
+            <span className="p-1.5 bg-arc-accent rounded-lg text-white flex-shrink-0">
+              <PlusIcon />
             </span>
-            {isOpen && <span className="text-sm text-arc-accent">New chat</span>}
+            {isOpen && <span className="text-sm text-arc-text-primary">New chat</span>}
           </button>
         </div>
 

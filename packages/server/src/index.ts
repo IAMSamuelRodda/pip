@@ -64,7 +64,16 @@ async function createApp(db: DatabaseProvider): Promise<express.Application> {
 
   // Security middleware
   app.use(helmet({
-    contentSecurityPolicy: NODE_ENV === 'production' ? undefined : false, // Disable CSP in dev
+    contentSecurityPolicy: NODE_ENV === 'production' ? {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:", "blob:"],
+        connectSrc: ["'self'", "https://api.anthropic.com", "https://generativelanguage.googleapis.com", "https://openrouter.ai"],
+      },
+    } : false, // Disable CSP in dev
   }));
 
   // CORS configuration

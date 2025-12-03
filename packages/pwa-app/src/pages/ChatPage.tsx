@@ -293,8 +293,8 @@ export function ChatPage() {
         </div>
       )}
 
-      {/* Messages / Empty State */}
-      <main className="flex-1 overflow-y-auto relative">
+      {/* Messages / Empty State - flex-1 and relative for overlay positioning */}
+      <main className="flex-1 overflow-hidden relative flex flex-col">
         {/* Top fade gradient */}
         <div className="pointer-events-none absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-arc-bg-primary to-transparent z-10" />
 
@@ -330,82 +330,116 @@ export function ChatPage() {
             </div>
           </div>
         ) : (
-          /* Conversation view */
-          <div
-            ref={messagesContainerRef}
-            onScroll={handleScroll}
-            className="h-full overflow-y-auto"
-          >
-            <div className="max-w-2xl mx-auto px-4 py-6">
-              <div className="space-y-6">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className="flex justify-start"
-                  >
-                    {message.role === 'user' ? (
-                      /* User message - left-aligned with avatar and subtle background */
-                      <div className="flex items-start gap-3 max-w-[85%] bg-arc-bg-tertiary rounded-xl px-3 py-2.5">
-                        <UserAvatar />
-                        <p className="whitespace-pre-wrap text-sm leading-relaxed text-arc-text-primary pt-0.5">
-                          {message.content}
-                        </p>
-                      </div>
-                    ) : (
-                      /* Assistant message - plain markdown, narrower than input */
-                      <div className="max-w-xl">
-                        <div className="prose prose-sm prose-invert max-w-none text-arc-text-primary">
-                          <ReactMarkdown
-                            components={{
-                              p: ({ children }) => <p className="mb-3 last:mb-0 text-arc-text-primary leading-relaxed">{children}</p>,
-                              ul: ({ children }) => <ul className="list-disc pl-5 mb-3 text-arc-text-primary space-y-1">{children}</ul>,
-                              ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 text-arc-text-primary space-y-1">{children}</ol>,
-                              li: ({ children }) => <li className="text-arc-text-primary">{children}</li>,
-                              strong: ({ children }) => <strong className="font-semibold text-arc-text-primary">{children}</strong>,
-                              h1: ({ children }) => <h1 className="text-lg font-bold mb-3 mt-4 first:mt-0 text-arc-text-primary">{children}</h1>,
-                              h2: ({ children }) => <h2 className="text-base font-bold mb-2 mt-4 first:mt-0 text-arc-text-primary">{children}</h2>,
-                              h3: ({ children }) => <h3 className="text-sm font-semibold mb-2 mt-3 first:mt-0 text-arc-text-primary">{children}</h3>,
-                              code: ({ children, className }) => {
-                                const isInline = !className;
-                                return isInline ? (
-                                  <code className="bg-arc-bg-tertiary px-1.5 py-0.5 rounded text-arc-accent text-sm">{children}</code>
-                                ) : (
-                                  <code className="block bg-arc-bg-tertiary p-3 rounded-lg text-sm overflow-x-auto">{children}</code>
-                                );
-                              },
-                              pre: ({ children }) => <pre className="bg-arc-bg-tertiary p-3 rounded-lg mb-3 overflow-x-auto">{children}</pre>,
-                              blockquote: ({ children }) => <blockquote className="border-l-2 border-arc-accent pl-4 italic text-arc-text-secondary mb-3">{children}</blockquote>,
-                            }}
-                          >
+          /* Conversation view with overlaid input */
+          <>
+            {/* Scrollable messages area - extends behind footer */}
+            <div
+              ref={messagesContainerRef}
+              onScroll={handleScroll}
+              className="flex-1 overflow-y-auto"
+            >
+              {/* Bottom padding to account for footer overlay */}
+              <div className="max-w-2xl mx-auto px-4 py-6 pb-32">
+                <div className="space-y-6">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className="flex justify-start"
+                    >
+                      {message.role === 'user' ? (
+                        /* User message - left-aligned with avatar and subtle background */
+                        <div className="flex items-start gap-3 max-w-[85%] bg-arc-bg-tertiary rounded-xl px-3 py-2.5">
+                          <UserAvatar />
+                          <p className="whitespace-pre-wrap text-sm leading-relaxed text-arc-text-primary pt-0.5">
                             {message.content}
-                          </ReactMarkdown>
+                          </p>
                         </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-                {isLoading && (
-                  <div className="flex justify-start">
-                    <div className="flex items-center gap-3 py-2">
-                      <div className="flex items-center gap-1">
-                        <div className="w-2 h-2 bg-arc-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                        <div className="w-2 h-2 bg-arc-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                        <div className="w-2 h-2 bg-arc-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                      </div>
-                      <span className="text-sm text-arc-text-secondary">
-                        {elapsedSeconds < 5
-                          ? 'Pip is thinking...'
-                          : elapsedSeconds < 15
-                            ? `Checking your data... (${elapsedSeconds}s)`
-                            : `Still working on it... (${elapsedSeconds}s)`}
-                      </span>
+                      ) : (
+                        /* Assistant message - plain markdown, narrower than input */
+                        <div className="max-w-xl">
+                          <div className="prose prose-sm prose-invert max-w-none text-arc-text-primary">
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => <p className="mb-3 last:mb-0 text-arc-text-primary leading-relaxed">{children}</p>,
+                                ul: ({ children }) => <ul className="list-disc pl-5 mb-3 text-arc-text-primary space-y-1">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal pl-5 mb-3 text-arc-text-primary space-y-1">{children}</ol>,
+                                li: ({ children }) => <li className="text-arc-text-primary">{children}</li>,
+                                strong: ({ children }) => <strong className="font-semibold text-arc-text-primary">{children}</strong>,
+                                h1: ({ children }) => <h1 className="text-lg font-bold mb-3 mt-4 first:mt-0 text-arc-text-primary">{children}</h1>,
+                                h2: ({ children }) => <h2 className="text-base font-bold mb-2 mt-4 first:mt-0 text-arc-text-primary">{children}</h2>,
+                                h3: ({ children }) => <h3 className="text-sm font-semibold mb-2 mt-3 first:mt-0 text-arc-text-primary">{children}</h3>,
+                                code: ({ children, className }) => {
+                                  const isInline = !className;
+                                  return isInline ? (
+                                    <code className="bg-arc-bg-tertiary px-1.5 py-0.5 rounded text-arc-accent text-sm">{children}</code>
+                                  ) : (
+                                    <code className="block bg-arc-bg-tertiary p-3 rounded-lg text-sm overflow-x-auto">{children}</code>
+                                  );
+                                },
+                                pre: ({ children }) => <pre className="bg-arc-bg-tertiary p-3 rounded-lg mb-3 overflow-x-auto">{children}</pre>,
+                                blockquote: ({ children }) => <blockquote className="border-l-2 border-arc-accent pl-4 italic text-arc-text-secondary mb-3">{children}</blockquote>,
+                              }}
+                            >
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
+                  ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="flex items-center gap-3 py-2">
+                        <div className="flex items-center gap-1">
+                          <div className="w-2 h-2 bg-arc-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <div className="w-2 h-2 bg-arc-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <div className="w-2 h-2 bg-arc-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                        <span className="text-sm text-arc-text-secondary">
+                          {elapsedSeconds < 5
+                            ? 'Pip is thinking...'
+                            : elapsedSeconds < 15
+                              ? `Checking your data... (${elapsedSeconds}s)`
+                              : `Still working on it... (${elapsedSeconds}s)`}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
+                </div>
               </div>
             </div>
-          </div>
+
+            {/* Scroll to bottom button - floats over messages */}
+            {showScrollButton && (
+              <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20">
+                <button
+                  onClick={scrollToBottom}
+                  className="p-2 bg-arc-bg-tertiary/90 backdrop-blur-sm rounded-full text-arc-text-dim hover:text-arc-text-secondary hover:bg-arc-bg-secondary transition-all border border-arc-border-subtle shadow-lg"
+                  title="Scroll to bottom"
+                >
+                  <ArrowDownIcon />
+                </button>
+              </div>
+            )}
+
+            {/* Input footer - overlays on messages with gradient fade */}
+            <footer className="absolute bottom-0 left-0 right-0 z-10">
+              {/* Gradient fade from transparent to solid */}
+              <div className="h-8 bg-gradient-to-t from-arc-bg-primary to-transparent" />
+              <div className="bg-arc-bg-primary pb-3 px-4">
+                <div className="max-w-3xl mx-auto">
+                  <ChatInputArea
+                    value={input}
+                    onChange={setDraft}
+                    onSubmit={handleSubmitMessage}
+                    placeholder="Ask about your finances..."
+                    isLoading={isLoading}
+                  />
+                </div>
+              </div>
+            </footer>
+          </>
         )}
 
       </main>
@@ -425,33 +459,6 @@ export function ChatPage() {
           </div>
         </div>
       )}
-
-        {/* Input footer (only shown after first message) - seamless with content */}
-        {messages.length > 0 && (
-          <footer className="bg-arc-bg-primary relative">
-            <div className="max-w-2xl mx-auto px-4 pb-3">
-              {/* Scroll to bottom button - centered above input */}
-              {showScrollButton && (
-                <div className="flex justify-center mb-2">
-                  <button
-                    onClick={scrollToBottom}
-                    className="p-2 bg-arc-bg-tertiary/90 backdrop-blur-sm rounded-full text-arc-text-dim hover:text-arc-text-secondary hover:bg-arc-bg-secondary transition-all border border-arc-border-subtle"
-                    title="Scroll to bottom"
-                  >
-                    <ArrowDownIcon />
-                  </button>
-                </div>
-              )}
-              <ChatInputArea
-                value={input}
-                onChange={setDraft}
-                onSubmit={handleSubmitMessage}
-                placeholder="Ask about your finances..."
-                isLoading={isLoading}
-              />
-            </div>
-          </footer>
-        )}
     </MainLayout>
   );
 }

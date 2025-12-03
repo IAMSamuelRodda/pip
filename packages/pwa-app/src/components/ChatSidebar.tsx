@@ -235,7 +235,7 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
               } ${isOpen ? '' : 'justify-center'}`}
               title="Business documents"
             >
-              <DocsIcon className={isOpen ? "h-5 w-5" : "h-6 w-6"} />
+              <DocsIcon className="h-6 w-6" />
               {isOpen && (
                 <>
                   <span className="text-sm flex-1 text-left">Docs</span>
@@ -260,7 +260,7 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
             } ${isOpen ? '' : 'justify-center'}`}
             title="Browse all chats"
           >
-            <ChatsIcon className={isOpen ? "h-5 w-5" : "h-6 w-6"} />
+            <ChatsIcon className="h-6 w-6" />
             {isOpen && (
               <>
                 <span className="text-sm flex-1 text-left">Chats</span>
@@ -281,7 +281,7 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
             } ${isOpen ? '' : 'justify-center'}`}
             title="Browse projects"
           >
-            <ProjectsIcon className={isOpen ? "h-5 w-5" : "h-6 w-6"} />
+            <ProjectsIcon className="h-6 w-6" />
             {isOpen && (
               <>
                 <span className="text-sm flex-1 text-left">Projects</span>

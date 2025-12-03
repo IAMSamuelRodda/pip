@@ -42,7 +42,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,ttf}'],
         // Don't intercept auth routes - let server handle OAuth callbacks
         navigateFallbackDenylist: [/^\/auth/, /^\/api/, /^\/health/],
         runtimeCaching: [

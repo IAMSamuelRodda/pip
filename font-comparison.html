@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pip Font Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=Geist:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 40px;
+      background: #0a0e14;
+      color: #c9d1d9;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    h1 {
+      text-align: center;
+      color: #7eb88e;
+      margin-bottom: 40px;
+      font-family: system-ui;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .font-card {
+      background: #0f1419;
+      border: 1px solid #2d333d;
+      border-radius: 16px;
+      padding: 24px;
+      transition: border-color 0.2s;
+    }
+
+    .font-card:hover {
+      border-color: #7eb88e;
+    }
+
+    .font-name {
+      color: #7eb88e;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+      font-family: system-ui;
+    }
+
+    .font-meta {
+      color: #8b949e;
+      font-size: 12px;
+      margin-bottom: 16px;
+      font-family: system-ui;
+    }
+
+    .sample-heading {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #c9d1d9;
+    }
+
+    .sample-body {
+      font-size: 16px;
+      font-weight: 400;
+      margin-bottom: 16px;
+      color: #8b949e;
+    }
+
+    .sample-small {
+      font-size: 14px;
+      font-weight: 400;
+      color: #6e7681;
+      margin-bottom: 16px;
+    }
+
+    .sample-ui {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .sample-button {
+      padding: 8px 16px;
+      background: #7eb88e;
+      color: #0a0e14;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .sample-input {
+      padding: 8px 12px;
+      background: #1a1f29;
+      border: 1px solid #2d333d;
+      border-radius: 8px;
+      color: #c9d1d9;
+      width: 180px;
+    }
+
+    .sample-numbers {
+      font-variant-numeric: tabular-nums;
+      color: #c9d1d9;
+      margin-top: 12px;
+      font-size: 14px;
+    }
+
+    /* Font families */
+    .font-inter { font-family: 'Inter', system-ui, sans-serif; }
+    .font-geist { font-family: 'Geist', system-ui, sans-serif; }
+    .font-plus-jakarta { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; }
+    .font-dm-sans { font-family: 'DM Sans', system-ui, sans-serif; }
+    .font-figtree { font-family: 'Figtree', system-ui, sans-serif; }
+    .font-source { font-family: 'Source Sans 3', system-ui, sans-serif; }
+
+    .recommendation {
+      text-align: center;
+      margin-top: 40px;
+      padding: 24px;
+      background: #1a1f29;
+      border-radius: 12px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .recommendation h2 {
+      color: #7eb88e;
+      font-family: system-ui;
+      margin-bottom: 12px;
+    }
+
+    .recommendation p {
+      color: #8b949e;
+      font-family: system-ui;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pip Font Comparison</h1>
+
+  <div class="grid">
+    <!-- Inter (Current) -->
+    <div class="font-card font-inter">
+      <div class="font-name">Inter (Current)</div>
+      <div class="font-meta">Google Fonts | Geometric humanist | Figma, GitHub</div>
+      <div class="sample-heading">Hi there! I'm Pip.</div>
+      <div class="sample-body">Your AI-powered bookkeeper that helps you understand your finances and stay on top of your business.</div>
+      <div class="sample-small">What do you know about me, ollama?</div>
+      <div class="sample-ui">
+        <button class="sample-button font-inter">New chat</button>
+        <input class="sample-input font-inter" placeholder="Ask about your finances..." />
+      </div>
+      <div class="sample-numbers">$12,450.00 | Invoice #2024-0847 | Due: Dec 15</div>
+    </div>
+
+    <!-- Geist -->
+    <div class="font-card font-geist">
+      <div class="font-name">Geist (Recommended)</div>
+      <div class="font-meta">Vercel | Geometric sans | Claude.ai, Vercel</div>
+      <div class="sample-heading">Hi there! I'm Pip.</div>
+      <div class="sample-body">Your AI-powered bookkeeper that helps you understand your finances and stay on top of your business.</div>
+      <div class="sample-small">What do you know about me, ollama?</div>
+      <div class="sample-ui">
+        <button class="sample-button font-geist">New chat</button>
+        <input class="sample-input font-geist" placeholder="Ask about your finances..." />
+      </div>
+      <div class="sample-numbers">$12,450.00 | Invoice #2024-0847 | Due: Dec 15</div>
+    </div>
+
+    <!-- Plus Jakarta Sans -->
+    <div class="font-card font-plus-jakarta">
+      <div class="font-name">Plus Jakarta Sans</div>
+      <div class="font-meta">Google Fonts | Modern geometric | Open source</div>
+      <div class="sample-heading">Hi there! I'm Pip.</div>
+      <div class="sample-body">Your AI-powered bookkeeper that helps you understand your finances and stay on top of your business.</div>
+      <div class="sample-small">What do you know about me, ollama?</div>
+      <div class="sample-ui">
+        <button class="sample-button font-plus-jakarta">New chat</button>
+        <input class="sample-input font-plus-jakarta" placeholder="Ask about your finances..." />
+      </div>
+      <div class="sample-numbers">$12,450.00 | Invoice #2024-0847 | Due: Dec 15</div>
+    </div>
+
+    <!-- DM Sans -->
+    <div class="font-card font-dm-sans">
+      <div class="font-name">DM Sans</div>
+      <div class="font-meta">Google Fonts | Geometric | Clean, neutral</div>
+      <div class="sample-heading">Hi there! I'm Pip.</div>
+      <div class="sample-body">Your AI-powered bookkeeper that helps you understand your finances and stay on top of your business.</div>
+      <div class="sample-small">What do you know about me, ollama?</div>
+      <div class="sample-ui">
+        <button class="sample-button font-dm-sans">New chat</button>
+        <input class="sample-input font-dm-sans" placeholder="Ask about your finances..." />
+      </div>
+      <div class="sample-numbers">$12,450.00 | Invoice #2024-0847 | Due: Dec 15</div>
+    </div>
+
+    <!-- Figtree -->
+    <div class="font-card font-figtree">
+      <div class="font-name">Figtree</div>
+      <div class="font-meta">Google Fonts | Geometric | Modern, friendly</div>
+      <div class="sample-heading">Hi there! I'm Pip.</div>
+      <div class="sample-body">Your AI-powered bookkeeper that helps you understand your finances and stay on top of your business.</div>
+      <div class="sample-small">What do you know about me, ollama?</div>
+      <div class="sample-ui">
+        <button class="sample-button font-figtree">New chat</button>
+        <input class="sample-input font-figtree" placeholder="Ask about your finances..." />
+      </div>
+      <div class="sample-numbers">$12,450.00 | Invoice #2024-0847 | Due: Dec 15</div>
+    </div>
+
+    <!-- Source Sans 3 -->
+    <div class="font-card font-source">
+      <div class="font-name">Source Sans 3</div>
+      <div class="font-meta">Google Fonts | Humanist | Adobe, professional</div>
+      <div class="sample-heading">Hi there! I'm Pip.</div>
+      <div class="sample-body">Your AI-powered bookkeeper that helps you understand your finances and stay on top of your business.</div>
+      <div class="sample-small">What do you know about me, ollama?</div>
+      <div class="sample-ui">
+        <button class="sample-button font-source">New chat</button>
+        <input class="sample-input font-source" placeholder="Ask about your finances..." />
+      </div>
+      <div class="sample-numbers">$12,450.00 | Invoice #2024-0847 | Due: Dec 15</div>
+    </div>
+  </div>
+
+  <div class="recommendation">
+    <h2>Recommendation</h2>
+    <p><strong>Geist</strong> - Modern, professional, used by Claude.ai. Excellent for finance apps.</p>
+    <p><strong>Plus Jakarta Sans</strong> - Similar feel to Geist, slightly warmer. Great alternative.</p>
+    <p><strong>DM Sans</strong> - Clean and neutral. Safe choice for professional look.</p>
+  </div>
+</body>
+</html>

@@ -41,8 +41,8 @@ export function ChatHeader({
   }
 
   return (
-    <header className="sticky top-0 z-10 bg-arc-bg-primary">
-      <div className="max-w-2xl mx-auto px-4 py-3">
+    <header className="sticky top-0 z-20 bg-arc-bg-primary">
+      <div className="px-4 py-3">
         <ChatActionsMenu
           sessionId={sessionId}
           title={title}

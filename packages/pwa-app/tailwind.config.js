@@ -24,6 +24,7 @@ export default {
         },
       },
       fontFamily: {
+        'sans': ['Plus Jakarta Sans', 'system-ui', 'Avenir', 'Helvetica', 'Arial', 'sans-serif'],
         'mono': ['JetBrains Mono', 'Inconsolata', 'monospace'],
       },
     },

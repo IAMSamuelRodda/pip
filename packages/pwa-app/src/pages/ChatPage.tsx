@@ -4,15 +4,29 @@
  * Epic 2.2: Chat History with sidebar
  */
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { useChatStore } from '../store/chatStore';
+import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
-import type { PersonalityInfo } from '../api/client';
 import { MainLayout } from '../components/MainLayout';
 import { ChatInputArea } from '../components/ChatInputArea';
 import { QuickActionCategories } from '../components/QuickActionCategories';
 import { ChatHeader } from '../components/ChatHeader';
+
+// Personalized greetings with {name} placeholder
+const GREETINGS = [
+  "What's on your mind, {name}?",
+  "Ready when you are, {name}",
+  "How can I help today, {name}?",
+  "Let's get to work, {name}",
+  "What are we working on, {name}?",
+  "Good to see you, {name}",
+  "What's the plan, {name}?",
+  "Need something, {name}?",
+  "At your service, {name}",
+  "What's next, {name}?",
+];
 
 // Scroll to bottom icon
 const ArrowDownIcon = () => (
@@ -42,11 +56,28 @@ export function ChatPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
-  const [personalityInfo, setPersonalityInfo] = useState<PersonalityInfo | null>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Get user info from auth store
+  const user = useAuthStore((state) => state.user);
+
+  // Get first name from user.name (e.g., "John Smith" -> "John")
+  const firstName = useMemo(() => {
+    if (!user?.name) return null;
+    const parts = user.name.trim().split(' ');
+    return parts[0] || null;
+  }, [user?.name]);
+
+  // Select a random greeting (stable per session)
+  const greeting = useMemo(() => {
+    const randomIndex = Math.floor(Math.random() * GREETINGS.length);
+    const template = GREETINGS[randomIndex];
+    const name = firstName || 'there';
+    return template.replace('{name}', name);
+  }, [firstName]);
 
   const {
     messages,
@@ -104,16 +135,6 @@ export function ChatPage() {
       setDocuments(result.documents);
     } catch (err) {
       console.error('Failed to load documents:', err);
-    }
-  }, []);
-
-  // Load personality info
-  const loadPersonalityInfo = useCallback(async () => {
-    try {
-      const result = await api.getSettings();
-      setPersonalityInfo(result.personalityInfo);
-    } catch (err) {
-      console.error('Failed to load personality:', err);
     }
   }, []);
 
@@ -185,11 +206,6 @@ export function ChatPage() {
   useEffect(() => {
     loadDocuments();
   }, [loadDocuments]);
-
-  // Load personality info on mount
-  useEffect(() => {
-    loadPersonalityInfo();
-  }, [loadPersonalityInfo]);
 
   // Handler for ChatInputArea component (receives message directly)
   const handleSubmitMessage = async (message: string, _attachments?: File[]) => {
@@ -278,27 +294,27 @@ export function ChatPage() {
         <div className="pointer-events-none absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-arc-bg-primary to-transparent z-10" />
 
         {messages.length === 0 ? (
-          /* Empty state: Centered content with inline input (golden ratio positioning) */
+          /* Empty state: Left-aligned logo with greeting, centered input */
           <div className="h-full flex flex-col items-center justify-center px-4" style={{ paddingBottom: '20vh' }}>
-            <div className="text-center max-w-xl w-full">
-              <svg className="w-16 h-16 mx-auto mb-4" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="50" cy="50" r="44" fill="var(--arc-bg-secondary)" stroke="var(--arc-accent)" strokeWidth="6"/>
-                <path d="M38 70 V30 h14 a10 10 0 0 1 0 20 H38" fill="none" stroke="var(--arc-accent)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <h2 className="text-xl font-medium text-arc-text-primary mb-1">
-                {personalityInfo?.greeting || 'Hi there'}
-              </h2>
-              <p className="text-sm text-arc-text-dim mb-6">
-                {personalityInfo?.role || 'Your bookkeeper'}
-              </p>
+            <div className="max-w-2xl w-full">
+              {/* Logo + Greeting - Left aligned, inline */}
+              <div className="flex items-center gap-4 mb-8 px-4">
+                <svg className="w-12 h-12 flex-shrink-0" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                  <circle cx="50" cy="50" r="44" fill="var(--arc-bg-secondary)" stroke="var(--arc-accent)" strokeWidth="6"/>
+                  <path d="M38 70 V30 h14 a10 10 0 0 1 0 20 H38" fill="none" stroke="var(--arc-accent)" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                <h2 className="text-2xl font-medium text-arc-text-primary">
+                  {greeting}
+                </h2>
+              </div>
 
-              {/* Centered input - Claude.ai pattern */}
-              <div className="max-w-2xl mx-auto w-full px-4">
+              {/* Input */}
+              <div className="w-full px-4">
                 <ChatInputArea
                   value={input}
                   onChange={setInput}
                   onSubmit={handleSubmitMessage}
-                  placeholder="How can I help you today?"
+                  placeholder="Ask about your finances..."
                   isLoading={isLoading}
                   autoFocus
                 />

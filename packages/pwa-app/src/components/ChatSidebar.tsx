@@ -190,20 +190,20 @@ export function ChatSidebar({ isOpen, onToggle, docsCount = 0, showDocs, onToggl
             </>
           ) : (
             // Collapsed: Logo by default, toggle icon on sidebar hover
-            <button
-              onClick={onToggle}
-              className="w-full flex justify-center p-1.5 rounded hover:bg-arc-bg-tertiary text-arc-text-secondary transition-colors"
-              title="Expand sidebar"
-            >
+            <div className="w-full flex justify-center">
               {/* Logo - hidden on sidebar hover */}
-              <span className="group-hover/sidebar:hidden">
+              <span className="group-hover/sidebar:hidden p-1.5">
                 <PipLogo />
               </span>
-              {/* Toggle - shown on sidebar hover */}
-              <span className="hidden group-hover/sidebar:block">
+              {/* Toggle - shown on sidebar hover with background */}
+              <button
+                onClick={onToggle}
+                className="hidden group-hover/sidebar:flex p-1.5 rounded hover:bg-arc-bg-primary text-arc-text-secondary transition-colors"
+                title="Expand sidebar"
+              >
                 <ExpandIcon />
-              </span>
-            </button>
+              </button>
+            </div>
           )}
         </div>
 

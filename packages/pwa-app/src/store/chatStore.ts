@@ -30,6 +30,9 @@ export interface ModelOption {
 // Default model (Sonnet 4.5 - balanced performance)
 const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
 
+// Model loading states for Ollama warmup UX
+export type ModelLoadingState = 'idle' | 'loading' | 'ready' | 'error';
+
 interface ChatState {
   // Current chat
   messages: Message[];
@@ -40,6 +43,7 @@ interface ChatState {
 
   // Model selection (persisted)
   selectedModel: string;
+  modelLoadingState: ModelLoadingState;
 
   // Chat history
   chatList: ChatSummary[];
@@ -57,6 +61,7 @@ interface ChatState {
   clearError: () => void;
   setError: (error: string) => void;
   setSelectedModel: (modelId: string) => void;
+  setModelLoadingState: (state: ModelLoadingState) => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -68,6 +73,7 @@ export const useChatStore = create<ChatState>()(
   isLoading: false,
   error: null,
   selectedModel: DEFAULT_MODEL,
+  modelLoadingState: 'idle' as ModelLoadingState,
   chatList: [],
   isLoadingList: false,
 
@@ -208,6 +214,8 @@ export const useChatStore = create<ChatState>()(
   setError: (error: string) => set({ error }),
 
   setSelectedModel: (modelId: string) => set({ selectedModel: modelId }),
+
+  setModelLoadingState: (state: ModelLoadingState) => set({ modelLoadingState: state }),
     }),
     {
       name: 'pip-chat-storage',

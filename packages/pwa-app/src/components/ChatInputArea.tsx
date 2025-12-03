@@ -352,6 +352,8 @@ export function ChatInputArea({
   // Model selection from store (persisted)
   const selectedModel = useChatStore((state) => state.selectedModel);
   const setSelectedModel = useChatStore((state) => state.setSelectedModel);
+  const modelLoadingState = useChatStore((state) => state.modelLoadingState);
+  const setModelLoadingState = useChatStore((state) => state.setModelLoadingState);
 
   // Load settings and Ollama status
   useEffect(() => {
@@ -399,17 +401,38 @@ export function ChatInputArea({
     }
   }, []);
 
-  const handleModelChange = useCallback((modelId: string) => {
+  const handleModelChange = useCallback(async (modelId: string) => {
     setSelectedModel(modelId);
 
-    // Pre-warm Ollama when local model selected (fire-and-forget)
-    // This loads the specific model into memory while user types their message
+    // Pre-warm Ollama when local model selected
+    // Shows loading state while model loads into VRAM
     if (modelId.startsWith('ollama:')) {
       // Extract model name (e.g., "ollama:deepseek-r1:14b" -> "deepseek-r1:14b")
       const modelName = modelId.replace('ollama:', '');
-      api.warmupOllama(modelName);
+
+      // Set loading state
+      setModelLoadingState('loading');
+
+      try {
+        const result = await api.warmupOllama(modelName);
+        if (result.success) {
+          setModelLoadingState('ready');
+          // Return to idle after green flash animation completes (500ms)
+          setTimeout(() => setModelLoadingState('idle'), 500);
+        } else {
+          setModelLoadingState('error');
+          // Return to idle after brief pause
+          setTimeout(() => setModelLoadingState('idle'), 2000);
+        }
+      } catch {
+        setModelLoadingState('error');
+        setTimeout(() => setModelLoadingState('idle'), 2000);
+      }
+    } else {
+      // Cloud models don't need warmup - always ready
+      setModelLoadingState('idle');
     }
-  }, [setSelectedModel]);
+  }, [setSelectedModel, setModelLoadingState]);
 
   const handleSubmit = useCallback((e?: React.FormEvent) => {
     e?.preventDefault();
@@ -426,7 +449,21 @@ export function ChatInputArea({
     }
   }, [handleSubmit]);
 
-  const canSubmit = value.trim() && !isLoading && !disabled;
+  // Disable submit while model is loading (for Ollama models)
+  const isModelLoading = modelLoadingState === 'loading';
+  const canSubmit = value.trim() && !isLoading && !disabled && !isModelLoading;
+
+  // Determine send button classes based on model loading state
+  const getSendButtonClasses = () => {
+    const baseClasses = 'p-2 text-arc-bg-primary rounded-lg transition-colors';
+    if (isModelLoading) {
+      return `${baseClasses} btn-model-loading cursor-wait`;
+    }
+    if (modelLoadingState === 'ready') {
+      return `${baseClasses} btn-model-ready`;
+    }
+    return `${baseClasses} bg-arc-accent hover:bg-arc-accent-dim disabled:opacity-30 disabled:cursor-not-allowed`;
+  };
 
   // Get display name for current model
   const getModelDisplayName = (modelId: string): string => {
@@ -556,8 +593,8 @@ export function ChatInputArea({
               type="button"
               onClick={() => handleSubmit()}
               disabled={!canSubmit}
-              className="p-2 bg-arc-accent text-arc-bg-primary rounded-lg hover:bg-arc-accent-dim disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-              title="Send"
+              className={getSendButtonClasses()}
+              title={isModelLoading ? 'Loading model...' : 'Send'}
             >
               <SendIcon />
             </button>

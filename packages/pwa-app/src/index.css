@@ -27,3 +27,30 @@ body {
 #root {
   width: 100%;
 }
+
+/* Model loading state animations for send button */
+@keyframes pulse-loading {
+  0%, 100% {
+    background-color: #7eb88e; /* arc-accent - base state */
+  }
+  50% {
+    background-color: #d4a84a; /* Warm yellow/amber tone */
+  }
+}
+
+@keyframes flash-ready {
+  0% {
+    background-color: #4ade80; /* Bright green flash */
+  }
+  100% {
+    background-color: #7eb88e; /* arc-accent */
+  }
+}
+
+.btn-model-loading {
+  animation: pulse-loading 1s ease-in-out infinite;
+}
+
+.btn-model-ready {
+  animation: flash-ready 0.5s ease-out forwards;
+}

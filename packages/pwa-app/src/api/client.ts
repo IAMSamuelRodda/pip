@@ -348,20 +348,22 @@ export const api = {
   },
 
   /**
-   * Pre-warm Ollama model (fire-and-forget)
+   * Pre-warm Ollama model and wait for completion
    * Call when user selects Ollama to reduce first-message latency
    * @param model - The specific model to warm up (e.g., "deepseek-r1:14b")
+   * @returns Promise that resolves when model is loaded, rejects on error
    */
-  warmupOllama(model?: string): void {
-    // Fire and forget - don't await or handle errors
-    // This is a background optimization
-    fetch(`${API_BASE}/api/models/ollama/warmup`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ model }),
-    }).catch(() => {
-      // Silently ignore - warmup is optional
-    });
+  async warmupOllama(model?: string): Promise<{ success: boolean; model?: string; error?: string }> {
+    try {
+      const response = await fetch(`${API_BASE}/api/models/ollama/warmup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model }),
+      });
+      return response.json();
+    } catch {
+      return { success: false, error: 'Failed to warmup model' };
+    }
   },
 
   /**

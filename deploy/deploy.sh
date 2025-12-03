@@ -57,6 +57,8 @@ docker run -d --name pip-app \
   -e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY" \
   -e XERO_CLIENT_ID="$XERO_CLIENT_ID" \
   -e XERO_CLIENT_SECRET="$XERO_CLIENT_SECRET" \
+  -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
+  -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET" \
   -e BASE_URL=https://app.pip.arcforge.au \
   -e FRONTEND_URL=https://app.pip.arcforge.au \
   -e JWT_SECRET="$JWT_SECRET" \
@@ -75,6 +77,8 @@ docker run -d --name pip-mcp \
   -e DATABASE_PATH=/app/data/pip.db \
   -e XERO_CLIENT_ID="$XERO_CLIENT_ID" \
   -e XERO_CLIENT_SECRET="$XERO_CLIENT_SECRET" \
+  -e GOOGLE_CLIENT_ID="$GOOGLE_CLIENT_ID" \
+  -e GOOGLE_CLIENT_SECRET="$GOOGLE_CLIENT_SECRET" \
   -e JWT_SECRET="$JWT_SECRET" \
   -e BASE_URL=https://mcp.pip.arcforge.au \
   -e MCP_OAUTH_CLIENT_ID="${MCP_OAUTH_CLIENT_ID:-pip-mcp-client}" \

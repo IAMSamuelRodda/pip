@@ -50,7 +50,6 @@ interface Document {
 }
 
 export function ChatPage() {
-  const [input, setInput] = useState('');
   const [showDocPanel, setShowDocPanel] = useState(false);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -91,7 +90,13 @@ export function ChatPage() {
     bookmarkChat,
     renameChat,
     deleteChat,
+    getDraft,
+    setDraft,
+    clearDraft,
   } = useChatStore();
+
+  // Get draft for current chat (changes when sessionId changes)
+  const input = getDraft();
 
   // Get current chat's bookmark status
   const currentChat = chatList.find(c => c.sessionId === sessionId);
@@ -210,7 +215,7 @@ export function ChatPage() {
   // Handler for ChatInputArea component (receives message directly)
   const handleSubmitMessage = async (message: string, _attachments?: File[]) => {
     if (!message.trim() || isLoading) return;
-    setInput('');
+    clearDraft();
     await sendMessage(message);
     // TODO: Handle attachments when file upload is implemented (Epic 2.4)
   };
@@ -312,7 +317,7 @@ export function ChatPage() {
               <div className="w-full">
                 <ChatInputArea
                   value={input}
-                  onChange={setInput}
+                  onChange={setDraft}
                   onSubmit={handleSubmitMessage}
                   placeholder="Ask about your finances..."
                   isLoading={isLoading}
@@ -405,16 +410,6 @@ export function ChatPage() {
 
       </main>
 
-      {/* Scroll to bottom button - fixed at viewport bottom, grey color */}
-      {showScrollButton && messages.length > 0 && (
-        <button
-          onClick={scrollToBottom}
-          className="fixed bottom-20 left-1/2 -translate-x-1/2 p-2 bg-arc-bg-tertiary/90 backdrop-blur-sm rounded-full text-arc-text-dim hover:text-arc-text-secondary hover:bg-arc-bg-secondary transition-all z-30 border border-arc-border-subtle"
-          title="Scroll to bottom"
-        >
-          <ArrowDownIcon />
-        </button>
-      )}
 
       {/* Error Banner */}
       {error && (
@@ -433,11 +428,23 @@ export function ChatPage() {
 
         {/* Input footer (only shown after first message) - seamless with content */}
         {messages.length > 0 && (
-          <footer className="bg-arc-bg-primary">
+          <footer className="bg-arc-bg-primary relative">
             <div className="max-w-2xl mx-auto px-4 pb-3">
+              {/* Scroll to bottom button - centered above input */}
+              {showScrollButton && (
+                <div className="flex justify-center mb-2">
+                  <button
+                    onClick={scrollToBottom}
+                    className="p-2 bg-arc-bg-tertiary/90 backdrop-blur-sm rounded-full text-arc-text-dim hover:text-arc-text-secondary hover:bg-arc-bg-secondary transition-all border border-arc-border-subtle"
+                    title="Scroll to bottom"
+                  >
+                    <ArrowDownIcon />
+                  </button>
+                </div>
+              )}
               <ChatInputArea
                 value={input}
-                onChange={setInput}
+                onChange={setDraft}
                 onSubmit={handleSubmitMessage}
                 placeholder="Ask about your finances..."
                 isLoading={isLoading}

@@ -49,6 +49,9 @@ interface ChatState {
   chatList: ChatSummary[];
   isLoadingList: boolean;
 
+  // Per-chat drafts (persisted) - keyed by sessionId, "_new" for new chat
+  drafts: Record<string, string>;
+
   // Actions
   sendMessage: (content: string) => Promise<void>;
   loadChatList: () => Promise<void>;
@@ -62,6 +65,9 @@ interface ChatState {
   setError: (error: string) => void;
   setSelectedModel: (modelId: string) => void;
   setModelLoadingState: (state: ModelLoadingState) => void;
+  getDraft: () => string;
+  setDraft: (text: string) => void;
+  clearDraft: () => void;
 }
 
 export const useChatStore = create<ChatState>()(
@@ -76,6 +82,7 @@ export const useChatStore = create<ChatState>()(
   modelLoadingState: 'idle' as ModelLoadingState,
   chatList: [],
   isLoadingList: false,
+  drafts: {},
 
   sendMessage: async (content: string) => {
     const userMessage: Message = {
@@ -216,10 +223,31 @@ export const useChatStore = create<ChatState>()(
   setSelectedModel: (modelId: string) => set({ selectedModel: modelId }),
 
   setModelLoadingState: (state: ModelLoadingState) => set({ modelLoadingState: state }),
+
+  // Per-chat draft management
+  getDraft: () => {
+    const key = get().sessionId || '_new';
+    return get().drafts[key] || '';
+  },
+
+  setDraft: (text: string) => {
+    const key = get().sessionId || '_new';
+    set((state) => ({
+      drafts: { ...state.drafts, [key]: text },
+    }));
+  },
+
+  clearDraft: () => {
+    const key = get().sessionId || '_new';
+    set((state) => {
+      const { [key]: _, ...rest } = state.drafts;
+      return { drafts: rest };
+    });
+  },
     }),
     {
       name: 'pip-chat-storage',
-      partialize: (state) => ({ selectedModel: state.selectedModel }),
+      partialize: (state) => ({ selectedModel: state.selectedModel, drafts: state.drafts }),
     }
   )
 );

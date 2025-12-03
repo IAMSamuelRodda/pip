@@ -80,8 +80,11 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
         sortOrder: 'desc',
       });
 
+      // Filter out empty sessions (no messages = never used)
+      const nonEmptySessions = sessions.filter(s => s.messages.length > 0);
+
       res.json({
-        sessions: sessions.map(s => {
+        sessions: nonEmptySessions.map(s => {
           // Generate title from first user message if not set
           const firstUserMsg = s.messages.find(m => m.role === 'user');
           const title = s.title || (firstUserMsg ? generateTitleFromMessage(firstUserMsg.content) : 'New chat');

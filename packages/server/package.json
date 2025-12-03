@@ -11,7 +11,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.68.0",
     "@pip/agent-core": "workspace:*",
     "@pip/core": "workspace:*",
     "bcryptjs": "^3.0.3",

@@ -8,35 +8,6 @@
 import { Router } from 'express';
 import { AgentOrchestrator } from '@pip/agent-core';
 import type { DatabaseProvider } from '@pip/core';
-import Anthropic from '@anthropic-ai/sdk';
-
-/**
- * Generate a smart title for a chat using Haiku
- * Returns a short, concise 3-5 word title based on the user's first message
- */
-async function generateSmartTitle(message: string): Promise<string> {
-  try {
-    const anthropic = new Anthropic();
-    const response = await anthropic.messages.create({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 30,
-      messages: [
-        {
-          role: 'user',
-          content: `Generate a 3-5 word chat title for this message. Respond with ONLY the title, no quotes or explanation:\n\n"${message.substring(0, 200)}"`,
-        },
-      ],
-    });
-
-    const title = (response.content[0] as { type: 'text'; text: string }).text.trim();
-    // Clean up any quotes that slipped through
-    return title.replace(/^["']|["']$/g, '').substring(0, 50);
-  } catch (error) {
-    console.error('Failed to generate smart title:', error);
-    // Fallback to simple truncation
-    return message.substring(0, 50).trim() + (message.length > 50 ? '...' : '');
-  }
-}
 
 export function createChatRoutes(db: DatabaseProvider): Router {
   const router = Router();
@@ -80,8 +51,9 @@ export function createChatRoutes(db: DatabaseProvider): Router {
       });
 
       // Generate smart title for new sessions (async, don't block response)
+      // Uses the same model that handled the conversation
       if (isNewSession) {
-        generateSmartTitle(message).then(async (title) => {
+        orchestrator.generateTitle(message, model).then(async (title) => {
           try {
             await db.updateSession(userId, activeSessionId, { title });
           } catch (err) {

@@ -439,4 +439,34 @@ ${businessSection}${styleSection}
     const session = await this.sessionManager!.getSession(userId, sessionId);
     return session?.messages || [];
   }
+
+  /**
+   * Generate a short, concise title for a chat based on the first message
+   * Uses the same model that was used for the conversation
+   */
+  async generateTitle(message: string, model?: string): Promise<string> {
+    try {
+      await this.ensureReady();
+
+      const { provider, modelOverride } = this.getProvider(model);
+      const isOllamaModel = model?.startsWith('ollama:') || model === 'ollama-local';
+
+      const response = await provider.chat([
+        {
+          role: 'user',
+          content: `Generate a 3-5 word chat title for this message. Respond with ONLY the title, no quotes or explanation:\n\n"${message.substring(0, 200)}"`,
+        },
+      ], {
+        model: modelOverride || (isOllamaModel ? undefined : model),
+      });
+
+      const title = response.content.trim();
+      // Clean up any quotes that slipped through
+      return title.replace(/^["']|["']$/g, '').substring(0, 50);
+    } catch (error) {
+      console.error('Failed to generate title:', error);
+      // Fallback to simple truncation
+      return message.substring(0, 50).trim() + (message.length > 50 ? '...' : '');
+    }
+  }
 }

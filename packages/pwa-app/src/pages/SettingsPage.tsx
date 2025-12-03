@@ -206,7 +206,7 @@ export function SettingsPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-arc-bg-primary font-mono">
+    <div className="flex flex-col min-h-screen bg-arc-bg-primary font-sans">
       {/* Header */}
       <header className="bg-arc-bg-secondary border-b border-arc-border">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">

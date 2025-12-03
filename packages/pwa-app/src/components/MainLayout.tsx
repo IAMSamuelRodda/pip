@@ -48,7 +48,7 @@ export function MainLayout({
   }, [loadDocuments]);
 
   return (
-    <div className="flex h-screen bg-arc-bg-primary font-mono">
+    <div className="flex h-screen bg-arc-bg-primary font-sans">
       {/* Sidebar */}
       <ChatSidebar
         isOpen={sidebarOpen}

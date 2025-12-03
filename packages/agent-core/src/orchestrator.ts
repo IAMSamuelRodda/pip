@@ -469,7 +469,9 @@ ${businessSection}${styleSection}
         model: modelOverride || (isOllamaModel ? undefined : model),
       });
 
-      const title = response.content.trim();
+      let title = response.content.trim();
+      // Strip <think> blocks from reasoning models (qwq, deepseek-r1)
+      title = title.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
       // Clean up any quotes that slipped through
       return title.replace(/^["']|["']$/g, '').substring(0, 50);
     } catch (error) {

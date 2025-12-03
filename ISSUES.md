@@ -87,6 +87,36 @@
 - **See**: PROGRESS.md → Epic 2.1 for detailed tasks
 - **UX Reference**: `specs/spike-outputs/UX-PATTERNS-CLAUDE-AI-REFERENCE-20251201.md` Pattern 0.7
 
+#### issue_036: Collapsible Thinking + Tool Call Visibility (Claude Code Pattern)
+- **Status**: 🔴 Open
+- **Priority**: P2 (Medium - UX transparency)
+- **Component**: `packages/pwa-app`, `packages/server`
+- **Created**: 2025-12-03
+- **Description**: Stream and display reasoning model thinking + tool calls in collapsible UI, matching Claude Code terminal UX.
+- **Current State**:
+  - `<think>` blocks from qwq/deepseek models shown raw in response
+  - No visibility into tool calls (what tool, what input, what output)
+  - User has no insight into "what Pip is doing"
+- **Target Pattern** (Claude Code terminal):
+  - **Thinking**: Collapsed by default, expandable accordion showing model reasoning
+  - **Tool Calls**: Card showing tool name, input parameters, response data
+  - **Progress**: "Tinkering... (28s)" with real-time status
+- **UI Components Needed**:
+  1. `ThinkingCollapsible.tsx` - Parse `<think>...</think>`, render in accordion
+  2. `ToolCallCard.tsx` - Show tool name + input + output in expandable card
+  3. Response parsing to extract thinking blocks and tool metadata
+- **Backend Changes**:
+  - Return tool call metadata in chat response (tool name, input, output)
+  - Consider SSE for streaming thinking/progress updates
+- **Acceptance Criteria**:
+  - [ ] Parse `<think>` blocks from model responses
+  - [ ] Render thinking in collapsible component (collapsed by default)
+  - [ ] Display tool calls with name, input, and result
+  - [ ] Tool cards expandable to show full details
+  - [ ] Works with both cloud models (Claude) and local models (qwq, deepseek)
+- **Complexity**: 2.5/5 (Medium)
+- **Reference**: Claude Code terminal "Tinkering..." UX with expandable details
+
 #### issue_035: Ollama Reasoning Model Context Length Configuration
 - **Status**: 🔴 Open
 - **Priority**: P2 (Medium - performance optimization)

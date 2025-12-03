@@ -161,7 +161,11 @@ export class AgentOrchestrator {
       const memoryContext = await this.getMemoryContext(userId, request.projectId);
 
       // 6. Build conversation context with system prompt and history
-      const systemPrompt = this.buildSystemPrompt(memory, businessContext, memoryContext, responseStyle);
+      // Determine display name for model (for Ollama models, extract the model name)
+      const modelDisplayName = model?.startsWith('ollama:')
+        ? model.replace('ollama:', '')
+        : model?.includes(':') ? model : undefined;
+      const systemPrompt = this.buildSystemPrompt(memory, businessContext, memoryContext, responseStyle, modelDisplayName);
       const conversationHistory = [
         { role: 'system' as const, content: systemPrompt },
         ...(session?.messages || []),
@@ -183,6 +187,9 @@ export class AgentOrchestrator {
       // 8. Get the appropriate provider for the selected model
       const { provider, modelOverride } = this.getProvider(model);
       const isOllamaModel = model?.startsWith('ollama:') || model === 'ollama-local';
+
+      // Log which model is being used
+      console.log(`💬 Chat request: model=${model || 'default'}, provider=${provider.name}, override=${modelOverride || 'none'}`);
 
       // 9. Invoke LLM provider to generate response with tools
       // Note: Ollama doesn't support tools, so only pass them for Anthropic
@@ -370,7 +377,7 @@ export class AgentOrchestrator {
   /**
    * Build system prompt with user context, memory, and response style
    */
-  private buildSystemPrompt(memory: any, businessContext: string = '', memoryContext: string = '', responseStyle: ResponseStyleId = 'normal'): string {
+  private buildSystemPrompt(memory: any, businessContext: string = '', memoryContext: string = '', responseStyle: ResponseStyleId = 'normal', modelName?: string): string {
     const relationshipContext = memory?.relationshipStage
       ? `Your relationship with this user is at the "${memory.relationshipStage}" stage.`
       : 'This is your first conversation with this user.';
@@ -388,7 +395,12 @@ export class AgentOrchestrator {
     const styleModifier = buildStylePrompt(responseStyle);
     const styleSection = styleModifier ? `\n${styleModifier}\n` : '';
 
-    return `You are Pip, a helpful intelligent assistant for Australian small business owners. You're good with the books - sharp, direct, and knowledgeable.
+    // Add model identity for local models that don't know themselves
+    const modelIdentity = modelName
+      ? `\n\nNote: You are powered by ${modelName}. If asked about your model, refer to this.`
+      : '';
+
+    return `You are Pip, a helpful intelligent assistant for Australian small business owners. You're good with the books - sharp, direct, and knowledgeable.${modelIdentity}
 
 ${relationshipContext}${memorySection}
 ${businessSection}${styleSection}

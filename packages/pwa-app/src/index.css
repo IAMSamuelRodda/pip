@@ -28,37 +28,18 @@ body {
   width: 100%;
 }
 
-/* Model loading state animations for send button */
-@keyframes pulse-loading {
+/* Model loading state animation for model selector */
+@keyframes pulse-model-loading {
   0%, 100% {
-    background-color: #7eb88e; /* arc-accent - base state */
+    color: #7eb88e; /* arc-accent */
     opacity: 1;
   }
   50% {
-    background-color: #a8965e; /* Gentle warm amber/gold tone */
-    opacity: 0.85;
+    color: #9ed4ae; /* Brighter green */
+    opacity: 0.7;
   }
 }
 
-@keyframes pulse-ready {
-  0% {
-    background-color: #7eb88e; /* arc-accent */
-    opacity: 0.85;
-  }
-  40% {
-    background-color: #8fcc9f; /* Gentle brighter green */
-    opacity: 1;
-  }
-  100% {
-    background-color: #7eb88e; /* arc-accent */
-    opacity: 1;
-  }
-}
-
-.btn-model-loading {
-  animation: pulse-loading 1.5s ease-in-out infinite;
-}
-
-.btn-model-ready {
-  animation: pulse-ready 0.8s ease-out forwards;
+.model-selector-loading {
+  animation: pulse-model-loading 1.5s ease-in-out infinite;
 }

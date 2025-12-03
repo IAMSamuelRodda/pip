@@ -410,23 +410,16 @@ export function ChatInputArea({
       // Extract model name (e.g., "ollama:deepseek-r1:14b" -> "deepseek-r1:14b")
       const modelName = modelId.replace('ollama:', '');
 
-      // Set loading state
+      // Set loading state - pulse starts
       setModelLoadingState('loading');
 
       try {
-        const result = await api.warmupOllama(modelName);
-        if (result.success) {
-          setModelLoadingState('ready');
-          // Return to idle after green flash animation completes (500ms)
-          setTimeout(() => setModelLoadingState('idle'), 500);
-        } else {
-          setModelLoadingState('error');
-          // Return to idle after brief pause
-          setTimeout(() => setModelLoadingState('idle'), 2000);
-        }
+        await api.warmupOllama(modelName);
+        // Stop pulsing when loaded
+        setModelLoadingState('idle');
       } catch {
-        setModelLoadingState('error');
-        setTimeout(() => setModelLoadingState('idle'), 2000);
+        // Stop pulsing on error too
+        setModelLoadingState('idle');
       }
     } else {
       // Cloud models don't need warmup - always ready
@@ -452,18 +445,6 @@ export function ChatInputArea({
   // Disable submit while model is loading (for Ollama models)
   const isModelLoading = modelLoadingState === 'loading';
   const canSubmit = value.trim() && !isLoading && !disabled && !isModelLoading;
-
-  // Determine send button classes based on model loading state
-  const getSendButtonClasses = () => {
-    const baseClasses = 'p-2 text-arc-bg-primary rounded-lg transition-colors';
-    if (isModelLoading) {
-      return `${baseClasses} btn-model-loading cursor-wait`;
-    }
-    if (modelLoadingState === 'ready') {
-      return `${baseClasses} btn-model-ready`;
-    }
-    return `${baseClasses} bg-arc-accent hover:bg-arc-accent-dim disabled:opacity-30 disabled:cursor-not-allowed`;
-  };
 
   // Get display name for current model
   const getModelDisplayName = (modelId: string): string => {
@@ -572,8 +553,12 @@ export function ChatInputArea({
               <button
                 type="button"
                 onClick={() => setModelMenuOpen(!modelMenuOpen)}
-                className="flex items-center gap-1 px-2 py-1.5 text-xs text-arc-text-secondary hover:text-arc-text-primary transition-colors"
-                title="Select model"
+                className={`flex items-center gap-1 px-2 py-1.5 text-xs transition-colors ${
+                  isModelLoading
+                    ? 'model-selector-loading'
+                    : 'text-arc-text-secondary hover:text-arc-text-primary'
+                }`}
+                title={isModelLoading ? 'Loading model...' : 'Select model'}
               >
                 <span>{currentModelName}</span>
                 <ChevronIcon direction="down" />
@@ -593,7 +578,7 @@ export function ChatInputArea({
               type="button"
               onClick={() => handleSubmit()}
               disabled={!canSubmit}
-              className={getSendButtonClasses()}
+              className="p-2 bg-arc-accent text-arc-bg-primary rounded-lg hover:bg-arc-accent-dim disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
               title={isModelLoading ? 'Loading model...' : 'Send'}
             >
               <SendIcon />

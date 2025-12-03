@@ -301,7 +301,7 @@ export function ChatPage() {
         {messages.length === 0 ? (
           /* Empty state: Centered logo with greeting, centered input */
           <div className="h-full flex flex-col items-center justify-center px-4" style={{ paddingBottom: '20vh' }}>
-            <div className="max-w-3xl w-full">
+            <div className="max-w-[44rem] w-full">
               {/* Logo + Greeting - Centered, inline, logo matches text height */}
               <div className="flex items-center justify-center gap-3 mb-8">
                 <svg className="h-[1.2em] w-[1.2em] flex-shrink-0" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style={{ fontSize: '2.25rem' }}>
@@ -412,7 +412,7 @@ export function ChatPage() {
 
             {/* Scroll to bottom button - floats over messages */}
             {showScrollButton && (
-              <div className="absolute bottom-28 left-1/2 -translate-x-1/2 z-20">
+              <div className="absolute bottom-36 left-1/2 -translate-x-1/2 z-20">
                 <button
                   onClick={scrollToBottom}
                   className="p-2 bg-arc-bg-tertiary/90 backdrop-blur-sm rounded-full text-arc-text-dim hover:text-arc-text-secondary hover:bg-arc-bg-secondary transition-all border border-arc-border-subtle shadow-lg"
@@ -428,7 +428,7 @@ export function ChatPage() {
               {/* Gradient fade from transparent to solid */}
               <div className="h-8 bg-gradient-to-t from-arc-bg-primary to-transparent" />
               <div className="bg-arc-bg-primary pb-3 px-4">
-                <div className="max-w-3xl mx-auto">
+                <div className="max-w-[44rem] mx-auto">
                   <ChatInputArea
                     value={input}
                     onChange={setDraft}

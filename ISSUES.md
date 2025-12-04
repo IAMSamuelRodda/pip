@@ -4,7 +4,7 @@
 > **Lifecycle**: Living (add when issues arise, remove when resolved)
 > **Resolved Issues**: Move to `CHANGELOG.md` under the appropriate version's "Fixed" section
 
-**Last Updated**: 2025-12-03 (CRITICAL: Gmail scope is RESTRICTED not sensitive - requires CASA for production. Demo uses Testing Mode with 100-user limit)
+**Last Updated**: 2025-12-04 (Xero API pricing changes researched - see risk_000 and docs/research-notes/XERO-API-PRICING-CHANGES-20251204.md)
 
 ---
 
@@ -1272,21 +1272,33 @@ Research/investigation tasks that must complete before dependent implementation 
 
 Risks identified during blueprint complexity assessment.
 
-### risk_000: Xero 25-User Limit for Unapproved Apps
-- **Severity**: High
-- **Probability**: Certain (hard limit)
-- **Impact**: Cannot onboard more than 25 users until Xero app approval
-- **Constraint**: Xero requires app approval for >25 connected organizations
+### risk_000: Xero API Pricing Changes (Updated 2025-12-04)
+- **Severity**: Medium (was High)
+- **Probability**: Certain (pricing change confirmed)
+- **Impact**: Free tier drops from 25 → 5 connections on March 2, 2026
+- **New Pricing Model** (effective March 2, 2026):
+  | Tier | Monthly | Connections | Rate Limit |
+  |------|---------|-------------|------------|
+  | Starter | Free | 5 | 1,000/day/org |
+  | Core | $35 AUD | 50 | 5,000/day/org |
+  | Plus | $245 AUD | 1,000 | 5,000/day/org |
+- **Key Dates**:
+  - Dec 4, 2025: New policy terms (AI/ML training prohibition) - NO IMPACT on Pip
+  - Mar 2, 2026: Pricing migration begins (30-day notice before our migration)
 - **Mitigation**:
   - Track connected Xero orgs in database
-  - Enforce limit in code (reject new Xero connections after 25)
-  - Apply for Xero app approval before hitting limit
+  - Budget $35 AUD/month ($420/year) for Core tier when >5 users
+  - No app approval needed - just add payment method for Core tier
 - **Acceptance Criteria**:
   - [ ] Add user count check before Xero OAuth
-  - [ ] Display "beta full" message when limit reached
+  - [ ] Display upgrade prompt when approaching 5 connections
   - [ ] Track connected org count in admin dashboard
-- **Timeline**: Must implement before public beta launch
-- **Reference**: https://developer.xero.com/documentation/guides/oauth2/app-partnership/
+  - [ ] Add payment method to Xero Developer Portal before March 2026
+- **Timeline**: Monitor before March 2026; upgrade to Core if >5 beta users
+- **AI/ML Policy**: Does NOT affect Pip - we use LLMs for inference, not training
+- **Reference**:
+  - https://developer.xero.com/pricing
+  - `docs/research-notes/XERO-API-PRICING-CHANGES-20251204.md`
 
 ### risk_001: VPS Memory Constraint
 - **Severity**: High

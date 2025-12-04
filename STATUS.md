@@ -3,7 +3,7 @@
 > **Purpose**: Current state snapshot (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-12-03
+**Last Updated**: 2025-12-04
 **Current Phase**: Milestone 2 Implementation (Epic 2.1-2.3 complete)
 **Version**: 0.4.0-dev
 
@@ -21,6 +21,7 @@
 | **PWA Frontend** | 🟢 | Live at app.pip.arcforge.au |
 | **Landing Page** | 🟢 | Live at pip.arcforge.au |
 | **Xero Integration** | 🟢 | 10 READ-ONLY tools verified |
+| **Xero API Pricing** | 🟢 | Free until 5+ users, then $35 AUD/mo (Mar 2026) |
 | **Gmail Integration** | 🟢 | 4 read-only tools (Testing mode: 100 users) |
 | **Ollama Local** | 🟢 | 5 models via Tailscale (+ deepseek-r1:1.5b fast reasoning) |
 | **Git Workflow** | 🟢 | Simple tier (main only, direct commits) |
@@ -35,7 +36,17 @@
 
 **Objective**: Implement Milestone 2 - User Experience & Personality (v0.4.0)
 
-### Just Completed (2025-12-03)
+### Just Completed (2025-12-04)
+
+1. **Xero API Pricing Research** ✅ COMPLETE
+   - New tiered pricing effective March 2, 2026 (replaces revenue share model)
+   - Free tier: 5 connections (down from 25), Core tier: $35 AUD/mo for 50 connections
+   - AI/ML policy: Does NOT affect Pip (inference allowed, training prohibited)
+   - Official Xero MCP server compared - Pip offers unique value (multi-tenant, memory, safety)
+   - See `docs/research-notes/XERO-API-PRICING-CHANGES-20251204.md`
+   - See `docs/research-notes/XERO-MCP-SERVER-COMPARISON-20251204.md`
+
+### Previously Completed (2025-12-03)
 
 1. **Native Ollama Tool Calling** ✅ COMPLETE
    - Implemented native function calling for tool-capable models (qwq, llama3.x, mistral, qwen2.5)

@@ -3,7 +3,7 @@
 > **Purpose**: Technical reference for system design, database schema, and architectural decisions
 > **Lifecycle**: Living (update as architecture evolves)
 
-**Last Updated**: 2025-12-02
+**Last Updated**: 2025-12-04
 
 ---
 
@@ -305,6 +305,12 @@ CREATE INDEX idx_extended_memory_user ON extended_memory(user_id);
 3. Check expiration, refresh if needed
 4. Make Xero API call with valid access token
 5. Return response to frontend
+
+**API Pricing** (effective March 2, 2026):
+- Starter (Free): 5 connections, 1,000 API calls/day/org
+- Core ($35 AUD/mo): 50 connections, 5,000 API calls/day/org
+- Plus ($245 AUD/mo): 1,000 connections
+- See `docs/research-notes/XERO-API-PRICING-CHANGES-20251204.md` for full analysis
 
 ---
 

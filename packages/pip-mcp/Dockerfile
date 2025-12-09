@@ -26,7 +26,7 @@ COPY packages/pip-mcp/ ./packages/pip-mcp/
 
 # Build packages
 RUN pnpm --filter @pip/core run build && \
-    pnpm --filter @pip/mcp-remote-server run build
+    pnpm --filter @pip/pip-mcp run build
 
 # ============================================
 # Stage 2: Production

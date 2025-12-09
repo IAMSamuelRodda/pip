@@ -58,6 +58,7 @@ pip-by-arc-forge/
 │   ├── server/              # Express API server
 │   ├── pwa-app/             # Progressive Web App (React)
 │   ├── pip-mcp/             # Remote MCP server (Claude.ai/ChatGPT)
+│   ├── oauth-server/        # OAuth server for MCP authentication
 │   └── mcp-xero-server/     # MCP server (legacy/unused)
 ├── deploy/
 │   ├── docker-compose.vps-integration.yml  # VPS deployment
@@ -251,27 +252,45 @@ CREATE INDEX idx_extended_memory_user ON extended_memory(user_id);
 
 ## MCP Tool Definitions
 
-### Invoicing Tools
-- `create_invoice(data: InvoiceInput): Invoice`
-- `get_invoice(invoiceId: string): Invoice`
-- `update_invoice(invoiceId: string, data: InvoiceUpdate): Invoice`
-- `list_invoices(filters: InvoiceFilters): Invoice[]`
-- `send_invoice(invoiceId: string): void`
+**Note**: All Xero tools are currently **READ-ONLY** for safety. Write operations are planned for future milestones.
 
-### Bank Transaction Tools
-- `get_bank_transactions(accountId: string, filters: TransactionFilters): Transaction[]`
-- `create_bank_transaction(data: TransactionInput): Transaction`
-- `reconcile_transaction(transactionId: string, invoiceId: string): void`
+### Xero Invoicing Tools
+- `get_invoices(status?, limit?)` - Get invoices, filter by status (DRAFT/AUTHORISED/PAID/VOIDED)
+- `get_aged_receivables(date?)` - Who owes you money and how overdue
+- `get_aged_payables(date?)` - Who you owe money to and how overdue
 
-### Reporting Tools
-- `generate_profit_loss(dateRange: DateRange): ProfitLossReport`
-- `generate_balance_sheet(date: Date): BalanceSheetReport`
-- `generate_bank_summary(accountId: string, dateRange: DateRange): BankSummaryReport`
+### Xero Reporting Tools
+- `get_profit_and_loss(fromDate?, toDate?)` - P&L report for date range
+- `get_balance_sheet(date?)` - Balance sheet as of date
 
-### Expense Tools
-- `create_expense(data: ExpenseInput): Expense`
-- `categorize_expense(expenseId: string, category: string): void`
-- `list_expenses(filters: ExpenseFilters): Expense[]`
+### Xero Banking Tools
+- `get_bank_accounts()` - List connected bank accounts
+- `get_bank_transactions(bankAccountId, fromDate?, toDate?)` - Get bank transactions
+
+### Xero Contact Tools
+- `get_contacts(limit?)` - List contacts
+- `search_contacts(searchTerm)` - Search contacts by name/email
+
+### Xero Organisation & Accounts Tools
+- `get_organisation()` - Get organisation details
+- `list_accounts(accountType?)` - View chart of accounts, optionally filter by type
+
+### Gmail Tools (Email Integration)
+- `search_gmail(query)` - Search emails using Gmail query syntax
+- `get_email_content(messageId)` - Get full email body and attachment list
+- `download_attachment(messageId, attachmentId)` - Download email attachment (base64)
+- `list_email_attachments(query)` - List all attachments matching query
+
+### Memory Tools (Knowledge Graph)
+- `create_entities(entities[])` - Store people, businesses, concepts, events
+- `create_relations(relations[])` - Link entities (e.g., "works_at", "owns")
+- `add_observations(observations[])` - Add facts to existing entities
+- `search_nodes(query)` - Find relevant memories
+- `open_nodes(names[])` - Get specific entities with relations
+- `read_graph()` - See entire knowledge graph
+- `delete_entities/observations/relations()` - Remove memories
+- `get_memory_summary()` - Get cached memory summary
+- `save_memory_summary(summary)` - Cache memory summary
 
 ---
 
@@ -998,4 +1017,4 @@ Two authentication methods supported:
 
 ---
 
-**Last Updated**: 2025-12-09 (pip-mcp package rename + list_accounts tool)
+**Last Updated**: 2025-12-09 (tool definitions corrected to match actual implementation)

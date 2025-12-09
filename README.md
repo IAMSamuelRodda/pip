@@ -127,8 +127,9 @@ In any ChatGPT conversation (with Developer Mode badge visible), try:
 
 ### Available Tools
 
-Once connected, Pip provides these Xero tools:
+Once connected, Pip provides these tools:
 
+**Xero Tools** (read-only):
 | Category | Tools |
 |----------|-------|
 | **Invoices** | `get_invoices`, `get_aged_receivables`, `get_aged_payables` |
@@ -136,6 +137,22 @@ Once connected, Pip provides these Xero tools:
 | **Banking** | `get_bank_accounts`, `get_bank_transactions` |
 | **Contacts** | `get_contacts`, `search_contacts` |
 | **Organisation** | `get_organisation` |
+| **Accounts** | `list_accounts` |
+
+**Gmail Tools** (read-only, testing mode):
+| Tool | Description |
+|------|-------------|
+| `search_gmail` | Search emails using Gmail query syntax |
+| `get_email_content` | Get full email body and attachments |
+| `download_attachment` | Download email attachment |
+| `list_email_attachments` | List attachments matching query |
+
+**Memory Tools** (knowledge graph):
+| Tool | Description |
+|------|-------------|
+| `create_entities` | Store people, businesses, concepts |
+| `search_nodes` | Find relevant memories |
+| `add_observations` | Add facts to entities |
 
 ---
 
@@ -255,4 +272,4 @@ MIT License
 
 ---
 
-**Last Updated**: 2025-12-02
+**Last Updated**: 2025-12-09

@@ -161,12 +161,19 @@ export class AgentOrchestrator {
       // 5. Load memory context from knowledge graph
       const memoryContext = await this.getMemoryContext(userId, request.projectId);
 
-      // 6. Build conversation context with system prompt and history
+      // 6. Load project instructions (if chat is in a project)
+      let projectInstructions: string | undefined;
+      if (request.projectId) {
+        const project = await this.dbProvider!.getProject(userId, request.projectId);
+        projectInstructions = project?.instructions || undefined;
+      }
+
+      // 7. Build conversation context with system prompt and history
       // Determine display name for model (for Ollama models, extract the model name)
       const modelDisplayName = model?.startsWith('ollama:')
         ? model.replace('ollama:', '')
         : model?.includes(':') ? model : undefined;
-      const systemPrompt = this.buildSystemPrompt(memory, businessContext, memoryContext, responseStyle, modelDisplayName);
+      const systemPrompt = this.buildSystemPrompt(memory, businessContext, memoryContext, responseStyle, modelDisplayName, projectInstructions);
       const conversationHistory = [
         { role: 'system' as const, content: systemPrompt },
         ...(session?.messages || []),
@@ -386,7 +393,7 @@ export class AgentOrchestrator {
   /**
    * Build system prompt with user context, memory, and response style
    */
-  private buildSystemPrompt(memory: any, businessContext: string = '', memoryContext: string = '', responseStyle: ResponseStyleId = 'normal', modelName?: string): string {
+  private buildSystemPrompt(memory: any, businessContext: string = '', memoryContext: string = '', responseStyle: ResponseStyleId = 'normal', modelName?: string, projectInstructions?: string): string {
     const relationshipContext = memory?.relationshipStage
       ? `Your relationship with this user is at the "${memory.relationshipStage}" stage.`
       : 'This is your first conversation with this user.';
@@ -400,6 +407,11 @@ export class AgentOrchestrator {
       ? `\n\n## Business Context (from uploaded documents)\nIMPORTANT: The user has uploaded these business documents. Reference specific numbers, targets, and criteria from these documents in your answers:\n\n${businessContext}\n`
       : '\n\n## Business Context\nNo business documents uploaded yet. Encourage the user to upload their business plan, KPIs, or financial goals for personalized advice.\n';
 
+    // Project instructions - custom behavior for this project
+    const projectSection = projectInstructions
+      ? `\n\n## Project Instructions\nIMPORTANT: You MUST follow these custom instructions for this project:\n\n${projectInstructions}\n`
+      : '';
+
     // Get style-specific prompt modifier (empty string for 'normal')
     const styleModifier = buildStylePrompt(responseStyle);
     const styleSection = styleModifier ? `\n${styleModifier}\n` : '';
@@ -412,7 +424,7 @@ export class AgentOrchestrator {
     return `You are Pip, a helpful intelligent assistant for Australian small business owners. You're good with the books - sharp, direct, and knowledgeable.${modelIdentity}
 
 ${relationshipContext}${memorySection}
-${businessSection}${styleSection}
+${businessSection}${projectSection}${styleSection}
 ## How You Work
 
 - Use tools to get real data from Xero when available - don't guess numbers

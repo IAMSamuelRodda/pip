@@ -152,10 +152,10 @@ Once connected, Pip provides these tools:
 **Google Sheets Tools** (testing mode):
 | Tool | Description |
 |------|-------------|
-| `sheets.search_spreadsheets` | Find spreadsheets by name |
-| `sheets.read_spreadsheet` | Read data from a spreadsheet |
-| `sheets.write_spreadsheet` | Write data to a spreadsheet |
-| `sheets.create_spreadsheet` | Create a new spreadsheet |
+| `google_sheets:search_spreadsheets` | Find spreadsheets by name |
+| `google_sheets:read_sheet_range` | Read data from a spreadsheet range |
+| `google_sheets:write_sheet_range` | Write data to a spreadsheet range |
+| `google_sheets:create_spreadsheet` | Create a new spreadsheet |
 
 **Memory Tools** (knowledge graph):
 | Tool | Description |
@@ -282,4 +282,4 @@ MIT License
 
 ---
 
-**Last Updated**: 2025-12-09
+**Last Updated**: 2025-12-10

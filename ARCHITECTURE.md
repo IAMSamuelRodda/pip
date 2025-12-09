@@ -59,6 +59,7 @@ pip-by-arc-forge/
 │   ├── pwa-app/             # Progressive Web App (React)
 │   ├── pip-mcp/             # Remote MCP server (Claude.ai/ChatGPT)
 │   ├── oauth-server/        # OAuth server for MCP authentication
+│   ├── pip-calculator/      # Australian financial calculation tools
 │   └── mcp-xero-server/     # MCP server (legacy/unused)
 ├── deploy/
 │   ├── docker-compose.vps-integration.yml  # VPS deployment
@@ -296,10 +297,10 @@ CREATE INDEX idx_extended_memory_user ON extended_memory(user_id);
 - `list_accounts(accountType?)` - View chart of accounts, optionally filter by type
 
 ### Gmail Tools (Email Integration)
-- `search_gmail(query)` - Search emails using Gmail query syntax
-- `get_email_content(messageId)` - Get full email body and attachment list
-- `download_attachment(messageId, attachmentId)` - Download email attachment (base64)
-- `list_email_attachments(query)` - List all attachments matching query
+- `gmail:search_gmail(query)` - Search emails using Gmail query syntax
+- `gmail:get_email_content(messageId)` - Get full email body and attachment list
+- `gmail:download_attachment(messageId, attachmentId)` - Download email attachment (base64 or ImageContent for images)
+- `gmail:list_email_attachments(query)` - List all attachments matching query
 
 ### Memory Tools (Knowledge Graph)
 - `create_entities(entities[])` - Store people, businesses, concepts, events
@@ -725,11 +726,24 @@ Health check verification
 - `GET /health` - Health check
 - `POST /api/chat` - Chat with agent
 
+**User Authentication**
+- `POST /auth/signup` - Create new user account
+- `POST /auth/login` - Sign in existing user
+- `GET /auth/me` - Get current user info
+
 **Sessions (Chat History - Epic 2.2)**
 - `GET /api/sessions` - List sessions with title/preview
 - `GET /api/sessions/:id` - Get session with messages
 - `PATCH /api/sessions/:id` - Rename session (title)
 - `DELETE /api/sessions/:id` - Delete session
+
+**Projects (Epic 2.3)**
+- `GET /api/projects` - List all projects
+- `POST /api/projects` - Create new project
+- `GET /api/projects/:id` - Get project details
+- `PATCH /api/projects/:id` - Update project (name, description, color)
+- `DELETE /api/projects/:id` - Delete project
+- `POST /api/projects/:id/set-default` - Set as default project
 
 **Memory (Epic 2.1)**
 - `GET /api/memory` - Get memory summary and stats
@@ -738,15 +752,44 @@ Health check verification
 - `DELETE /api/memory/edits/:entityName/:observation` - Delete specific edit
 - `DELETE /api/memory/edits` - Clear all edits
 
+**Documents (Epic 2.4)**
+- `POST /api/documents/upload` - Upload document
+- `GET /api/documents` - List uploaded documents
+- `GET /api/documents/:docName` - Get document content
+- `DELETE /api/documents/:docName` - Delete document
+
 **Settings**
 - `GET /api/settings` - Get user settings + personality info
 - `PUT /api/settings` - Update settings (permission level, personality)
 - `GET /api/settings/personalities` - List available personalities
 
-**Auth**
+**Connectors**
+- `GET /api/connectors/status` - Get all connector statuses (Xero, Gmail, Google Sheets)
+
+**Models**
+- `POST /api/models/ollama/warmup` - Warm up Ollama model
+- `GET /api/models/ollama/status` - Check Ollama availability
+
+**OAuth - Xero**
 - `GET /auth/xero` - Initiate Xero OAuth
-- `GET /auth/xero/callback` - OAuth callback
-- `GET /auth/status` - Check Xero connection
+- `GET /auth/xero/callback` - Xero OAuth callback
+- `POST /auth/refresh` - Refresh Xero tokens
+- `GET /auth/status` - Check Xero connection status
+- `DELETE /auth/disconnect` - Disconnect Xero
+
+**OAuth - Gmail**
+- `GET /auth/google/gmail` - Initiate Gmail OAuth
+- `GET /auth/google/gmail/callback` - Gmail OAuth callback
+- `POST /auth/google/gmail/refresh` - Refresh Gmail tokens
+- `GET /auth/google/gmail/status` - Check Gmail connection status
+- `DELETE /auth/google/gmail/disconnect` - Disconnect Gmail
+
+**OAuth - Google Sheets**
+- `GET /auth/google/sheets` - Initiate Google Sheets OAuth
+- `GET /auth/google/sheets/callback` - Google Sheets OAuth callback
+- `POST /auth/google/sheets/refresh` - Refresh Google Sheets tokens
+- `GET /auth/google/sheets/status` - Check Google Sheets connection status
+- `DELETE /auth/google/sheets/disconnect` - Disconnect Google Sheets
 
 ---
 
@@ -1037,4 +1080,4 @@ Two authentication methods supported:
 
 ---
 
-**Last Updated**: 2025-12-09 (tool definitions corrected to match actual implementation)
+**Last Updated**: 2025-12-10

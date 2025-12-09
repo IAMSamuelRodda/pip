@@ -3,7 +3,7 @@
 > **Purpose**: Technical reference for system design, database schema, and architectural decisions
 > **Lifecycle**: Living (update as architecture evolves)
 
-**Last Updated**: 2025-12-04
+**Last Updated**: 2025-12-09
 
 ---
 
@@ -57,7 +57,7 @@ pip-by-arc-forge/
 │   ├── agent-core/          # Agent orchestrator + Xero tools
 │   ├── server/              # Express API server
 │   ├── pwa-app/             # Progressive Web App (React)
-│   ├── mcp-remote-server/   # Remote MCP server (Claude.ai/ChatGPT) ← NEW
+│   ├── pip-mcp/             # Remote MCP server (Claude.ai/ChatGPT)
 │   └── mcp-xero-server/     # MCP server (legacy/unused)
 ├── deploy/
 │   ├── docker-compose.vps-integration.yml  # VPS deployment
@@ -806,7 +806,7 @@ Using Claude 3.5 Sonnet:
 
 ## MCP Remote Server Architecture
 
-The MCP Remote Server (`packages/mcp-remote-server`) enables Pip to work directly within Claude.ai and ChatGPT, with users bringing their own LLM subscription.
+The MCP Remote Server (`packages/pip-mcp`) enables Pip to work directly within Claude.ai and ChatGPT, with users bringing their own LLM subscription.
 
 ### Architecture Diagram
 
@@ -945,7 +945,7 @@ Two authentication methods supported:
 - Implement context-efficient lazy-loading pattern
 
 **Impact:**
-- New package: `packages/mcp-remote-server`
+- New package: `packages/pip-mcp` (formerly mcp-remote-server)
 - New deployment: https://mcp.pip.arcforge.au
 - Token reduction: 85% via lazy-loading
 - Same pattern applicable to Claude Desktop
@@ -998,4 +998,4 @@ Two authentication methods supported:
 
 ---
 
-**Last Updated**: 2025-12-02 (Epic 2.1 + 2.2 deployed)
+**Last Updated**: 2025-12-09 (pip-mcp package rename + list_accounts tool)

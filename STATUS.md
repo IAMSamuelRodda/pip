@@ -3,7 +3,7 @@
 > **Purpose**: Current state snapshot (2-week rolling window)
 > **Lifecycle**: Living (update daily/weekly during active development)
 
-**Last Updated**: 2025-12-04
+**Last Updated**: 2025-12-09
 **Current Phase**: Milestone 2 Implementation (Epic 2.1-2.3 complete)
 **Version**: 0.4.0-dev
 
@@ -36,7 +36,23 @@
 
 **Objective**: Implement Milestone 2 - User Experience & Personality (v0.4.0)
 
-### Just Completed (2025-12-04)
+### Just Completed (2025-12-09)
+
+1. **list_accounts MCP Tool** ✅ COMPLETE
+   - Added new tool to view Xero chart of accounts (53 default accounts)
+   - Groups accounts by type (Bank, Assets, Liabilities, Expenses, Revenue, etc.)
+   - Optional filtering by account type parameter
+   - Shows account codes, tax types, and archived status
+   - Deployed to production at mcp.pip.arcforge.au
+   - Commit: `a27ffde`
+
+2. **pip-mcp Package Rename** ✅ COMPLETE
+   - Renamed `mcp-remote-server` → `pip-mcp` for consistency
+   - Updated Dockerfiles, deploy scripts, and documentation
+   - Fixed all path references across deployment infrastructure
+   - Commits: `c71d40a`, `b892493`, `1cb9445`
+
+### Previously Completed (2025-12-04)
 
 1. **Xero API Pricing Research** ✅ COMPLETE
    - New tiered pricing effective March 2, 2026 (replaces revenue share model)

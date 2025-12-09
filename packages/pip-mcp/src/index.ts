@@ -32,6 +32,7 @@ import * as xeroTools from "./handlers/xero-tools.js";
 import { getXeroStatus } from "./services/xero.js";
 import { memoryToolDefinitions, executeMemoryTool } from "./handlers/memory-tools.js";
 import { gmailToolDefinitions, executeGmailTool } from "./handlers/gmail-tools.js";
+import { sheetsToolDefinitions, executeSheetsTools } from "./handlers/sheets-tools.js";
 import { getMemoryManager } from "./services/memory.js";
 import * as safetyService from "./services/safety.js";
 
@@ -327,6 +328,9 @@ const toolRegistry: ToolDefinition[] = [
 
   // GMAIL category - Email integration (imported from gmail-tools.ts)
   ...(gmailToolDefinitions as unknown as ToolDefinition[]),
+
+  // SHEETS category - Google Sheets integration (imported from sheets-tools.ts)
+  ...(sheetsToolDefinitions as unknown as ToolDefinition[]),
 ];
 
 // Get unique categories with tool counts
@@ -548,9 +552,10 @@ function createMcpServer(userId?: string): Server {
         };
       }
 
-      // Check if this is a memory or Gmail tool (doesn't require Xero auth)
+      // Check if this is a memory, Gmail, or Sheets tool (doesn't require Xero auth)
       const isMemoryTool = tool.category === "memory";
       const isGmailTool = tool.category === "gmail";
+      const isSheetsTool = tool.category === "sheets";
 
       // Check if user is authenticated
       if (!userId) {
@@ -573,6 +578,24 @@ function createMcpServer(userId?: string): Server {
         } else if (isGmailTool) {
           console.log(`[Execute] Gmail tool: ${tool_name}`);
           return await executeGmailTool(userId!, tool_name, toolArgs || {});
+        } else if (isSheetsTool) {
+          // Check permission level for Sheets tools
+          console.log(`[Execute] Checking permissions for Sheets tool: ${tool_name}`);
+          const permissionCheck = await safetyService.checkToolPermission(userId!, tool_name);
+          if (!permissionCheck.allowed) {
+            console.log(`[Execute] Permission denied for ${tool_name}`);
+            return {
+              content: [
+                {
+                  type: "text",
+                  text: safetyService.formatPermissionError(permissionCheck),
+                },
+              ],
+              isError: true,
+            };
+          }
+          console.log(`[Execute] Sheets tool: ${tool_name}`);
+          return await executeSheetsTools(userId!, tool_name, toolArgs || {});
         } else {
           // Check permission level for Xero tools
           console.log(`[Execute] Checking permissions for Xero tool: ${tool_name}`);

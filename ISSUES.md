@@ -363,6 +363,42 @@
   - [ ] Optional: Allow deleting project-specific memories
 - **Complexity**: 2.0/5 (Low-Medium - data exists, need UI)
 
+#### issue_050: Remove Color Feature Entirely from Codebase
+- **Status**: 🔴 Open
+- **Priority**: P3 (Low - cleanup/refactoring)
+- **Component**: All packages (database, API, frontend)
+- **Created**: 2025-12-10
+- **Description**: Audit and remove all project color references from the entire codebase. Colors are not needed in Pip.
+- **Scope**:
+  - Database: `projects.color` column (can remain but mark as deprecated)
+  - API responses: Remove `color` from all project endpoints
+  - Frontend: Remove color pickers, color displays, color props
+  - Types: Remove color from Project interface definitions
+  - Tests: Remove color-related test cases
+- **Files to Audit**:
+  - `packages/core/src/database/providers/sqlite.ts` - projects table
+  - `packages/core/src/database/types.ts` - Project interface
+  - `packages/server/src/routes/projects.ts` - API responses
+  - `packages/server/src/routes/sessions.ts` - project info (already removed)
+  - `packages/pwa-app/src/**/*.tsx` - All React components
+  - `packages/pwa-app/src/store/projectStore.ts` - Store types
+  - `packages/pwa-app/src/api/client.ts` - API client types
+- **Implementation**:
+  - [ ] Grep for "color" in all packages
+  - [ ] Remove color from Project type definitions
+  - [ ] Remove color from API request/response payloads
+  - [ ] Remove color input fields from project forms
+  - [ ] Remove color display from project cards/lists
+  - [ ] Update tests to remove color assertions
+  - [ ] Optional: Add migration to drop `color` column (or leave as deprecated)
+- **Acceptance Criteria**:
+  - [ ] No color references in API responses
+  - [ ] No color UI elements in frontend
+  - [ ] All color-related props/types removed
+  - [ ] Tests pass without color assertions
+- **Complexity**: 2.0/5 (Low-Medium - systematic grep and remove)
+- **Related**: Projects UX Rework, issue_042
+
 #### issue_041: Implement "Add to Project" Chat Action
 - **Status**: 🔴 Open
 - **Priority**: P1 (High - core Projects UX feature)

@@ -83,6 +83,10 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
       // Filter out empty sessions (no messages = never used)
       const nonEmptySessions = sessions.filter(s => s.messages.length > 0);
 
+      // Get all projects for this user (for name/color lookup)
+      const projects = await db.listProjects(userId);
+      const projectMap = new Map(projects.map(p => [p.id, p]));
+
       res.json({
         sessions: nonEmptySessions.map(s => {
           // Generate title from first user message if not set
@@ -93,9 +97,17 @@ export function createSessionRoutes(db: DatabaseProvider): Router {
           const lastMsg = s.messages[s.messages.length - 1];
           const previewText = s.previewText || lastMsg?.content?.substring(0, 100) || null;
 
+          // Get project info if session belongs to a project
+          const project = s.projectId ? projectMap.get(s.projectId) : null;
+
           return {
             sessionId: s.sessionId,
             projectId: s.projectId,
+            project: project ? {
+              id: project.id,
+              name: project.name,
+              color: project.color,
+            } : null,
             title,
             previewText,
             messageCount: s.messages.length,

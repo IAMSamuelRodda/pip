@@ -33,6 +33,7 @@ import { getXeroStatus } from "./services/xero.js";
 import { memoryToolDefinitions, executeMemoryTool } from "./handlers/memory-tools.js";
 import { gmailToolDefinitions, executeGmailTool } from "./handlers/gmail-tools.js";
 import { sheetsToolDefinitions, executeSheetsTools } from "./handlers/sheets-tools.js";
+import { guideToolDefinitions, executeGuideTool } from "./handlers/guide-tools.js";
 import { getMemoryManager } from "./services/memory.js";
 import * as safetyService from "./services/safety.js";
 
@@ -331,6 +332,9 @@ const toolRegistry: ToolDefinition[] = [
 
   // SHEETS category - Google Sheets integration (imported from sheets-tools.ts)
   ...(sheetsToolDefinitions as unknown as ToolDefinition[]),
+
+  // HELP category - Pip guide/documentation (imported from guide-tools.ts)
+  ...(guideToolDefinitions as unknown as ToolDefinition[]),
 ];
 
 // Get unique categories with tool counts
@@ -552,10 +556,17 @@ function createMcpServer(userId?: string): Server {
         };
       }
 
-      // Check if this is a memory, Gmail, or Sheets tool (doesn't require Xero auth)
+      // Check if this is a memory, Gmail, Sheets, or help tool (doesn't require Xero auth)
       const isMemoryTool = tool.category === "memory";
       const isGmailTool = tool.category === "gmail";
       const isSheetsTool = tool.category === "sheets";
+      const isHelpTool = tool.category === "help";
+
+      // Help tools don't require authentication - they're just documentation
+      if (isHelpTool) {
+        console.log(`[Execute] Help tool: ${tool_name}`);
+        return await executeGuideTool(tool_name, toolArgs || {});
+      }
 
       // Check if user is authenticated
       if (!userId) {

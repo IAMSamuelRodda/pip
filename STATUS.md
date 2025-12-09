@@ -52,6 +52,14 @@
    - 1MB size limit with helpful messaging
    - Non-images still return base64 JSON for processing
 
+3. **Projects UX Rework (Phase 6: Cleanup)** ✅ COMPLETE
+   - Removed `is_default` project logic from entire codebase
+   - Removed legacy DynamoDB provider code (983 lines)
+   - Added breadcrumb to ChatPage showing "Project Name / Chat Title"
+   - Projects now truly optional containers (no default selection)
+   - Resolved: issue_045
+   - Commits: `0b3ba74`, `610f89d`, `aa5cd41`
+
 ### Previously Completed (2025-12-09)
 
 1. **Settings Page Rework for Per-Connector Permissions** ✅ COMPLETE

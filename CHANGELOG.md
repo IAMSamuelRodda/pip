@@ -51,6 +51,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated all documentation for Simple tier
 
 ### Fixed
+- **issue_045: Missing Project Breadcrumb Navigation in Chat Page** (2025-12-10)
+  - ChatHeader now displays "Project Name / Chat Title" when chat is in a project
+  - Added projectName prop to ChatHeaderProps interface
+  - ChatPage looks up project name from projectStore based on chat's projectId
+  - Breadcrumb only shown for chats associated with a project
+  - `packages/pwa-app/src/components/ChatHeader.tsx` - Added breadcrumb display logic
+  - `packages/pwa-app/src/pages/ChatPage.tsx` - Added project name lookup
 - **issue_032: Memory Context Injection** (2025-12-02)
   - Agent now auto-injects stored memory into system prompt at conversation start
   - Added `read_memory` and `search_memory` tools for explicit user queries

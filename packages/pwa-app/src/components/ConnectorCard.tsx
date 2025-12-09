@@ -3,6 +3,9 @@
  *
  * Shows connection status, permission levels, and connect/disconnect actions
  * for each service (Xero, Gmail, Google Sheets).
+ *
+ * When a token is expired and refresh fails, shows a Reconnect button
+ * instead of the permission dropdown.
  */
 
 import { useState } from 'react';
@@ -13,6 +16,7 @@ type PermissionLevel = 0 | 1 | 2 | 3;
 interface ConnectorStatus {
   connected: boolean;
   expired?: boolean;
+  refreshFailed?: boolean;  // True if auto-refresh failed, needs manual reconnect
   details?: string;
   expiresAt?: number;
 }
@@ -100,11 +104,16 @@ export function ConnectorCard({
   const hasMultipleLevels = uniqueLevels.length > 1;
   const isDisabled = disabled || isUpdating || isDisconnecting;
 
+  // Determine if we need to show the reconnect state
+  const needsReconnect = status.expired && status.refreshFailed;
+
   return (
     <div
       className={`p-4 rounded-xl border transition-all ${
         status.connected
-          ? 'bg-arc-bg-tertiary border-arc-border'
+          ? needsReconnect
+            ? 'bg-arc-bg-tertiary border-yellow-800/50'  // Warning border for expired
+            : 'bg-arc-bg-tertiary border-arc-border'
           : 'bg-arc-bg-secondary border-arc-border/50'
       }`}
     >
@@ -119,7 +128,7 @@ export function ConnectorCard({
             {status.connected ? (
               <p className="text-sm text-arc-text-secondary">
                 {status.details || 'Connected'}
-                {status.expired && (
+                {needsReconnect && (
                   <span className="ml-2 text-yellow-400">(Expired)</span>
                 )}
               </p>
@@ -132,62 +141,90 @@ export function ConnectorCard({
         {/* Status indicator */}
         <div className={`w-2 h-2 rounded-full ${
           status.connected
-            ? status.expired
+            ? needsReconnect
               ? 'bg-yellow-400'
               : 'bg-green-400'
             : 'bg-arc-border'
         }`} />
       </div>
 
-      {/* Content: Permission selector or Connect button */}
+      {/* Content: Permission selector, Reconnect button, or Connect button */}
       {status.connected ? (
-        <div className="space-y-3">
-          {/* Permission Level */}
-          <div>
-            <label className="text-xs text-arc-text-dim mb-1 block">Permission</label>
-            {hasMultipleLevels ? (
-              <div className="relative">
-                <select
-                  value={permission.level}
-                  onChange={(e) => handlePermissionChange(Number(e.target.value) as PermissionLevel)}
-                  disabled={isDisabled}
-                  className={`w-full p-2 rounded-lg border bg-arc-bg-primary border-arc-border
-                    text-arc-text-primary text-sm appearance-none cursor-pointer
-                    hover:border-arc-accent/50 focus:border-arc-accent focus:outline-none
-                    ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {uniqueLevels.map(([level, name]) => (
-                    <option key={level} value={level}>
-                      {name}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                  <svg className="w-4 h-4 text-arc-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              </div>
-            ) : (
-              <p className={`text-sm ${LEVEL_COLORS[permission.level] || 'text-arc-text-secondary'}`}>
-                {permission.levelName}
-              </p>
-            )}
+        needsReconnect ? (
+          /* Expired state - show Reconnect button */
+          <div className="space-y-3">
+            <p className="text-sm text-yellow-400/80">
+              Session expired. Reconnect to continue using {displayName}.
+            </p>
+            <button
+              onClick={onConnect}
+              disabled={isDisabled}
+              className={`w-full p-2 rounded-lg bg-yellow-600 text-white font-medium text-sm
+                hover:bg-yellow-500 transition-colors
+                ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              Reconnect {displayName}
+            </button>
+            <button
+              onClick={handleDisconnect}
+              disabled={isDisabled}
+              className={`text-sm text-arc-text-dim hover:text-red-400 transition-colors ${
+                isDisabled ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+            </button>
           </div>
+        ) : (
+          /* Normal connected state - show permissions */
+          <div className="space-y-3">
+            {/* Permission Level */}
+            <div>
+              <label className="text-xs text-arc-text-dim mb-1 block">Permission</label>
+              {hasMultipleLevels ? (
+                <div className="relative">
+                  <select
+                    value={permission.level}
+                    onChange={(e) => handlePermissionChange(Number(e.target.value) as PermissionLevel)}
+                    disabled={isDisabled}
+                    className={`w-full p-2 rounded-lg border bg-arc-bg-primary border-arc-border
+                      text-arc-text-primary text-sm appearance-none cursor-pointer
+                      hover:border-arc-accent/50 focus:border-arc-accent focus:outline-none
+                      ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    {uniqueLevels.map(([level, name]) => (
+                      <option key={level} value={level}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <svg className="w-4 h-4 text-arc-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              ) : (
+                <p className={`text-sm ${LEVEL_COLORS[permission.level] || 'text-arc-text-secondary'}`}>
+                  {permission.levelName}
+                </p>
+              )}
+            </div>
 
-          {/* Disconnect button */}
-          <button
-            onClick={handleDisconnect}
-            disabled={isDisabled}
-            className={`text-sm text-arc-text-dim hover:text-red-400 transition-colors ${
-              isDisabled ? 'opacity-50 cursor-not-allowed' : ''
-            }`}
-          >
-            {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
-          </button>
-        </div>
+            {/* Disconnect button */}
+            <button
+              onClick={handleDisconnect}
+              disabled={isDisabled}
+              className={`text-sm text-arc-text-dim hover:text-red-400 transition-colors ${
+                isDisabled ? 'opacity-50 cursor-not-allowed' : ''
+              }`}
+            >
+              {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
+            </button>
+          </div>
+        )
       ) : (
-        /* Connect button */
+        /* Not connected - show Connect button */
         <button
           onClick={onConnect}
           disabled={isDisabled}

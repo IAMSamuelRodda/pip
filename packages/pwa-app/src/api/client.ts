@@ -639,6 +639,7 @@ type PermissionLevel = 0 | 1 | 2 | 3;
 interface ConnectorStatus {
   connected: boolean;
   expired?: boolean;
+  refreshFailed?: boolean;  // True if auto-refresh failed, needs manual reconnect
   details?: string;
   expiresAt?: number;
 }

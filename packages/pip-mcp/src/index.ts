@@ -328,12 +328,24 @@ function verifyToken(token: string): { userId: string } | null {
   }
 }
 
+// Pip logo as base64 SVG data URI
+const PIP_ICON_SVG = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj4KICA8IS0tIEh5YnJpZDogMmEgY2lyY2xlICsgM2MgbWluaW1hbCBsaW5lIFAgLSBjZW50ZXJlZCwgaGVhdmllciBzdHJva2VzIC0tPgogIDxjaXJjbGUgY3g9IjUwIiBjeT0iNTAiIHI9IjQ0IiBmaWxsPSIjMGYxNDE5IiBzdHJva2U9IiM3ZWI4OGUiIHN0cm9rZS13aWR0aD0iNiIvPgogIDxwYXRoIGQ9Ik0zOCA3MCBWMzAgaDE0IGExMCAxMCAwIDAgMSAwIDIwIEgzOCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjN2ViODhlIiBzdHJva2Utd2lkdGg9IjciIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K";
+
 // Create MCP server for a specific user session
 function createMcpServer(userId?: string): Server {
   const server = new Server(
     {
       name: "pip-mcp-server",
       version: "0.1.0",
+      title: "Pip by Arc Forge",
+      websiteUrl: "https://pip.arcforge.au",
+      icons: [
+        {
+          src: PIP_ICON_SVG,
+          mimeType: "image/svg+xml",
+          sizes: ["any"],
+        },
+      ],
     },
     {
       capabilities: {

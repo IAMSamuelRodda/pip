@@ -59,6 +59,14 @@ export const MODEL_CONFIGS: ModelConfig[] = [
 
   // Local Ollama models (beta testers only via Tailscale GPU)
   {
+    id: 'qwen2.5:0.5b',
+    name: 'Qwen 2.5 0.5B (Local)',
+    provider: 'ollama',
+    allowedTiers: [], // No tier access - flag only
+    allowedFlags: ['beta_tester'],
+    costPer1kTokens: 0, // Free - runs on local GPU
+  },
+  {
     id: 'qwen2.5:3b',
     name: 'Qwen 2.5 3B (Local)',
     provider: 'ollama',

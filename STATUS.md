@@ -32,12 +32,15 @@
 | Priority | Issue | Summary |
 |----------|-------|---------|
 | P0 | issue_051 | MCP Transport - Streamable HTTP + SSE fallback |
-| P0 | issue_052 | Rate Limiting System |
-| P0 | issue_055 | GPU Optimization for test users |
 | P1 | issue_034 | Skills System - report templates |
 
 ### Recently Completed
 
+- **✅ Critical Path Complete: Test User Onboarding (Dec 10)** - 4/4 tasks done, ready for Philip
+  - issue_052: Rate limiting system (token usage tracking, daily limits)
+  - issue_054: PWA model selector integration (access control filtering)
+  - issue_055: GPU model configuration (qwen2.5:0.5b + 3b)
+  - issue_056: Philip beta tester onboarding (comprehensive docs created)
 - **Authorization System (issue_053/054)** - Role + Tier + Flags architecture (Dec 10)
   - UserRole, SubscriptionTier, FeatureFlag types
   - Model access control with superadmin bypass

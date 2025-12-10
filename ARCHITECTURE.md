@@ -707,6 +707,34 @@ User Voice → WebRTC/WebSocket → Lambda (Transcribe) → Agent → Lambda (Po
 - Non-root user (uid 1001) for security
 - Health check endpoint at `/health`
 
+### Docker Networking
+
+**Network**: `droplet_frontend` (shared with all VPS services)
+
+Both `pip-app` and `pip-mcp` containers use the `droplet_frontend` Docker bridge network. This enables:
+- **Caddy DNS resolution**: Caddy can proxy to `pip-app:3000` using Docker's built-in DNS
+- **Tailscale access**: Containers can reach Tailscale IPs (e.g., `100.64.0.2` for home PC Ollama) because Tailscale runs on the VPS host and routes are available to Docker bridge networks
+
+**Important**: Do NOT use `--network host` for Pip containers. While host networking provides Tailscale access, it breaks Docker DNS resolution, forcing hardcoded IPs in Caddyfile. Bridge networks provide both capabilities.
+
+```
+┌─────────────────────────────────────────────────────┐
+│ VPS Host (170.64.169.203)                           │
+│   Tailscale (100.64.0.1) ←→ Home PC (100.64.0.2)   │
+│                                                     │
+│   ┌─────────────────────────────────────────────┐   │
+│   │ droplet_frontend network                    │   │
+│   │   ┌──────────┐  ┌──────────┐  ┌─────────┐  │   │
+│   │   │ caddy    │  │ pip-app  │  │ pip-mcp │  │   │
+│   │   │ :80/:443 │→ │ :3000    │  │ :3001   │  │   │
+│   │   └──────────┘  └────┬─────┘  └─────────┘  │   │
+│   └──────────────────────┼──────────────────────┘   │
+│                          │                          │
+│                          ↓ (via host Tailscale)     │
+│                     100.64.0.2:11434 (Ollama)       │
+└─────────────────────────────────────────────────────┘
+```
+
 ### Deployment Process
 ```
 Local Development → Git Push → SSH to VPS

@@ -44,12 +44,12 @@ docker rm pip-app pip-mcp 2>/dev/null || true
 echo ""
 
 # Start pip-app
-# Note: Host networking required for Tailscale access to local Ollama (100.64.0.2)
-# Caddy must use localhost:3000 instead of pip-app:3000
+# Note: Using droplet_frontend network for Caddy DNS resolution
+# Tailscale IPs (100.64.0.2) are routable from Docker bridge networks
 echo "▶️  Starting pip-app..."
 docker run -d --name pip-app \
   --restart unless-stopped \
-  --network host \
+  --network droplet_frontend \
   -v pip-data:/app/data \
   -e NODE_ENV=production \
   -e PORT=3000 \

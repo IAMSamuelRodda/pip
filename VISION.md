@@ -94,7 +94,7 @@ We don't believe in:
 - Full codebase released under MIT license
 - Self-hostable with Docker or your own cloud
 - Works with ANY LLM backend (API keys, or local models)
-- Database agnostic (SQLite, PostgreSQL, DynamoDB, Supabase)
+- Database: SQLite (PostgreSQL planned via abstraction layer)
 
 **Managed Service** (Optional):
 - We run the infrastructure so you don't have to

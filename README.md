@@ -50,7 +50,7 @@ Visit https://app.pip.arcforge.au to try Pip with your Xero account.
 | Field | Value |
 |-------|-------|
 | **Name** | `Pip by Arc Forge` |
-| **URL** | `https://mcp.pip.arcforge.au/sse` |
+| **URL** | `https://mcp.pip.arcforge.au` |
 | **Authentication** | Select `OAuth 2.0` |
 | **Client ID** | `pip-mcp-client` |
 | **Client Secret** | *(provided separately with your invite)* |
@@ -102,7 +102,7 @@ In any Claude conversation, try:
 |-------|-------|
 | **Name** | `Pip by Arc Forge` |
 | **Description** | `The helpful bookkeeping assistant - connects to Xero for invoices, reports, and financial insights` |
-| **MCP Server URL** | `https://mcp.pip.arcforge.au/sse` |
+| **MCP Server URL** | `https://mcp.pip.arcforge.au` |
 | **Authentication** | Select `OAuth` |
 | **OAuth Client ID** | `pip-mcp-client` |
 | **OAuth Client Secret** | *(provided separately with your invite)* |

@@ -41,7 +41,7 @@ If you have a ChatGPT Business or Teams subscription with admin access, publishi
 3. Click **+** to add new connector
 4. Enter Pip connection details:
    - **Name**: Pip by Arc Forge
-   - **URL**: `https://mcp.pip.arcforge.au/sse`
+   - **URL**: `https://mcp.pip.arcforge.au`
    - **OAuth Client ID**: `pip-mcp-client`
    - **OAuth Client Secret**: *(your invite secret)*
 5. Complete OAuth flow (sign in, connect Xero)

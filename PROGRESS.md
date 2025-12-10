@@ -62,7 +62,7 @@
 |------|-------|-----|------------|--------|
 | GPU model configuration | issue_055 | 1d | 2.0/5 | ✅ Complete |
 | Rate limiting system | issue_052 | 2d | 3.5/5 | ✅ Complete |
-| PWA model selector integration | issue_054 | 0.5d | 1.8/5 | 🔴 Not Started |
+| PWA model selector integration | issue_054 | 0.5d | 1.8/5 | ✅ Complete |
 | Philip account setup | issue_056 | 0.5d | 1.0/5 | 🔴 Not Started |
 
 **Acceptance Criteria**:

@@ -19,15 +19,15 @@
 
 ## Architecture Quick Facts
 
-**Environments**: Local dev (`localhost:3000`) + Production VPS (`170.64.169.203`) - see `DEVELOPMENT.md` for deployment
-
 **Style**: Monolithic VPS architecture (Express + SQLite + PWA)
 
 **Structure**: Monorepo with packages (`@pip/*`)
 
-**Live**:
-- Main App: https://app.pip.arcforge.au
-- MCP Server: https://mcp.pip.arcforge.au
+**Environments**:
+| Environment | PWA | MCP |
+|-------------|-----|-----|
+| **Local** | http://app.pip.localhost:3000 | http://mcp.pip.localhost:3001 |
+| **Production** | https://app.pip.arcforge.au | https://mcp.pip.arcforge.au |
 
 See `ARCHITECTURE.md` for complete details.
 
@@ -63,19 +63,18 @@ See `ARCHITECTURE.md` for complete details.
 **Work on `main`. Commit directly.** Simple tier for fast prototyping.
 
 ```bash
-# Development
-pnpm install
-pnpm dev
+# Local Development
+./scripts/dev.sh                    # Start local dev (pnpm dev)
 
 # Build (pre-commit check)
 pnpm build
 
-# Deploy to VPS (with pre-flight checks)
-./deploy/deploy-local.sh
+# Deploy to Production VPS
+./scripts/deploy-vps.sh             # Push + SSH deploy + health check
 
-# Quick health check
-curl https://app.pip.arcforge.au/health
-curl https://mcp.pip.arcforge.au/health
+# Health Checks
+./scripts/health-check.sh local     # Check local servers
+./scripts/health-check.sh vps       # Check production
 ```
 
 **Containers**: `pip-app` (main server + PWA), `pip-mcp` (MCP server)

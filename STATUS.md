@@ -78,22 +78,24 @@
 
 ## Deployment
 
-| Service | URL | Container |
-|---------|-----|-----------|
-| Landing | https://pip.arcforge.au | - |
-| PWA | https://app.pip.arcforge.au | pip-app |
-| MCP | https://mcp.pip.arcforge.au | pip-mcp |
+| Environment | PWA | MCP |
+|-------------|-----|-----|
+| **Local** | http://app.pip.localhost:3000 | http://mcp.pip.localhost:3001 |
+| **Production** | https://app.pip.arcforge.au | https://mcp.pip.arcforge.au |
 
 **VPS**: DigitalOcean Sydney (170.64.169.203)
 **Database**: SQLite at `/app/data/pip.db`
 
 ```bash
-# Quick deploy
-./deploy/deploy-local.sh
+# Local development
+./scripts/dev.sh
 
-# Health check
-curl https://app.pip.arcforge.au/health
-curl https://mcp.pip.arcforge.au/health
+# Deploy to VPS
+./scripts/deploy-vps.sh
+
+# Health checks
+./scripts/health-check.sh local   # Check local servers
+./scripts/health-check.sh vps     # Check production
 ```
 
 ---

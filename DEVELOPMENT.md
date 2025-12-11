@@ -14,21 +14,24 @@ Fast prototyping phase - direct commits to main, manual VPS deployment.
 ### Development Flow
 
 ```bash
-# Start work
-git pull origin main
+# Start local development
+./scripts/dev.sh                    # Starts pnpm dev with info
 
-# Develop and commit directly to main
-git add .
-git commit -m "[type]: description"
-git push origin main
+# Build check (pre-commit)
+pnpm build
 
-# Deploy to VPS (manual)
-ssh root@170.64.169.203 "cd /opt/pip && git pull && docker compose up -d --build"
-
-# Verify deployment
-curl https://app.pip.arcforge.au/health
-curl https://mcp.pip.arcforge.au/health
+# Commit and deploy
+git add . && git commit -m "[type]: description"
+./scripts/deploy-vps.sh             # Push + deploy + health check
 ```
+
+**Local Endpoints:**
+- PWA: http://app.pip.localhost:3000
+- MCP: http://mcp.pip.localhost:3001
+
+**Production Endpoints:**
+- PWA: https://app.pip.arcforge.au
+- MCP: https://mcp.pip.arcforge.au
 
 ### Commit Message Types
 - `feat:` - New features
@@ -70,23 +73,27 @@ git diff --staged
 
 ### Current State: Manual Deployment
 
-Simple tier uses manual VPS deployment via deploy script.
+Simple tier uses manual VPS deployment via scripts.
 
 ```bash
-# Deploy to production VPS (recommended)
-ssh root@170.64.169.203 "cd /opt/pip && ./deploy/deploy.sh"
+# Deploy from local machine (recommended)
+./scripts/deploy-vps.sh
 
-# Or manually:
-ssh root@170.64.169.203
-cd /opt/pip && git pull
-./deploy/deploy.sh
+# What it does:
+# 1. Checks for uncommitted changes
+# 2. Pushes to GitHub
+# 3. SSHs to VPS and runs deploy/deploy.sh
+# 4. Runs health checks on production
+
+# Manual alternative (if needed):
+ssh root@170.64.169.203 "cd /opt/pip && ./deploy/deploy.sh"
 ```
 
-The deploy script (`deploy/deploy.sh`):
-1. Sources `.env` for secrets
-2. Pulls latest code
-3. Rebuilds ALL containers
-4. Runs health checks
+**Scripts:**
+- `scripts/dev.sh` - Start local development
+- `scripts/deploy-vps.sh` - Deploy to production VPS
+- `scripts/health-check.sh local|vps` - Check server health
+- `deploy/deploy.sh` - Runs ON the VPS (git pull + docker build)
 
 **Backups**: Daily at 3am UTC to `/opt/backups/pip/` (14-day retention)
 
@@ -126,7 +133,11 @@ cp .env.example .env
 # Edit .env with your API keys and credentials
 
 # Start development servers
-pnpm dev
+./scripts/dev.sh
+
+# Endpoints:
+#   PWA: http://app.pip.localhost:3000
+#   MCP: http://mcp.pip.localhost:3001
 ```
 
 ### Local Development Environments
@@ -143,29 +154,15 @@ Modern browsers resolve `*.localhost` automatically - no `/etc/hosts` needed!
 # Standard localhost (password managers confused)
 http://localhost:3000  ❌
 
-# Subdomain localhost (unique per-app identity)
-http://pip.localhost:3000  ✅
-```
-
-**Docker container setup for subdomain access:**
-
-```bash
-# Run container with host network
-docker run -d \
-  --name pip-app-local \
-  --network host \
-  -v pip-data-local:/app/data \
-  -e PORT=3000 \
-  pip-by-arc-forge-pip-app:latest
-
-# Access at: http://pip.localhost:3000
-# Password managers see: pip.localhost (unique!)
+# Subdomain localhost (unique per-app identity, matches production pattern)
+http://app.pip.localhost:3000  ✅  # PWA (matches app.pip.arcforge.au)
+http://mcp.pip.localhost:3001  ✅  # MCP (matches mcp.pip.arcforge.au)
 ```
 
 **Benefits:**
 - Password managers treat each subdomain as separate site
-- No conflicts between `pip.localhost:3000` and `other-app.localhost:3000`
-- Professional URLs without `/etc/hosts` hacking
+- URL pattern matches production (app.pip.*, mcp.pip.*)
+- No conflicts between projects
 - Works across all modern browsers
 
 #### Remote Access via Tailscale (Multi-Agent Development)
@@ -286,4 +283,4 @@ docker build --platform linux/amd64 -t pip-app .
 
 ---
 
-**Last Updated**: 2025-12-02
+**Last Updated**: 2025-12-11

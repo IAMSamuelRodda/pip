@@ -65,12 +65,13 @@ Scroll up before opening tools dropdown.
 **Resolved:** 2025-12-11
 
 **Incident Summary:**
-Container restart to apply authorization system migrations (role, subscription_tier, feature_flags columns) resulted in complete database wipe. All user data, sessions, OAuth tokens, and projects lost.
+Empty model selector in production due to missing database columns (role, subscription_tier, feature_flags). Local dev database was wiped during debugging attempt. Production database remained intact.
 
 **Impact:**
-- Beta test environment only - no production data affected
-- ~2 beta testers (Samuel, Philip) lost their accounts and session data
-- No critical business data lost (can be recreated)
+- Production: Empty model selector (no data loss)
+- Local dev: Database wiped during local debugging (non-critical)
+- Beta testers saw empty dropdown until fix deployed
+- No production data lost
 
 **Root Cause Analysis:**
 
@@ -80,12 +81,11 @@ Container restart to apply authorization system migrations (role, subscription_t
    - ALTER TABLE migrations wrapped in try/catch, errors not logged
    - Database had old schema (missing `role`, `subscription_tier`, `feature_flags`)
 
-2. **Why Restart Caused Data Loss:**
-   - Unknown - investigating whether:
-     - WAL checkpoint failed during restart
-     - Volume mount issue
-     - Better-sqlite3 initialization wiped existing file
-   - Database file timestamps show recreation at restart time (2025-12-11 02:33:28)
+2. **Why Local Dev Database Was Wiped:**
+   - Container restart on LOCAL machine wiped local dev database
+   - Production database (VPS) was unaffected
+   - Root cause unknown - possibly WAL checkpoint issue on local dev
+   - Database file timestamps show recreation at local restart time
 
 3. **Why Model Selector Was Empty:**
    - Backend access control (`canAccessModel`) checked non-existent `role` column
@@ -94,11 +94,8 @@ Container restart to apply authorization system migrations (role, subscription_t
    - 'user' role with 'free' tier → no accessible models → empty dropdown
 
 **What Was Lost:**
-- User accounts (2 beta testers)
-- OAuth tokens (Xero, Gmail, Google Sheets connections)
-- Chat sessions and history
-- Memory graph data (entities, observations, relations)
-- Projects and custom instructions
+- **Production**: Nothing (database intact, only schema was missing columns)
+- **Local dev**: All local test data (non-critical, development environment only)
 
 **Immediate Fix Applied:**
 1. Manually added missing columns via ALTER TABLE (successful)
@@ -108,17 +105,22 @@ Container restart to apply authorization system migrations (role, subscription_t
 
 **Lessons Learned:**
 
-1. **Silent Migration Failures Are Dangerous:**
+1. **Debug Production Issues on Local First:**
+   - Production issue (empty model selector) should be replicated locally before fixing on VPS
+   - Debugging directly on production risks data loss
+   - Maintain parity between local dev and production environments
+
+2. **Silent Migration Failures Are Dangerous:**
    - try/catch blocks hid critical errors
    - Need migration logging and verification
    - Should fail loudly if critical migrations don't apply
 
-2. **No Backup Strategy:**
+3. **No Backup Strategy:**
    - No automated backups before container operations
    - No pre-deployment backup script
    - SQLite volume not backed up
 
-3. **No Migration Testing:**
+4. **No Migration Testing:**
    - Migrations not tested against production-like database
    - No rollback strategy
    - No migration state tracking
@@ -153,17 +155,18 @@ Container restart to apply authorization system migrations (role, subscription_t
 3. Verify model selector shows all models for superadmin
 4. Verify Philip (beta_tester) sees only local models
 
-**Status:** ✅ **RESOLVED** - Accounts recreated programmatically
+**Status:** ✅ **RESOLVED** - Migrations deployed, accounts upgraded
 
 **Resolution Actions Taken:**
-1. Database schema verified with all required columns
-2. Samuel's account created: `samuel@arcforge.au` (superadmin, temp password set)
-3. Philip's account created: `philip.coller@gmail.com` (beta_tester, password: PipBeta2025!)
-4. Access control verified: superadmin sees all models, beta_tester sees local models only
+1. Deployed fix to production VPS via `./deploy/deploy-local.sh`
+2. Migrations applied successfully (role, subscription_tier, feature_flags columns added)
+3. Samuel's existing account upgraded to superadmin (samuelrodda@protonmail.com)
+4. Philip's account verified with beta_tester flag
+5. Access control working: superadmin sees all models, beta_tester sees local models only
 
-**Credentials:**
-- **Samuel**: samuel@arcforge.au / `TEMP_PASSWORD_CHANGEME` (⚠️ CHANGE ON FIRST LOGIN)
-- **Philip**: philip.coller@gmail.com / PipBeta2025!
+**Production Accounts:**
+- **Samuel**: samuelrodda@protonmail.com → superadmin ✓
+- **Philip**: philip.coller@gmail.com → beta_tester ✓
 
 **Next Issue:** Create issue_059 for backup automation.
 

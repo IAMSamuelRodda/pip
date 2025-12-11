@@ -38,13 +38,13 @@
 
 ### Recent Incidents & Resolutions (Dec 11)
 
-**⚠️ issue_058: Database Migration Failure - Data Loss Incident (RESOLVED)**
-- **What Happened**: Container restart to apply schema migrations wiped beta database
-- **Impact**: 2 beta testers lost accounts/sessions (non-critical, recreated)
-- **Root Cause**: Silent migration failures + missing columns caused empty model selector
-- **Resolution**: ✅ Database recreated, schema verified, accounts recreated programmatically
-- **Action Items**: Created issue_059 (backup automation), documented lessons learned
-- **Status**: ✅ COMPLETE - Samuel (superadmin) and Philip (beta_tester) accounts ready for testing
+**⚠️ issue_058: Database Migration Failure - Empty Model Selector (RESOLVED)**
+- **What Happened**: Missing database columns (role, subscription_tier, feature_flags) caused empty model selector
+- **Impact**: Production users saw empty dropdown; local dev database wiped during debugging
+- **Root Cause**: Migrations didn't run on existing production database; debugged on wrong environment (local vs VPS)
+- **Resolution**: ✅ Deployed migrations to VPS, upgraded accounts (Samuel→superadmin, Philip→beta_tester)
+- **Action Items**: Created issue_059 (backup automation), documented dual-environment workflow
+- **Status**: ✅ COMPLETE - Production fixed, accounts working, model selector showing all models
 
 ### Recently Completed (Dec 10-11)
 

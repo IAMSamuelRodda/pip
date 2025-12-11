@@ -19,6 +19,8 @@
 
 ## Architecture Quick Facts
 
+**Environments**: Local dev (`localhost:3000`) + Production VPS (`170.64.169.203`) - see `DEVELOPMENT.md` for deployment
+
 **Style**: Monolithic VPS architecture (Express + SQLite + PWA)
 
 **Structure**: Monorepo with packages (`@pip/*`)

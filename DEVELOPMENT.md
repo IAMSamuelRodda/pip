@@ -129,6 +129,74 @@ cp .env.example .env
 pnpm dev
 ```
 
+### Local Development Environments
+
+**Problem**: Multiple localhost apps confuse password managers and create credential overlap.
+
+**Solution**: Use `.localhost` subdomains for unique app identities.
+
+#### Subdomain Access (Recommended)
+
+Modern browsers resolve `*.localhost` automatically - no `/etc/hosts` needed!
+
+```bash
+# Standard localhost (password managers confused)
+http://localhost:3000  ❌
+
+# Subdomain localhost (unique per-app identity)
+http://pip.localhost:3000  ✅
+```
+
+**Docker container setup for subdomain access:**
+
+```bash
+# Run container with host network
+docker run -d \
+  --name pip-app-local \
+  --network host \
+  -v pip-data-local:/app/data \
+  -e PORT=3000 \
+  pip-by-arc-forge-pip-app:latest
+
+# Access at: http://pip.localhost:3000
+# Password managers see: pip.localhost (unique!)
+```
+
+**Benefits:**
+- Password managers treat each subdomain as separate site
+- No conflicts between `pip.localhost:3000` and `other-app.localhost:3000`
+- Professional URLs without `/etc/hosts` hacking
+- Works across all modern browsers
+
+#### Remote Access via Tailscale (Multi-Agent Development)
+
+For remote collaboration or multi-machine development:
+
+1. **Enable MagicDNS** in Tailscale admin console
+   → Settings → DNS → Enable MagicDNS
+
+2. **Access via Tailscale hostname:**
+   ```bash
+   # From any device on your Tailscale network:
+   http://x-forge:3000  # Your machine's Tailscale name
+   ```
+
+3. **Share with collaborators:**
+   - Invite them to your Tailscale network
+   - They access `http://x-forge:3000` directly
+   - End-to-end encrypted, no public exposure
+
+**Already using Tailscale?** You're using it for Ollama GPU access - just extend it for dev servers!
+
+#### Test Accounts (Local Dev)
+
+Local dev database includes pre-configured test accounts:
+
+| Email | Password | Role | Access |
+|-------|----------|------|--------|
+| `samuel@arcforge.au` | `dev123` | `superadmin` | All models |
+| `philip@test.local` | `dev123` | `user` (beta_tester flag) | Local models only |
+
 ---
 
 ## Testing

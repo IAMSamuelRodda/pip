@@ -9,7 +9,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-> **Last Updated**: 2025-12-10 (MCP Streamable HTTP transport)
+> **Last Updated**: 2025-12-11 (Resolved issues migration + model selector cleanup)
+
+### Resolved Issues (Migrated from ISSUES.md)
+
+**Dec 10-11: Critical Path Complete - Test User Onboarding**
+
+- **issue_051: MCP Transport Reliability - Streamable HTTP with SSE Fallback** ✅
+  - Implemented Streamable HTTP as primary transport (`POST /mcp`)
+  - Legacy SSE transport (`/sse`) retained as fallback
+  - Session management via `Mcp-Session-Id` header
+  - Supports JSON responses with `enableJsonResponse: true`
+  - Key file: `packages/pip-mcp/src/index.ts:840-985`
+
+- **issue_052: Rate Limiting System for API Model Usage** ✅
+  - Database layer: `token_usage` table with daily tracking
+  - RateLimiter service in `packages/core/src/auth/rate-limiter.ts`
+  - Orchestrator integration with pre-request checks + post-response recording
+  - Rate limits enforced per tier: Free (0), Beta (100k), Starter (50k), Pro (500k), Enterprise (5M)
+  - Key files: `packages/core/src/auth/rate-limiter.ts`, `packages/agent-core/src/orchestrator.ts`
+  - Deployed: 2025-12-10
+
+- **issue_054: Model Access Control by Subscription Tier** ✅
+  - Authorization system: Role (WHO) + Tier (WHAT) + Flags (OVERRIDES)
+  - Model registry with access control in `packages/core/src/auth/access-control.ts`
+  - Backend: `GET /api/chat/models` endpoint filters by user tier/flags
+  - Frontend: ChatInputArea shows only accessible models (Cloud/Local/BYOM sections)
+  - Current matrix: Opus/Sonnet/Haiku for Pro+, Local models for beta_tester flag, BYOM for free+
+  - Key files: `packages/core/src/auth/access-control.ts`, `packages/pwa-app/src/components/ChatInputArea.tsx`
+  - Deployed: 2025-12-10
+
+- **issue_055: Testing Phase GPU Optimization - Single Small Model Strategy** ✅
+  - Models configured: qwen2.5:0.5b (397MB VRAM, 75ms response) + qwen2.5:3b (1.9GB)
+  - Added both models to MODEL_CONFIGS with `beta_tester` flag requirement
+  - Keep-alive configured to maintain loaded state (response times < 2s)
+  - Accessible via Tailscale tunnel (100.64.0.2:11434)
+  - Key file: `packages/core/src/auth/access-control.ts`
+  - Deployed: 2025-12-10
+
+- **issue_056: Philip (Dad) Beta Tester Onboarding** ✅
+  - Complete onboarding documentation in `docs/PHILIP-BETA-SETUP.md`
+  - Account created: philip.coller@gmail.com with `beta_tester` flag
+  - Rate limit: 100k tokens/day (all models)
+  - Access restricted to: qwen2.5:0.5b, qwen2.5:3b (local GPU models only)
+  - Model selector UI cleaned up (header: "Local Models", descriptions: "Fast and private")
+  - BYOM option hidden for beta testing (needs API key input development)
+  - Credentials message prepared with Claude.ai MCP instructions
+  - Status: Ready for testing
+
+**Learnings:**
+- Resolved issues stay in ISSUES.md initially while being tracked in docs (STATUS.md, PROGRESS.md)
+- Archive policy: Move to CHANGELOG.md when resolved, keeping historical context
+- Feature flags (beta_tester) more effective than subscription tiers for access control during testing
+- Model selector UI benefits from simple language ("Local Models" vs "Local", "Fast and private" vs "Local - fast, private")
+- Docker bridge networks properly route Tailscale IPs (host network mode not required)
 
 ### Added
 - **MCP Streamable HTTP Transport (issue_051)** - New primary transport for MCP connections (2025-12-10)
